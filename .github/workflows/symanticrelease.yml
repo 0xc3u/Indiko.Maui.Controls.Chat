@@ -1,0 +1,30 @@
+name: SymanticRelease
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - "**.md"
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build
+        run:  dotnet build src\Indiko.Maui.Controls.Markdown.sln -c Release
+
+  symantic-release:
+    runs-on: windows-latest
+    environment:
+      name: ReleaseBuilds
+    needs: build  # This ensures the symantic-release job runs after the build job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

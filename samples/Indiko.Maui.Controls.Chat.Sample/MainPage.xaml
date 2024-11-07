@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:vm="clr-namespace:Indiko.Maui.Controls.Chat.Sample.ViewModels"
+             xmlns:idk="clr-namespace:Indiko.Maui.Controls.Chat;assembly=Indiko.Maui.Controls.Chat"
+             x:Class="Indiko.Maui.Controls.Chat.Sample.MainPage"
+			 x:DataType="vm:MainPageViewModel"
+             BackgroundColor="White"
+             Title="ChatView Sample">
+
+
+    <idk:ChatView x:Name="chatView"
+               Margin="10"
+               OwnMessageBackgroundColor="{StaticResource Primary}" 
+               OwnMessageTextColor="{StaticResource White}"
+               OtherMessageBackgroundColor="{StaticResource Secondary}"
+               OtherMessageTextColor="{StaticResource Black}"
+               DateTextColor="{StaticResource Gray500}"
+               MessageTimeTextColor="{StaticResource Gray200}"
+               NewMessagesSeperatorTextColor="{StaticResource Gray600}"
+               Messages="{Binding ChatMessages}">
+
+    </idk:ChatView>
+
+
+</ContentPage>
