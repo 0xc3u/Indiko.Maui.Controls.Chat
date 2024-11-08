@@ -4,30 +4,56 @@ using Android.Widget;
 
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
+
 public class ChatMessageViewHolder : RecyclerView.ViewHolder
 {
     public TextView DateTextView { get; }
     public TextView TextView { get; }
+    public ImageView ImageView { get; }
     public TextView TimestampTextView { get; }
-    public TextView NewMessagesSeperatorTextView { get; }
+    public FrameLayout FrameLayout { get; }
+    public TextView NewMessagesSeparatorTextView { get; }
     public aViews.View LeftLine { get; }
     public aViews.View RightLine { get; }
 
-    public ChatMessageViewHolder(
-        aViews.View itemView,
-        TextView dateTextView,
-        TextView textView,
-        TextView timestampTextView,
-        TextView newMessagesSeperatorTextView,
-        aViews.View leftLine,
-        aViews.View rightLine)
+    public ChatMessageViewHolder(aViews.View itemView, TextView dateTextView, TextView textView, ImageView imageView, TextView timestampTextView, FrameLayout frameLayout, TextView newMessagesSeparatorTextView, aViews.View leftLine, aViews.View rightLine)
         : base(itemView)
     {
         DateTextView = dateTextView;
         TextView = textView;
+        ImageView = imageView;
         TimestampTextView = timestampTextView;
-        NewMessagesSeperatorTextView = newMessagesSeperatorTextView;
+        FrameLayout = frameLayout;
+        NewMessagesSeparatorTextView = newMessagesSeparatorTextView;
         LeftLine = leftLine;
         RightLine = rightLine;
     }
 }
+
+//public class ChatMessageViewHolder : RecyclerView.ViewHolder
+//{
+//    public TextView DateTextView { get; }
+//    public TextView TextView { get; }
+//    public TextView TimestampTextView { get; }
+//    public TextView NewMessagesSeperatorTextView { get; }
+//    public aViews.View LeftLine { get; }
+//    public aViews.View RightLine { get; }
+
+//    public ChatMessageViewHolder(
+//        aViews.View itemView,
+//        TextView dateTextView,
+//        TextView textView,
+//        TextView timestampTextView,
+//        TextView newMessagesSeperatorTextView,
+//        aViews.View leftLine,
+//        aViews.View rightLine)
+//        : base(itemView)
+//    {
+//        DateTextView = dateTextView;
+//        TextView = textView;
+//        TimestampTextView = timestampTextView;
+//        NewMessagesSeperatorTextView = newMessagesSeperatorTextView;
+//        LeftLine = leftLine;
+//        RightLine = rightLine;
+//    }
+//}
