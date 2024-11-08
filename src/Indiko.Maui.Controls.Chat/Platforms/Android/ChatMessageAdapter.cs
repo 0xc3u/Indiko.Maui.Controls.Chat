@@ -10,6 +10,7 @@ using AndroidX.RecyclerView.Widget;
 using Microsoft.Maui.Platform;
 using Android.Widget;
 using AViews = Android.Views;
+using ANet = Android.Net;
 using Android.Graphics;
 using Paint = Android.Graphics.Paint;
 using Rect = Android.Graphics.Rect;
@@ -19,6 +20,7 @@ using Color = Microsoft.Maui.Graphics.Color;
 using AndroidX.ConstraintLayout.Widget;
 using Android.Views;
 using Indiko.Maui.Controls.Chat.Models;
+using aIO = Java.IO;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 // Android Part
@@ -129,6 +131,25 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         };
         frameLayout.AddView(imageView);
 
+        // Inside OnCreateViewHolder, add the VideoView wrapper
+        var videoContainer = new FrameLayout(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            Visibility = ViewStates.Gone
+        };
+
+        // Create the VideoView
+        var videoView = new VideoView(_context)
+        {
+            Id = AViews.View.GenerateViewId()
+        };
+
+        // Add the VideoView to the container
+        videoContainer.AddView(videoView);
+
+        // Add the videoContainer to the main frameLayout
+        frameLayout.AddView(videoContainer);
+
         // Timestamp TextView (displayed below the message bubble)
         var timestampTextView = new TextView(_context)
         {
@@ -174,7 +195,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         constraintSet.ApplyTo(constraintLayout);
 
-        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, timestampTextView, frameLayout, newMessagesSeparatorTextView, leftLine, rightLine);
+        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, newMessagesSeparatorTextView, leftLine, rightLine);
     }
 
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -206,6 +227,8 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             if (message.MessageType == MessageType.Text)
             {
                 chatHolder.ImageView.Visibility = ViewStates.Gone;
+                chatHolder.VideoContainer.Visibility = ViewStates.Gone;
+                chatHolder.VideoView.Visibility = ViewStates.Gone;
                 chatHolder.TextView.Visibility = ViewStates.Visible;
                 chatHolder.TextView.Text = message.TextContent;
                 chatHolder.TextView.SetTextColor(message.IsOwnMessage ? OwnMessageTextColor.ToPlatform() : OtherMessageTextColor.ToPlatform());
@@ -218,31 +241,100 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             }
             else if (message.MessageType == MessageType.Image)
             {
-                chatHolder.TextView.Visibility = ViewStates.Gone;
-                chatHolder.ImageView.Visibility = ViewStates.Visible;
+                if(message.BinaryContent != null)
+                {
+                    chatHolder.TextView.Visibility = ViewStates.Gone;
+                    chatHolder.ImageView.Visibility = ViewStates.Visible;
+                    chatHolder.VideoContainer.Visibility = ViewStates.Gone;
+                    chatHolder.VideoView.Visibility = ViewStates.Gone;
 
-                // Decode the bitmap and get its dimensions
-                var bitmap = BitmapFactory.DecodeByteArray(message.BinaryContent, 0, message.BinaryContent.Length);
-                chatHolder.ImageView.SetImageBitmap(bitmap);
+                    // Decode the bitmap and get its dimensions
+                    var bitmap = BitmapFactory.DecodeByteArray(message.BinaryContent, 0, message.BinaryContent.Length);
+                    chatHolder.ImageView.SetImageBitmap(bitmap);
 
-                // Create a drawable for rounded corners
-                var imageBackgroundDrawable = new GradientDrawable();
-                imageBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-                imageBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
-                chatHolder.ImageView.SetBackgroundDrawable(imageBackgroundDrawable);
+                    // Create a drawable for rounded corners
+                    var imageBackgroundDrawable = new GradientDrawable();
+                    imageBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
+                    imageBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
+                    chatHolder.ImageView.SetBackgroundDrawable(imageBackgroundDrawable);
 
-                // Calculate the dimensions for the image bubble
-                var imageDisplayMetrics = _context.Resources.DisplayMetrics;
-                int imagemaxWidth = (int)(imageDisplayMetrics.WidthPixels * 0.65); // Limit width to 65% of screen
-                float aspectRatio = (float)bitmap.Height / bitmap.Width;
-                int adjustedHeight = (int)(imagemaxWidth * aspectRatio);
+                    // Calculate the dimensions for the image bubble
+                    var imageDisplayMetrics = _context.Resources.DisplayMetrics;
+                    int imagemaxWidth = (int)(imageDisplayMetrics.WidthPixels * 0.65); // Limit width to 65% of screen
+                    float aspectRatio = (float)bitmap.Height / bitmap.Width;
+                    int adjustedHeight = (int)(imagemaxWidth * aspectRatio);
 
-                // Set the ImageView's layout parameters to size the bubble to the image
-                chatHolder.ImageView.LayoutParameters = new FrameLayout.LayoutParams(imagemaxWidth, adjustedHeight);
+                    // Set the ImageView's layout parameters to size the bubble to the image
+                    chatHolder.ImageView.LayoutParameters = new FrameLayout.LayoutParams(imagemaxWidth, adjustedHeight);
 
-                chatHolder.ImageView.SetPadding(32, 16, 32, 16);
+                    chatHolder.ImageView.SetPadding(32, 16, 32, 16);
+                }
+                else
+                {
+                    chatHolder.TextView.Visibility = ViewStates.Gone;
+                    chatHolder.ImageView.Visibility = ViewStates.Gone;
+                    chatHolder.VideoContainer.Visibility = ViewStates.Gone;
+                    chatHolder.VideoView.Visibility = ViewStates.Gone;
+                }
             }
+            else if (message.MessageType == MessageType.Video)
+            {
+                if (message.BinaryContent != null)
+                {
 
+                    chatHolder.TextView.Visibility = ViewStates.Gone;
+                    chatHolder.ImageView.Visibility = ViewStates.Gone;
+                    chatHolder.VideoContainer.Visibility = ViewStates.Visible;
+                    chatHolder.VideoView.Visibility = ViewStates.Visible;
+
+
+                    // Define the file path based on MessageId
+                    var tempFile = new aIO.File(_context.CacheDir, $"{message.MessageId}.mp4");
+
+                    // Check if file exists; if not, create it
+                    if (!tempFile.Exists())
+                    {
+                        using (var fileStream = new FileStream(tempFile.AbsolutePath, FileMode.Create, FileAccess.Write))
+                        {
+                            fileStream.Write(message.BinaryContent, 0, message.BinaryContent.Length);
+                        }
+                    }
+
+                    // Set the VideoView to play the temporary video file
+                    var videoUri = ANet.Uri.FromFile(tempFile);
+                    chatHolder.VideoView.SetVideoURI(videoUri);
+                    chatHolder.VideoView.RequestFocus();
+
+                    // Apply background with rounded corners to the container instead of VideoView
+                    var videoBackgroundDrawable = new GradientDrawable();
+                    videoBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
+                    videoBackgroundDrawable.SetCornerRadius(24f);
+                    chatHolder.VideoContainer.SetBackgroundDrawable(videoBackgroundDrawable);
+
+                    // Calculate dimensions for the video bubble
+                    var videodisplayMetrics = _context.Resources.DisplayMetrics;
+                    int videomaxWidth = (int)(videodisplayMetrics.WidthPixels * 0.65);
+                    float aspectRatio = 9f / 16f;
+                    int adjustedHeight = (int)(videomaxWidth * aspectRatio);
+
+                    // Set layout parameters for the container to size the bubble
+                    chatHolder.VideoContainer.LayoutParameters = new FrameLayout.LayoutParams(videomaxWidth, adjustedHeight);
+
+                    // Set padding on the container for consistent styling
+                    chatHolder.VideoContainer.SetPadding(32, 16, 32, 16);
+
+                    // Start playback when the video is ready
+                    chatHolder.VideoView.Start();
+
+                }
+                else
+                {
+                    chatHolder.TextView.Visibility = ViewStates.Gone;
+                    chatHolder.ImageView.Visibility = ViewStates.Gone;
+                    chatHolder.VideoContainer.Visibility = ViewStates.Gone;
+                    chatHolder.VideoView.Visibility = ViewStates.Gone;
+                }
+            }
 
             // Set dynamic width for the message bubble (65% of screen width)
             var displayMetrics = _context.Resources.DisplayMetrics;
