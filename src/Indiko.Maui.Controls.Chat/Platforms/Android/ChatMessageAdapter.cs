@@ -147,6 +147,18 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         // Add the VideoView to the container
         videoContainer.AddView(videoView);
 
+
+        // Inside OnCreateViewHolder, add the play button overlay to VideoContainer
+        var playButton = new ImageView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            Visibility = ViewStates.Visible // Visible by default
+        };
+
+        //playButton.SetImageResource(Resource.Drawable.IcMediaPlay);
+        playButton.SetScaleType(ImageView.ScaleType.CenterInside);
+        videoContainer.AddView(playButton);
+
         // Add the videoContainer to the main frameLayout
         frameLayout.AddView(videoContainer);
 
@@ -195,7 +207,8 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         constraintSet.ApplyTo(constraintLayout);
 
-        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, newMessagesSeparatorTextView, leftLine, rightLine);
+        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, 
+            playButton, timestampTextView, frameLayout, newMessagesSeparatorTextView, leftLine, rightLine);
     }
 
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -244,30 +257,48 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 if(message.BinaryContent != null)
                 {
                     chatHolder.TextView.Visibility = ViewStates.Gone;
-                    chatHolder.ImageView.Visibility = ViewStates.Visible;
-                    chatHolder.VideoContainer.Visibility = ViewStates.Gone;
-                    chatHolder.VideoView.Visibility = ViewStates.Gone;
+                    chatHolder.ImageView.Visibility = ViewStates.Gone;
+                    chatHolder.VideoContainer.Visibility = ViewStates.Visible;
+                    chatHolder.VideoView.Visibility = ViewStates.Visible;
+                    chatHolder.PlayButton.Visibility = ViewStates.Visible;
 
-                    // Decode the bitmap and get its dimensions
-                    var bitmap = BitmapFactory.DecodeByteArray(message.BinaryContent, 0, message.BinaryContent.Length);
-                    chatHolder.ImageView.SetImageBitmap(bitmap);
+                    // Save binary content to a temporary file
+                    var tempFile = new aIO.File(_context.CacheDir, $"{message.MessageId}.mp4");
+                    if (!tempFile.Exists())
+                    {
+                        using (var fileStream = new FileStream(tempFile.AbsolutePath, FileMode.Create, FileAccess.Write))
+                        {
+                            fileStream.Write(message.BinaryContent, 0, message.BinaryContent.Length);
+                        }
+                    }
 
-                    // Create a drawable for rounded corners
-                    var imageBackgroundDrawable = new GradientDrawable();
-                    imageBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-                    imageBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
-                    chatHolder.ImageView.SetBackgroundDrawable(imageBackgroundDrawable);
+                    // Set the VideoView to play the temporary video file
+                    var videoUri = ANet.Uri.FromFile(tempFile);
+                    chatHolder.VideoView.SetVideoURI(videoUri);
+                    chatHolder.VideoView.RequestFocus();
 
-                    // Calculate the dimensions for the image bubble
-                    var imageDisplayMetrics = _context.Resources.DisplayMetrics;
-                    int imagemaxWidth = (int)(imageDisplayMetrics.WidthPixels * 0.65); // Limit width to 65% of screen
-                    float aspectRatio = (float)bitmap.Height / bitmap.Width;
-                    int adjustedHeight = (int)(imagemaxWidth * aspectRatio);
+                    // Apply background with rounded corners to the video container
+                    var videoBackgroundDrawable = new GradientDrawable();
+                    videoBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
+                    videoBackgroundDrawable.SetCornerRadius(24f);
+                    chatHolder.VideoContainer.SetBackgroundDrawable(videoBackgroundDrawable);
 
-                    // Set the ImageView's layout parameters to size the bubble to the image
-                    chatHolder.ImageView.LayoutParameters = new FrameLayout.LayoutParams(imagemaxWidth, adjustedHeight);
+                    // Calculate dimensions for the video bubble
+                    var videodisplayMetrics = _context.Resources.DisplayMetrics;
+                    int videomaxWidth = (int)(videodisplayMetrics.WidthPixels * 0.65);
+                    float aspectRatio = 9f / 16f;
+                    int adjustedHeight = (int)(videomaxWidth * aspectRatio);
 
-                    chatHolder.ImageView.SetPadding(32, 16, 32, 16);
+                    // Set layout parameters for the container to size the bubble
+                    chatHolder.VideoContainer.LayoutParameters = new FrameLayout.LayoutParams(videomaxWidth, adjustedHeight);
+                    chatHolder.VideoContainer.SetPadding(32, 16, 32, 16);
+
+                    // Set click event for play button
+                    chatHolder.PlayButton.Click += (sender, args) =>
+                    {
+                        chatHolder.VideoView.Start(); // Start video playback
+                        chatHolder.PlayButton.Visibility = ViewStates.Gone; // Hide play button
+                    };
                 }
                 else
                 {

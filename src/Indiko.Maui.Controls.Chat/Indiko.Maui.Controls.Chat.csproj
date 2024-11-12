@@ -52,4 +52,8 @@
 	  <PackageReference Update="Microsoft.Maui.Controls.Compatibility" Version="8.0.92" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Platforms\Android\Resources\Drawable\" />
+	</ItemGroup>
+
 </Project>

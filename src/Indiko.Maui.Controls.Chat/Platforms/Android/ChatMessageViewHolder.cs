@@ -12,20 +12,25 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder
     public ImageView ImageView { get; }
     public VideoView VideoView { get; }
     public FrameLayout VideoContainer { get; }
+    public ImageView PlayButton { get; }
     public TextView TimestampTextView { get; }
     public FrameLayout FrameLayout { get; }
     public TextView NewMessagesSeparatorTextView { get; }
     public aViews.View LeftLine { get; }
     public aViews.View RightLine { get; }
 
-    public ChatMessageViewHolder(aViews.View itemView, TextView dateTextView, TextView textView, ImageView imageView, FrameLayout videoContainer, VideoView videoView, TextView timestampTextView, FrameLayout frameLayout, TextView newMessagesSeparatorTextView, aViews.View leftLine, aViews.View rightLine)
+    public ChatMessageViewHolder(aViews.View itemView, TextView dateTextView, TextView textView, 
+        ImageView imageView, FrameLayout videoContainer, VideoView videoView, ImageView playButton,
+        TextView timestampTextView, 
+        FrameLayout frameLayout, TextView newMessagesSeparatorTextView, aViews.View leftLine, aViews.View rightLine)
         : base(itemView)
     {
         DateTextView = dateTextView;
         TextView = textView;
         ImageView = imageView;
-        VideoContainer = videoContainer;  // Initialize the video container
-        VideoView = videoView;  // Initialize VideoView
+        VideoContainer = videoContainer;
+        VideoView = videoView;
+        PlayButton = playButton;
         TimestampTextView = timestampTextView;
         FrameLayout = frameLayout;
         NewMessagesSeparatorTextView = newMessagesSeparatorTextView;
