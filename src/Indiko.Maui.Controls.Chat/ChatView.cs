@@ -134,6 +134,20 @@ public class ChatView : View
     }
 
 
+    public static readonly BindableProperty AvatarBackgroundColorProperty = BindableProperty.Create(nameof(AvatarBackgroundColor), typeof(Color), typeof(ChatView), Colors.LightBlue);
+    public Color AvatarBackgroundColor
+    {
+        get => (Color)GetValue(AvatarBackgroundColorProperty);
+        set => SetValue(AvatarBackgroundColorProperty, value);
+    }
+
+    public static readonly BindableProperty AvatarTextColorProperty = BindableProperty.Create(nameof(AvatarTextColor), typeof(Color), typeof(ChatView), Colors.White);
+    public Color AvatarTextColor
+    {
+        get => (Color)GetValue(AvatarTextColorProperty);
+        set => SetValue(AvatarTextColorProperty, value);
+    }
+
     public static readonly BindableProperty ScrollToFirstNewMessageProperty = BindableProperty.Create(nameof(ScrollToFirstNewMessage), typeof(bool), typeof(ChatView), true);
     public bool ScrollToFirstNewMessage
     {

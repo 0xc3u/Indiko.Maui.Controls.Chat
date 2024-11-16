@@ -18,6 +18,8 @@
                DateTextColor="{StaticResource Gray500}"
                MessageTimeTextColor="{StaticResource Gray200}"
                NewMessagesSeperatorTextColor="{StaticResource Gray600}"
+               AvatarTextColor="{StaticResource White}"
+               AvatarBackgroundColor="{StaticResource Secondary}"
                Messages="{Binding ChatMessages}">
 
     </idk:ChatView>

@@ -20,6 +20,8 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         [nameof(ChatView.NewMessagesSeperatorFontSize)] = MapAdapter,
         [nameof(ChatView.AvatarSize)] = MapAdapter,
         [nameof(ChatView.ScrollToFirstNewMessage)] = MapAdapter,
+        [nameof(ChatView.AvatarBackgroundColor)] = MapAdapter,
+        [nameof(ChatView.AvatarTextColor)] = MapAdapter,
 
     };
 
@@ -73,8 +75,11 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             NewMessagesSeperatorFontSize = VirtualView.NewMessagesSeperatorFontSize,
             NewMessagesSeperatorTextColor = VirtualView.NewMessagesSeperatorTextColor,
             NewMessagesSeperatorText = VirtualView.NewMessagesSeperatorText,
+            ScrollToFirstNewMessage = VirtualView.ScrollToFirstNewMessage,
             AvatarSize = VirtualView.AvatarSize,
-            ScrollToFirstNewMessage = VirtualView.ScrollToFirstNewMessage
+            AvatarBackgroundColor = VirtualView.AvatarBackgroundColor,
+            AvatarTextColor = VirtualView.AvatarTextColor,
+
         };
 
         recyclerView.SetAdapter(adapter);

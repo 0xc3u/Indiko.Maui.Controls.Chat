@@ -46,6 +46,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public float NewMessagesSeperatorFontSize { get; set; }
     public string NewMessagesSeperatorText { get; set; }
     public float AvatarSize { get; set; }
+    public Color AvatarBackgroundColor { get; set; }
+    public Color AvatarTextColor { get; set; }
+
     public bool ScrollToFirstNewMessage { get; set; }
 
     public ChatMessageAdapter(Context context, IList<ChatMessage> messages)
@@ -278,7 +281,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     // Default placeholder if initials are not available
                     var avatarPlaceholder = new GradientDrawable();
                     avatarPlaceholder.SetShape(ShapeType.Oval);
-                    avatarPlaceholder.SetColor(AColor.Gray); // Placeholder color
+                    avatarPlaceholder.SetColor(AvatarBackgroundColor.ToPlatform()); // Placeholder color
                     chatHolder.AvatarView.SetBackgroundDrawable(avatarPlaceholder);
                     chatHolder.AvatarView.SetImageBitmap(null);
                 }
@@ -480,7 +483,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             Paint backgroundPaint = new Paint
             {
                 AntiAlias = true,
-                Color = AColor.Gray // Background color
+                Color = AvatarBackgroundColor.ToPlatform() // Background color
             };
             canvas.DrawCircle(width / 2f, height / 2f, width / 2f, backgroundPaint);
 
@@ -488,7 +491,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             Paint textPaint = new Paint
             {
                 AntiAlias = true,
-                Color = AColor.White, // Text color
+                Color = AvatarTextColor.ToPlatform(), // Text color
                 TextAlign = Paint.Align.Center,
                 TextSize = width / 3f // Adjust text size based on avatar size
             };
