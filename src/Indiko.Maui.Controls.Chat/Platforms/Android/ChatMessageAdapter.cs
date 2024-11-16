@@ -111,24 +111,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         newMessagesSeparatorTextView.SetTextColor(NewMessagesSeperatorTextColor.ToPlatform());
         constraintLayout.AddView(newMessagesSeparatorTextView);
 
-        // Left line for "New Messages" separator
-        var leftLine = new AViews.View(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            LayoutParameters = new ConstraintLayout.LayoutParams(0, 2)
-        };
-        leftLine.SetBackgroundColor(NewMessagesSeperatorTextColor.ToPlatform());
-        constraintLayout.AddView(leftLine);
-
-        // Right line for "New Messages" separator
-        var rightLine = new AViews.View(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            LayoutParameters = new ConstraintLayout.LayoutParams(0, 2)
-        };
-        rightLine.SetBackgroundColor(NewMessagesSeperatorTextColor.ToPlatform());
-        constraintLayout.AddView(rightLine);
-
         // FrameLayout for message content (Text or Image)
         var frameLayout = new FrameLayout(_context)
         {
@@ -198,20 +180,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         // Constraints for the "New Messages" separator text
         constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.Top, dateTextView.Id, ConstraintSet.Bottom, 8);
-        constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.Start, leftLine.Id, ConstraintSet.End, 8);
-        constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.End, rightLine.Id, ConstraintSet.Start, 8);
+        constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start);
+        constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End);
 
-        // Constraints for left line
-        constraintSet.Connect(leftLine.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
-        constraintSet.Connect(leftLine.Id, ConstraintSet.End, newMessagesSeparatorTextView.Id, ConstraintSet.Start, 8);
-        constraintSet.ConstrainWidth(leftLine.Id, 0);
-        constraintSet.SetHorizontalWeight(leftLine.Id, 1f);
-
-        // Constraints for right line
-        constraintSet.Connect(rightLine.Id, ConstraintSet.Start, newMessagesSeparatorTextView.Id, ConstraintSet.End, 8);
-        constraintSet.Connect(rightLine.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
-        constraintSet.ConstrainWidth(rightLine.Id, 0);
-        constraintSet.SetHorizontalWeight(rightLine.Id, 1f);
 
         // Constraints for frameLayout (container for textView and imageView)
         constraintSet.Connect(frameLayout.Id, ConstraintSet.Top, newMessagesSeparatorTextView.Id, ConstraintSet.Bottom, 8);
@@ -223,7 +194,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         constraintSet.ApplyTo(constraintLayout);
 
-        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, newMessagesSeparatorTextView, leftLine, rightLine, avatarView);
+        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, newMessagesSeparatorTextView, avatarView);
 
     }
 
@@ -242,14 +213,10 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             {
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Visible;
                 chatHolder.NewMessagesSeparatorTextView.Text = NewMessagesSeperatorText;
-                chatHolder.LeftLine.Visibility = ViewStates.Visible;
-                chatHolder.RightLine.Visibility = ViewStates.Visible;
             }
             else
             {
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
-                chatHolder.LeftLine.Visibility = ViewStates.Gone;
-                chatHolder.RightLine.Visibility = ViewStates.Gone;
             }
 
             // Avatar handling

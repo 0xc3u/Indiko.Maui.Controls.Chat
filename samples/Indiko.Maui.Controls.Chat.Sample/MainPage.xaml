@@ -17,7 +17,9 @@
                OtherMessageTextColor="{StaticResource Black}"
                DateTextColor="{StaticResource Gray500}"
                MessageTimeTextColor="{StaticResource Gray200}"
-               NewMessagesSeperatorTextColor="{StaticResource Gray600}"
+               NewMessagesSeperatorTextColor="{StaticResource Primary}"
+               NewMessagesSeperatorFontSize="16"
+               NewMessagesSeperatorText="New Messages"
                AvatarTextColor="{StaticResource White}"
                AvatarBackgroundColor="{StaticResource Secondary}"
                Messages="{Binding ChatMessages}">

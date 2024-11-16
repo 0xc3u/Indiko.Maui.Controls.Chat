@@ -16,11 +16,10 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder
     public TextView TimestampTextView { get; }
     public FrameLayout FrameLayout { get; }
     public TextView NewMessagesSeparatorTextView { get; }
-    public aViews.View LeftLine { get; }
-    public aViews.View RightLine { get; }
+
     public ImageView AvatarView { get; } // New avatar view
 
-    public ChatMessageViewHolder(aViews.View itemView, TextView dateTextView, TextView textView, ImageView imageView, FrameLayout videoContainer, VideoView videoView, TextView timestampTextView, FrameLayout frameLayout, TextView newMessagesSeparatorTextView, aViews.View leftLine, aViews.View rightLine, ImageView avatarView)
+    public ChatMessageViewHolder(aViews.View itemView, TextView dateTextView, TextView textView, ImageView imageView, FrameLayout videoContainer, VideoView videoView, TextView timestampTextView, FrameLayout frameLayout, TextView newMessagesSeparatorTextView, ImageView avatarView)
         : base(itemView)
     {
         DateTextView = dateTextView;
@@ -31,9 +30,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder
         TimestampTextView = timestampTextView;
         FrameLayout = frameLayout;
         NewMessagesSeparatorTextView = newMessagesSeparatorTextView;
-        LeftLine = leftLine;
-        RightLine = rightLine;
-        AvatarView = avatarView; // Initialize avatar view
+        AvatarView = avatarView;
     }
 }
 
