@@ -48,7 +48,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public float AvatarSize { get; set; }
     public Color AvatarBackgroundColor { get; set; }
     public Color AvatarTextColor { get; set; }
-
     public bool ScrollToFirstNewMessage { get; set; }
 
     public ChatMessageAdapter(Context context, IList<ChatMessage> messages)
@@ -58,11 +57,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     }
 
     public override int ItemCount => _messages.Count;
-
-
-
-
-
 
     public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
     {

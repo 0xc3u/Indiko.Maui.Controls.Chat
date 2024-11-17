@@ -6,26 +6,33 @@ using Microsoft.Maui.Handlers;
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 {
-    public static IPropertyMapper<ChatView, ChatViewHandler> Mapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
+    public static IPropertyMapper<ChatView, ChatViewHandler> PropertyMapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
     {
-        [nameof(ChatView.Messages)] = MapAdapter,
-        [nameof(ChatView.OwnMessageBackgroundColor)] = MapAdapter,
-        [nameof(ChatView.OtherMessageBackgroundColor)] = MapAdapter,
-        [nameof(ChatView.DateTextColor)] = MapAdapter,
-        [nameof(ChatView.MessageTimeTextColor)] = MapAdapter,
-        [nameof(ChatView.NewMessagesSeperatorTextColor)] = MapAdapter,
-        [nameof(ChatView.MessageFontSize)] = MapAdapter,
-        [nameof(ChatView.DateTextFontSize)] = MapAdapter,
-        [nameof(ChatView.MessageTimeFontSize)] = MapAdapter,
-        [nameof(ChatView.NewMessagesSeperatorFontSize)] = MapAdapter,
-        [nameof(ChatView.AvatarSize)] = MapAdapter,
-        [nameof(ChatView.ScrollToFirstNewMessage)] = MapAdapter,
-        [nameof(ChatView.AvatarBackgroundColor)] = MapAdapter,
-        [nameof(ChatView.AvatarTextColor)] = MapAdapter,
+        [nameof(ChatView.Messages)] = MapProperties,
+        [nameof(ChatView.OwnMessageBackgroundColor)] = MapProperties,
+        [nameof(ChatView.OtherMessageBackgroundColor)] = MapProperties,
+        [nameof(ChatView.DateTextColor)] = MapProperties,
+        [nameof(ChatView.MessageTimeTextColor)] = MapProperties,
+        [nameof(ChatView.NewMessagesSeperatorTextColor)] = MapProperties,
+        [nameof(ChatView.MessageFontSize)] = MapProperties,
+        [nameof(ChatView.DateTextFontSize)] = MapProperties,
+        [nameof(ChatView.MessageTimeFontSize)] = MapProperties,
+        [nameof(ChatView.NewMessagesSeperatorFontSize)] = MapProperties,
+        [nameof(ChatView.AvatarSize)] = MapProperties,
+        [nameof(ChatView.ScrollToFirstNewMessage)] = MapProperties,
+        [nameof(ChatView.AvatarBackgroundColor)] = MapProperties,
+        [nameof(ChatView.AvatarTextColor)] = MapProperties,
 
     };
 
-    public ChatViewHandler() : base(Mapper)
+    public static CommandMapper<ChatView, ChatViewHandler> CommandMapper = new CommandMapper<ChatView, ChatViewHandler>()
+    {
+        [nameof(ChatView.LoadMoreMessagesCommand)] = MapCommands,
+        [nameof(ChatView.MessageTappedCommand)] = MapCommands,
+        [nameof(ChatView.ScrolledCommand)] = MapCommands
+    };
+
+    public ChatViewHandler() : base(PropertyMapper, CommandMapper)
     {
     }
 
@@ -42,16 +49,27 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         recyclerView.SetLayoutManager(layoutManager);
 
         // Add a scroll listener to detect when the user scrolls to the top
-        recyclerView.AddOnScrollListener(new OnScrollListener(() =>
-        {
-            VirtualView?.LoadMoreMessages(); // Trigger the event in ChatView
-        }));
+        recyclerView.AddOnScrollListener(new OnScrollListener(
+             (args) =>
+             {
+                 VirtualView?.ScrolledCommand?.Execute(args); // Trigger the command in ChatView
+             },
+            () =>
+            {
+                VirtualView?.LoadMoreMessagesCommand?.Execute(null); // Trigger the command in ChatView
+            }
+            ));
 
         RenderMessages(recyclerView);
         return recyclerView;
     }
 
-    private static void MapAdapter(ChatViewHandler handler, ChatView chatView)
+    private static void MapCommands(ChatViewHandler handler, ChatView view, object? args)
+    {
+
+    }
+
+    private static void MapProperties(ChatViewHandler handler, ChatView chatView)
     {
         handler.RenderMessages(handler.PlatformView);
     }
@@ -105,16 +123,21 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 // Custom OnScrollListener to detect scrolling to the top
 public class OnScrollListener : RecyclerView.OnScrollListener
 {
+    private readonly Action<ScrolledArgs> _onScrolled;
     private readonly Action _onScrolledToTop;
 
-    public OnScrollListener(Action onScrolledToTop)
+    public OnScrollListener(Action<ScrolledArgs> onScrolled, Action onScrolledToTop)
     {
+        _onScrolled = onScrolled;
         _onScrolledToTop = onScrolledToTop;
     }
 
     public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
     {
         base.OnScrolled(recyclerView, dx, dy);
+
+        var scrolledArgs = new ScrolledArgs { X = dx, Y = dy };
+        _onScrolled.Invoke(scrolledArgs);
 
         var layoutManager = recyclerView.GetLayoutManager() as LinearLayoutManager;
         if (layoutManager != null && layoutManager.FindFirstVisibleItemPosition() == 0)

@@ -22,7 +22,10 @@
                NewMessagesSeperatorText="New Messages"
                AvatarTextColor="{StaticResource White}"
                AvatarBackgroundColor="{StaticResource Secondary}"
-               Messages="{Binding ChatMessages}">
+               Messages="{Binding ChatMessages}"
+               ScrollToFirstNewMessage="True"
+               LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
+               ScrolledCommand="{Binding ScrolledCommand}">
 
     </idk:ChatView>
 

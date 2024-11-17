@@ -6,10 +6,10 @@ using Indiko.Maui.Controls.Chat.Models;
 namespace Indiko.Maui.Controls.Chat.Sample.ViewModels;
 public partial class MainPageViewModel : BaseViewModel
 {
+    List<User> actors;
 
     [ObservableProperty]
     ObservableCollection<ChatMessage> chatMessages;
-
 
     public override void OnAppearing(object param)
 	{
@@ -25,7 +25,7 @@ public partial class MainPageViewModel : BaseViewModel
         DateTime timestamp = DateTime.Now.AddDays(-3);
 
 
-        List<User> actors = new List<User>
+        actors = new List<User>
         {
             new User
             {
@@ -145,6 +145,47 @@ public partial class MainPageViewModel : BaseViewModel
         ChatMessages = new ObservableCollection<ChatMessage>(messages);
 
     }
+
+
+    [RelayCommand]
+    private void LoadOlderMessages()
+    {
+
+        // create 10 older messages
+        DateTime timestamp = DateTime.Now.AddDays(-5);
+        var olderMessages = new List<ChatMessage>();
+        for (int i = 0; i < 10; i++)
+        {
+            var actor = actors[i % 3];
+            olderMessages.Add(new ChatMessage
+            {
+                TextContent = "Older message " + i,
+                IsOwnMessage = actor.IsOwnMessage,
+                Timestamp = timestamp.AddHours(i * 5),
+                SenderAvatar = actor.Avatar,
+                SenderInitials = actor.Initials,
+                MessageId = Guid.NewGuid().ToString(),
+                MessageType = MessageType.Text,
+                ReadState = MessageReadState.Read
+            });
+        }
+
+        // insert older messages at the beginning of the list
+        foreach (var message in olderMessages)
+        {
+            ChatMessages.Insert(0, message);
+        }
+
+
+    }
+
+
+    [RelayCommand]
+    private void Scrolled(ScrolledArgs scrolledArgs)
+    {
+
+    }
+
 }
 
 internal class User

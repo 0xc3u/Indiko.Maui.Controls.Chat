@@ -4,14 +4,18 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Indiko.Maui.Controls.Chat.Models;
 
 namespace Indiko.Maui.Controls.Chat;
 public class ChatView : View
 {
     public event EventHandler MessagesUpdatedEvent;
-
     public event EventHandler LoadMoreMessagesRequested;
+
+    // add a eventhandler for MessageTappendEvent
+    public event EventHandler<ChatMessage> MessageTappedEvent;
+
 
     public void LoadMoreMessages()
     {
@@ -26,6 +30,27 @@ public class ChatView : View
         {
             Messages.Insert(0, message);
         }
+    }
+
+    public static readonly BindableProperty ScrolledCommandProperty = BindableProperty.Create(nameof(ScrolledCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand ScrolledCommand
+    {
+        get => (ICommand)GetValue(ScrolledCommandProperty);
+        set => SetValue(ScrolledCommandProperty, value);
+    }
+
+    public static readonly BindableProperty MessageTappedCommandProperty = BindableProperty.Create(nameof(MessageTappedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand MessageTappedCommand
+    {
+        get => (ICommand)GetValue(MessageTappedCommandProperty);
+        set => SetValue(MessageTappedCommandProperty, value);
+    }
+
+    public static readonly BindableProperty LoadMoreMessagesCommandProperty = BindableProperty.Create(nameof(LoadMoreMessagesCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand LoadMoreMessagesCommand
+    {
+        get => (ICommand)GetValue(LoadMoreMessagesCommandProperty);
+        set => SetValue(LoadMoreMessagesCommandProperty, value);
     }
 
 
@@ -165,4 +190,10 @@ public class ChatView : View
     {
         MessagesUpdatedEvent?.Invoke(this, EventArgs.Empty);
     }
+}
+
+public class ScrolledArgs
+{
+    public int X { get; set; }
+    public int Y { get; set; }
 }

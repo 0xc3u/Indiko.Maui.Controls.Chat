@@ -5,5 +5,6 @@ public enum MessageType
     Text,
     Image,
     Video,
-    Audio
+    Audio,
+    System
 }
