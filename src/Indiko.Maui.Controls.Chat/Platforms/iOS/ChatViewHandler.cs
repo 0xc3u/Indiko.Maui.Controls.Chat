@@ -1,4 +1,5 @@
-﻿using CoreGraphics;
+﻿using System.Runtime.InteropServices;
+using CoreGraphics;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Handlers;
@@ -38,18 +39,13 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     }
 
     private ChatMessageCollectionViewSource _dataSource;
-    private UICollectionViewFlowLayout _flowLayout;
 
     protected override UICollectionView CreatePlatformView()
     {
-        _flowLayout = new UICollectionViewFlowLayout
-        {
-            EstimatedItemSize = UICollectionViewFlowLayout.AutomaticSize,
-            MinimumLineSpacing = 10,
-            SectionInset = new UIEdgeInsets(10, 10, 10, 10)
-        };
+        // Create UICollectionViewCompositionalLayout
+        var layout = CreateCompositionalLayout();
 
-        var collectionView = new UICollectionView(CGRect.Empty, _flowLayout)
+        var collectionView = new UICollectionView(CGRect.Empty, layout)
         {
             BackgroundColor = UIColor.Clear
         };
@@ -62,6 +58,40 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
         return collectionView;
     }
+
+    private UICollectionViewCompositionalLayout CreateCompositionalLayout()
+    {
+        return new UICollectionViewCompositionalLayout((sectionIndex, layoutEnvironment) =>
+        {
+            // Define the item size
+            var itemSize = NSCollectionLayoutSize.Create(
+                NSCollectionLayoutDimension.CreateFractionalWidth((NFloat)1.0), // Full width
+                NSCollectionLayoutDimension.CreateEstimated((NFloat)100)); // Estimated height for dynamic content
+
+            // Create the item
+            var item = NSCollectionLayoutItem.Create(itemSize);
+
+            // Define the group size (one item per group in a vertical list)
+            var groupSize = NSCollectionLayoutSize.Create(
+                NSCollectionLayoutDimension.CreateFractionalWidth((NFloat)1.0), // Full width
+                NSCollectionLayoutDimension.CreateEstimated((NFloat)100)); // Matches item height dynamically
+
+            // Create the group
+            var group = NSCollectionLayoutGroup.CreateVertical(groupSize, new[] { item });
+
+            // Define the section
+            var section = NSCollectionLayoutSection.Create(group);
+
+            // Set spacing and insets
+            section.InterGroupSpacing = new NFloat(2); // Space between messages
+            section.ContentInsets = new NSDirectionalEdgeInsets(new NFloat(5), new NFloat(5), new NFloat(5), new NFloat(5)); // Padding for the section
+
+            return section;
+        });
+    }
+
+
+
 
     private static void MapProperties(ChatViewHandler handler, ChatView chatView)
     {

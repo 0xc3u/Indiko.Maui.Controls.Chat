@@ -151,30 +151,30 @@ public partial class MainPageViewModel : BaseViewModel
     private void LoadOlderMessages()
     {
 
-        // create 10 older messages
-        DateTime timestamp = DateTime.Now.AddDays(-5);
-        var olderMessages = new List<ChatMessage>();
-        for (int i = 0; i < 10; i++)
-        {
-            var actor = actors[i % 3];
-            olderMessages.Add(new ChatMessage
-            {
-                TextContent = "Older message " + i,
-                IsOwnMessage = actor.IsOwnMessage,
-                Timestamp = timestamp.AddHours(i * 5),
-                SenderAvatar = actor.Avatar,
-                SenderInitials = actor.Initials,
-                MessageId = Guid.NewGuid().ToString(),
-                MessageType = MessageType.Text,
-                ReadState = MessageReadState.Read
-            });
-        }
+        //// create 10 older messages
+        //DateTime timestamp = DateTime.Now.AddDays(-5);
+        //var olderMessages = new List<ChatMessage>();
+        //for (int i = 0; i < 10; i++)
+        //{
+        //    var actor = actors[i % 3];
+        //    olderMessages.Add(new ChatMessage
+        //    {
+        //        TextContent = "Older message " + i,
+        //        IsOwnMessage = actor.IsOwnMessage,
+        //        Timestamp = timestamp.AddHours(i * 5),
+        //        SenderAvatar = actor.Avatar,
+        //        SenderInitials = actor.Initials,
+        //        MessageId = Guid.NewGuid().ToString(),
+        //        MessageType = MessageType.Text,
+        //        ReadState = MessageReadState.Read
+        //    });
+        //}
 
-        // insert older messages at the beginning of the list
-        foreach (var message in olderMessages)
-        {
-            ChatMessages.Insert(0, message);
-        }
+        //// insert older messages at the beginning of the list
+        //foreach (var message in olderMessages)
+        //{
+        //    ChatMessages.Insert(0, message);
+        //}
 
 
     }

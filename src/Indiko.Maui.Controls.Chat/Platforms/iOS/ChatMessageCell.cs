@@ -6,6 +6,11 @@ using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
+using CoreGraphics;
+using Foundation;
+using Indiko.Maui.Controls.Chat.Models;
+using UIKit;
+
 public class ChatMessageCell : UICollectionViewCell
 {
     public static readonly NSString Key = new NSString(nameof(ChatMessageCell));
@@ -18,6 +23,7 @@ public class ChatMessageCell : UICollectionViewCell
     public ChatMessageCell(IntPtr handle) : base(handle)
     {
         InitializeViews();
+        SetupConstraints();
     }
 
     private void InitializeViews()
@@ -25,36 +31,83 @@ public class ChatMessageCell : UICollectionViewCell
         _bubbleBackground = new UIView
         {
             Layer = { CornerRadius = 16 },
-            ClipsToBounds = true
+            ClipsToBounds = false,
+            TranslatesAutoresizingMaskIntoConstraints = true,
         };
 
         _textLabel = new UILabel
         {
-            Lines = 0
+            Lines = 0, // Allow multi-line text
+            LineBreakMode = UILineBreakMode.WordWrap, // Wrap text instead of truncating
+            TranslatesAutoresizingMaskIntoConstraints = false
         };
 
         _avatarImageView = new UIImageView
         {
             Layer = { CornerRadius = 18 },
             ClipsToBounds = true,
-            ContentMode = UIViewContentMode.ScaleAspectFill
+            ContentMode = UIViewContentMode.ScaleAspectFill,
+            TranslatesAutoresizingMaskIntoConstraints = false
         };
 
         _timestampLabel = new UILabel
         {
             Font = UIFont.SystemFontOfSize(10),
-            TextColor = UIColor.Gray
+            TextColor = UIColor.Gray,
+            TranslatesAutoresizingMaskIntoConstraints = false
         };
 
         ContentView.AddSubviews(_bubbleBackground, _textLabel, _avatarImageView, _timestampLabel);
     }
 
+    private void SetupConstraints()
+    {
+        // Avatar constraints
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            _avatarImageView.LeadingAnchor.ConstraintEqualTo(ContentView.LeadingAnchor, 10),
+            _avatarImageView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
+            _avatarImageView.WidthAnchor.ConstraintEqualTo(36),
+            _avatarImageView.HeightAnchor.ConstraintEqualTo(36)
+        });
+
+        // Bubble background constraints
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            _bubbleBackground.TopAnchor.ConstraintEqualTo(_avatarImageView.TopAnchor),
+            _bubbleBackground.LeadingAnchor.ConstraintEqualTo(_avatarImageView.TrailingAnchor, 10),
+            _bubbleBackground.TrailingAnchor.ConstraintLessThanOrEqualTo(ContentView.TrailingAnchor, -10),
+            _bubbleBackground.BottomAnchor.ConstraintEqualTo(_textLabel.BottomAnchor, 10)
+        });
+
+        // Text label constraints
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            _textLabel.TopAnchor.ConstraintEqualTo(_bubbleBackground.TopAnchor, 10),
+            _textLabel.LeadingAnchor.ConstraintEqualTo(_bubbleBackground.LeadingAnchor, 10),
+            _textLabel.TrailingAnchor.ConstraintEqualTo(_bubbleBackground.TrailingAnchor, -10),
+            _textLabel.BottomAnchor.ConstraintEqualTo(_timestampLabel.TopAnchor, -10)
+        });
+
+        // Timestamp constraints
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            _timestampLabel.LeadingAnchor.ConstraintEqualTo(_bubbleBackground.LeadingAnchor, 10),
+            _timestampLabel.BottomAnchor.ConstraintEqualTo(_bubbleBackground.BottomAnchor, -10)
+        });
+    }
+
     public void Update(ChatMessage message, ChatView chatView)
     {
         _textLabel.Text = message.TextContent;
-        _textLabel.TextColor = message.IsOwnMessage ? chatView.OwnMessageTextColor.ToPlatform() : chatView.OtherMessageTextColor.ToPlatform();
 
-        _bubbleBackground.BackgroundColor = message.IsOwnMessage ? chatView.OwnMessageBackgroundColor.ToPlatform() : chatView.OtherMessageBackgroundColor.ToPlatform();
+        _textLabel.TextColor = message.IsOwnMessage
+            ? chatView.OwnMessageTextColor.ToPlatform()
+            : chatView.OtherMessageTextColor.ToPlatform();
+
+        _bubbleBackground.BackgroundColor = message.IsOwnMessage
+            ? chatView.OwnMessageBackgroundColor.ToPlatform()
+            : chatView.OtherMessageBackgroundColor.ToPlatform();
 
         if (message.SenderAvatar != null)
         {
@@ -66,31 +119,13 @@ public class ChatMessageCell : UICollectionViewCell
             _avatarImageView.Hidden = true;
         }
 
+        
         _timestampLabel.Text = message.Timestamp.ToString("HH:mm");
+        _timestampLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
+        _timestampLabel.Font = UIFont.SystemFontOfSize(chatView.MessageTimeFontSize);
 
-        // Layout dynamically based on ownership
-        LayoutSubviews(message.IsOwnMessage);
-    }
 
-    private void LayoutSubviews(bool isOwnMessage)
-    {
-        var padding = 10;
-        var bubbleWidth = ContentView.Frame.Width * 0.65;
-
-        if (isOwnMessage)
-        {
-            _avatarImageView.Hidden = true;
-            _bubbleBackground.Frame = new CGRect(ContentView.Frame.Width - bubbleWidth - padding, padding, bubbleWidth, _textLabel.IntrinsicContentSize.Height + padding * 2);
-        }
-        else
-        {
-            _avatarImageView.Hidden = false;
-            _avatarImageView.Frame = new CGRect(padding, padding, 36, 36);
-            _bubbleBackground.Frame = new CGRect(_avatarImageView.Frame.Right + padding, padding, bubbleWidth, _textLabel.IntrinsicContentSize.Height + padding * 2);
-        }
-
-        _textLabel.Frame = new CGRect(_bubbleBackground.Frame.Left + padding, _bubbleBackground.Frame.Top + padding, bubbleWidth - padding * 2, _textLabel.IntrinsicContentSize.Height);
-
-        _timestampLabel.Frame = new CGRect(_bubbleBackground.Frame.Left, _bubbleBackground.Frame.Bottom + 5, bubbleWidth, 15);
+        LayoutIfNeeded();
     }
 }
+
