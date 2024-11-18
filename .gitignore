@@ -354,3 +354,6 @@ docker-compose.dcproj
 
 
 .DS_Store
+
+# Rider cache/options directory
+.idea/
