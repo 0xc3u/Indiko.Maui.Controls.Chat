@@ -1,15 +1,11 @@
-﻿using CoreGraphics;
+﻿using AVFoundation;
+using AVKit;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Platform;
 using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
-
-using CoreGraphics;
-using Foundation;
-using Indiko.Maui.Controls.Chat.Models;
-using UIKit;
 
 public class ChatMessageCell : UICollectionViewCell
 {
@@ -19,6 +15,10 @@ public class ChatMessageCell : UICollectionViewCell
     private UIImageView _avatarImageView;
     private UILabel _timestampLabel;
     private UIView _bubbleBackground;
+    private UIImageView _imageView;
+    private UIView _videoContainer;
+    private AVPlayerViewController _videoPlayer;
+
 
     public ChatMessageCell(IntPtr handle) : base(handle)
     {
@@ -57,7 +57,34 @@ public class ChatMessageCell : UICollectionViewCell
             TranslatesAutoresizingMaskIntoConstraints = false
         };
 
-        ContentView.AddSubviews(_bubbleBackground, _textLabel, _avatarImageView, _timestampLabel);
+        // Image view for image messages
+        _imageView = new UIImageView
+        {
+            ContentMode = UIViewContentMode.ScaleAspectFit,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            Hidden = true // Initially hidden
+        };
+
+        // Video container for video messages
+        _videoContainer = new UIView
+        {
+            Layer = { CornerRadius = 16 },
+            ClipsToBounds = true,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            Hidden = true // Initially hidden
+        };
+
+        // Video player
+        _videoPlayer = new AVPlayerViewController
+        {
+            View =
+            {
+                TranslatesAutoresizingMaskIntoConstraints = false
+            }
+        };
+        _videoContainer.AddSubview(_videoPlayer.View);
+
+        ContentView.AddSubviews(_bubbleBackground, _textLabel, _avatarImageView, _imageView, _videoContainer, _timestampLabel);
     }
 
     private void SetupConstraints()
@@ -99,15 +126,38 @@ public class ChatMessageCell : UICollectionViewCell
 
     public void Update(ChatMessage message, ChatView chatView)
     {
-        _textLabel.Text = message.TextContent;
+        _textLabel.Hidden = true;
+        _imageView.Hidden = true;
+        _videoContainer.Hidden = true;
 
-        _textLabel.TextColor = message.IsOwnMessage
-            ? chatView.OwnMessageTextColor.ToPlatform()
-            : chatView.OtherMessageTextColor.ToPlatform();
+
+        if (message.MessageType == MessageType.Text)
+        {
+            _textLabel.Text = message.TextContent;
+            _textLabel.TextColor = message.IsOwnMessage
+                ? chatView.OwnMessageTextColor.ToPlatform()
+                : chatView.OtherMessageTextColor.ToPlatform();
+            _textLabel.Hidden = false;
+        }
+        else if (message.MessageType == MessageType.Image && message.BinaryContent != null)
+        {
+            _imageView.Image = UIImage.LoadFromData(NSData.FromArray(message.BinaryContent));
+            _imageView.Hidden = false;
+        }
+        else if (message.MessageType == MessageType.Video && message.BinaryContent != null)
+        {
+            var tempFile = Path.Combine(Path.GetTempPath(), $"{message.MessageId}.mp4");
+            File.WriteAllBytes(tempFile, message.BinaryContent);
+
+            var player = new AVPlayer(NSUrl.FromFilename(tempFile));
+            _videoPlayer.Player = player;
+            _videoContainer.Hidden = false;
+        }
 
         _bubbleBackground.BackgroundColor = message.IsOwnMessage
-            ? chatView.OwnMessageBackgroundColor.ToPlatform()
-            : chatView.OtherMessageBackgroundColor.ToPlatform();
+             ? chatView.OwnMessageBackgroundColor.ToPlatform()
+             : chatView.OtherMessageBackgroundColor.ToPlatform();
+
 
         if (message.SenderAvatar != null)
         {
@@ -118,12 +168,10 @@ public class ChatMessageCell : UICollectionViewCell
         {
             _avatarImageView.Hidden = true;
         }
-
         
         _timestampLabel.Text = message.Timestamp.ToString("HH:mm");
         _timestampLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
         _timestampLabel.Font = UIFont.SystemFontOfSize(chatView.MessageTimeFontSize);
-
 
         LayoutIfNeeded();
     }
