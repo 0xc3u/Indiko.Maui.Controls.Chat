@@ -159,6 +159,35 @@ public partial class MainPageViewModel : BaseViewModel
                 });
             }
 
+            // Add replies for specific messages
+            if (i == 5)
+            {
+                chatMessage.ReplyToMessage = new RepliedMessage
+                {
+                    MessageId = messages[1].MessageId,
+                    TextPreview = RepliedMessage.GenerateTextPreview(messages[1].TextContent),
+                    SenderId = messages[1].SenderInitials
+                };
+            }
+            else if (i == 10)
+            {
+                chatMessage.ReplyToMessage = new RepliedMessage
+                {
+                    MessageId = messages[3].MessageId,
+                    TextPreview = RepliedMessage.GenerateTextPreview(messages[3].TextContent),
+                    SenderId = messages[3].SenderInitials
+                };
+            }
+            else if (i == 15)
+            {
+                chatMessage.ReplyToMessage = new RepliedMessage
+                {
+                    MessageId = messages[7].MessageId,
+                    TextPreview = RepliedMessage.GenerateTextPreview(messages[7].TextContent),
+                    SenderId = messages[7].SenderInitials
+                };
+            }
+
             messages.Add(chatMessage);
 
         }

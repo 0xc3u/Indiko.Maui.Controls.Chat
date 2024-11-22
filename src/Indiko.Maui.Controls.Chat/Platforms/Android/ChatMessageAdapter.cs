@@ -207,7 +207,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         // Set margin or padding for the reaction container if needed
         reactionContainer.SetPadding(16, 8, 16, 8);
-
         constraintLayout.AddView(reactionContainer);
 
 
@@ -219,9 +218,37 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         };
         constraintLayout.AddView(deliveryStatusIcon);
 
+        // Reply container layout
+        var replyContainer = new LinearLayout(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            Orientation = Orientation.Vertical,
+            Visibility = ViewStates.Gone
+        };
+        replyContainer.SetPadding(16, 8, 16, 8); // Add padding for the reply container
+        constraintLayout.AddView(replyContainer);
+
+        // Reply text view
+        var replyTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = MessageFontSize - 2, // Slightly smaller font size for reply
+        };
+
+        replyTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
+        replyContainer.AddView(replyTextView);
+
+
         // Set up constraints for views
         var constraintSet = new ConstraintSet();
         constraintSet.Clone(constraintLayout);
+
+
+        // Add constraints for the reply container
+        constraintSet.Connect(replyContainer.Id, ConstraintSet.Top, frameLayout.Id, ConstraintSet.Bottom, 8);
+        constraintSet.Connect(replyContainer.Id, ConstraintSet.Start, frameLayout.Id, ConstraintSet.Start);
+        constraintSet.Connect(replyContainer.Id, ConstraintSet.End, frameLayout.Id, ConstraintSet.End);
+
 
         // Constraints for DeliveryStatusIcon
         constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Top, timestampTextView.Id, ConstraintSet.Top);
@@ -261,7 +288,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintSet.ApplyTo(constraintLayout);
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, 
-            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon);
+            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replyContainer, replyTextView);
 
     }
 
@@ -488,6 +515,25 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 SetImageSourceToImageView(ReadIcon, chatHolder.DeliveryStatusIcon);
             }
 
+            if (message.IsRepliedMessage && message.ReplyToMessage != null)
+            {
+                chatHolder.ReplyContainer.Visibility = ViewStates.Visible;
+
+                // Set reply preview text
+                var replyPreview = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
+                chatHolder.ReplyTextView.Text = $"Reply to: {replyPreview}";
+
+                // Set background for reply container
+                var replyBackground = new GradientDrawable();
+                replyBackground.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
+                replyBackground.SetCornerRadius(16f);
+                chatHolder.ReplyContainer.SetBackgroundDrawable(replyBackground);
+            }
+            else
+            {
+                chatHolder.ReplyContainer.Visibility = ViewStates.Gone;
+            }
+
             // Set dynamic width for the message bubble (65% of screen width)
             var displayMetrics = _context.Resources.DisplayMetrics;
             int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
@@ -544,7 +590,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
             }
 
-
+           
             constraintSet.ApplyTo((ConstraintLayout)holder.ItemView);
         }
     }
