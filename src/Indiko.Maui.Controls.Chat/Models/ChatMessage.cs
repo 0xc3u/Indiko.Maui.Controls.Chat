@@ -13,23 +13,23 @@ public class ChatMessage
     public MessageType MessageType { get; set; }
     public MessageReadState ReadState { get; set; }
     public MessageDeliveryState DeliveryState { get; set; }
-
+    public bool IsRepliedMessage => ReplyToMessage != null;
+    public RepliedMessage ReplyToMessage { get; set; }
 
     // property for grouped emoji reactions
     public List<ChatMessageReaction> Reactions { get; set; } = new List<ChatMessageReaction>();
 }
 
-public class ChatMessageReaction
+public class RepliedMessage
 {
-    public string Emoji { get; set; } // Emoji identifier (e.g., "😊")
-    public int Count { get; set; } // Number of reactions for this emoji
-    public List<string> ParticipantIds { get; set; } = new List<string>(); // IDs of users who reacted
-}
+    public string MessageId { get; set; }
+    public string TextPreview { get; set; } // Short preview of the original message
+    public string SenderId { get; set; }
 
-
-public enum MessageDeliveryState
-{
-    Sent,
-    Delivered,
-    Read
+    // helper method to generate the TextPreview for the RepliedMessage, especially if the original text is long.
+    public static string GenerateTextPreview(string text, int maxLength = 50)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length > maxLength ? text.Substring(0, maxLength) + "..." : text;
+    }
 }
