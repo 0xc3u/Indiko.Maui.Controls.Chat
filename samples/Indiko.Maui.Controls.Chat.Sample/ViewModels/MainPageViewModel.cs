@@ -234,7 +234,7 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private void Scrolled(ScrolledArgs scrolledArgs)
     {
-        Console.WriteLine($"Chat Scrolled: x={scrolledArgs.X} y={scrolledArgs.Y}");
+        
     }
 
     [RelayCommand]

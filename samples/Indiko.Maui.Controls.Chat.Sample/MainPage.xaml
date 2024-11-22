@@ -28,9 +28,9 @@
             EmojiReactionTextColor="{StaticResource Primary}"
             LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
             ScrolledCommand="{Binding ScrolledCommand}"
-            AvatarTappedCommand="{Binding OnAvatarTappedCommand}"
-            MessageTappedCommand="{Binding OnMessageTappedCommand}"
-            EmojiReactionTappedCommand="{Binding OnEmojiReactionTappedCommand}"
+            AvatarTappedCommand="{Binding AvatarTappedCommand}"
+            MessageTappedCommand="{Binding MessageTappedCommand}"
+            EmojiReactionTappedCommand="{Binding EmojiReactionTappedCommand}"
             SendIcon="send.png"
             DeliveredIcon="check.png"
             ReadIcon="read.png">

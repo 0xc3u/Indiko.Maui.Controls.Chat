@@ -2,6 +2,8 @@
 using AndroidX.RecyclerView.Widget;
 using Android.Widget;
 using Indiko.Maui.Controls.Chat.Models;
+using Android.Graphics.Drawables;
+using Microsoft.Maui.Controls.Platform;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 
@@ -64,6 +66,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             if (weakChatView.TryGetTarget(out var target))
             {
                 target.AvatarTappedCommand?.Execute(message);
+                ApplyVisualFeedbackToAvatar();
             }
         };
         AvatarView.Click += _avatarClickHandler;
@@ -73,6 +76,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             if (weakChatView.TryGetTarget(out var target))
             {
                 target.MessageTappedCommand?.Execute(message);
+                ApplyVisualFeedbackToChatBubble();
             }
         };
         TextView.Click += _textBubbleClickHandler;
@@ -82,6 +86,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             if (weakChatView.TryGetTarget(out var target))
             {
                 target.MessageTappedCommand?.Execute(message);
+                ApplyVisualFeedbackToChatBubble();
             }
         };
         ImageView.Click += _imageBubbleClickHandler;
@@ -91,6 +96,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             if (weakChatView.TryGetTarget(out var target))
             {
                 target.MessageTappedCommand?.Execute(message);
+                ApplyVisualFeedbackToChatBubble();
             }
         };
         VideoContainer.Click += _videoBubbleClickHandler;
@@ -100,6 +106,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             if (weakChatView.TryGetTarget(out var target))
             {
                 target.MessageTappedCommand?.Execute(message);
+                ApplyVisualFeedbackToEmojiReaction();
             }
         };
         ReactionContainer.Click += _emojiReactionClickHandler;
@@ -137,6 +144,49 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             _emojiReactionClickHandler = null;
         }
     }
+
+    public async void ApplyVisualFeedbackToChatBubble()
+    {
+        if (FrameLayout != null)
+        {
+            // Fade out to 70% opacity
+            FrameLayout.Alpha = 0.7f;
+
+            await Task.Delay(100);
+
+            // Restore to full opacity
+            FrameLayout.Alpha = 1f;
+        }
+    }
+
+    public async void ApplyVisualFeedbackToEmojiReaction()
+    {
+        if (ReactionContainer != null)
+        {
+            // Fade out to 70% opacity
+            ReactionContainer.Alpha = 0.7f;
+
+            await Task.Delay(100);
+
+            // Restore to full opacity
+            ReactionContainer.Alpha = 1f;
+        }
+    }
+    
+    public async void ApplyVisualFeedbackToAvatar()
+    {
+        if (AvatarView != null)
+        {
+            // Fade out to 70% opacity
+            AvatarView.Alpha = 0.7f;
+
+            await Task.Delay(100);
+
+            // Restore to full opacity
+            AvatarView.Alpha = 1f;
+        }
+    }
+
 
     public new void Dispose()
     {
