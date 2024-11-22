@@ -1,4 +1,5 @@
-﻿using Android.Views;
+﻿using AViews = Android.Views;
+using AGraphics = Android.Graphics;
 using AndroidX.RecyclerView.Widget;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Handlers;
@@ -15,6 +16,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         [nameof(ChatView.MessageTimeTextColor)] = MapProperties,
         [nameof(ChatView.NewMessagesSeperatorTextColor)] = MapProperties,
         [nameof(ChatView.MessageFontSize)] = MapProperties,
+        [nameof(ChatView.MessageSpacing)] = MapProperties,
         [nameof(ChatView.DateTextFontSize)] = MapProperties,
         [nameof(ChatView.MessageTimeFontSize)] = MapProperties,
         [nameof(ChatView.NewMessagesSeperatorFontSize)] = MapProperties,
@@ -22,6 +24,8 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         [nameof(ChatView.ScrollToFirstNewMessage)] = MapProperties,
         [nameof(ChatView.AvatarBackgroundColor)] = MapProperties,
         [nameof(ChatView.AvatarTextColor)] = MapProperties,
+        [nameof(ChatView.EmojiReactionFontSize)] = MapProperties,
+        [nameof(ChatView.EmojiReactionTextColor)] = MapProperties,
 
     };
 
@@ -41,9 +45,13 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         var recyclerView = new RecyclerView(Context)
         {
             LayoutParameters = new RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent,
-                ViewGroup.LayoutParams.MatchParent)
+                AViews.ViewGroup.LayoutParams.MatchParent,
+                AViews.ViewGroup.LayoutParams.MatchParent)
         };
+
+        
+        recyclerView.AddItemDecoration(new SpacingItemDecoration(VirtualView.MessageSpacing));
+
 
         var layoutManager = new LinearLayoutManager(Context);
         recyclerView.SetLayoutManager(layoutManager);
@@ -97,7 +105,8 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             AvatarSize = VirtualView.AvatarSize,
             AvatarBackgroundColor = VirtualView.AvatarBackgroundColor,
             AvatarTextColor = VirtualView.AvatarTextColor,
-
+            EmojiReactionTextColor = VirtualView.EmojiReactionTextColor,
+            EmojiReactionFontSize = VirtualView.EmojiReactionFontSize
         };
 
         recyclerView.SetAdapter(adapter);
@@ -143,6 +152,32 @@ public class OnScrollListener : RecyclerView.OnScrollListener
         if (layoutManager != null && layoutManager.FindFirstVisibleItemPosition() == 0)
         {
             _onScrolledToTop.Invoke();
+        }
+    }
+}
+
+
+public class SpacingItemDecoration : RecyclerView.ItemDecoration
+{
+    private readonly int _verticalSpacing;
+
+    public SpacingItemDecoration(int verticalSpacing)
+    {
+        _verticalSpacing = verticalSpacing;
+    }
+
+    public override void GetItemOffsets(AGraphics.Rect outRect, AViews.View view, RecyclerView parent, RecyclerView.State state)
+    {
+        // Apply vertical spacing to all items except the last one
+        if (parent.GetChildAdapterPosition(view) != state.ItemCount - 1)
+        {
+            outRect.Bottom = _verticalSpacing;
+        }
+
+        // Optional: Add top margin for the first item
+        if (parent.GetChildAdapterPosition(view) == 0)
+        {
+            outRect.Top = _verticalSpacing;
         }
     }
 }

@@ -8,26 +8,33 @@
              BackgroundColor="White"
              Title="ChatView Sample">
 
+    
+        <idk:ChatView x:Name="chatView"
+            
+            OwnMessageBackgroundColor="{StaticResource Primary}" 
+            OwnMessageTextColor="{StaticResource White}"
+            OtherMessageBackgroundColor="{StaticResource Secondary}"
+            OtherMessageTextColor="{StaticResource Black}"
+            DateTextColor="{StaticResource Gray500}"
+            MessageTimeTextColor="{StaticResource Gray200}"
+            NewMessagesSeperatorTextColor="{StaticResource Primary}"
+            NewMessagesSeperatorFontSize="16"
+            NewMessagesSeperatorText="New Messages"
+            AvatarTextColor="{StaticResource White}"
+            AvatarBackgroundColor="{StaticResource Secondary}"
+            Messages="{Binding ChatMessages}"
+            ScrollToFirstNewMessage="True"
+            EmojiReactionFontSize="14"
+            EmojiReactionTextColor="{StaticResource Primary}"
+            LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
+            ScrolledCommand="{Binding ScrolledCommand}">
 
-    <idk:ChatView x:Name="chatView"
-               Margin="10"
-               OwnMessageBackgroundColor="{StaticResource Primary}" 
-               OwnMessageTextColor="{StaticResource White}"
-               OtherMessageBackgroundColor="{StaticResource Secondary}"
-               OtherMessageTextColor="{StaticResource Black}"
-               DateTextColor="{StaticResource Gray500}"
-               MessageTimeTextColor="{StaticResource Gray200}"
-               NewMessagesSeperatorTextColor="{StaticResource Primary}"
-               NewMessagesSeperatorFontSize="16"
-               NewMessagesSeperatorText="New Messages"
-               AvatarTextColor="{StaticResource White}"
-               AvatarBackgroundColor="{StaticResource Secondary}"
-               Messages="{Binding ChatMessages}"
-               ScrollToFirstNewMessage="True"
-               LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
-               ScrolledCommand="{Binding ScrolledCommand}">
+        </idk:ChatView>
 
-    </idk:ChatView>
+       
+    
+
+   
 
 
 </ContentPage>

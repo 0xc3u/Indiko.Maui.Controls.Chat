@@ -50,6 +50,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public Color AvatarTextColor { get; set; }
     public bool ScrollToFirstNewMessage { get; set; }
 
+    public Color EmojiReactionTextColor { get; set; }
+    public float EmojiReactionFontSize { get; set; }
+
     public ChatMessageAdapter(Context context, IList<ChatMessage> messages)
     {
         _context = context;
@@ -401,8 +404,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     var reactionTextView = new TextView(_context)
                     {
                         Text = $"{reaction.Emoji} {reaction.Count}",
-                        TextSize = 14 // Adjust text size
+                        TextSize = EmojiReactionFontSize
                     };
+                    reactionTextView.SetTextColor(EmojiReactionTextColor.ToPlatform());
 
                     // Optional: Add padding or margins
                     var layoutParams = new LinearLayout.LayoutParams(
@@ -411,6 +415,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     {
                         LeftMargin = 8 // Add spacing between reactions
                     };
+                    
                     reactionTextView.LayoutParameters = layoutParams;
 
                     chatHolder.ReactionContainer.AddView(reactionTextView);
@@ -540,3 +545,4 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
 
 }
+

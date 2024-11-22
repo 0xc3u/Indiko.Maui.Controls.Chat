@@ -151,6 +151,22 @@ public class ChatView : View
         set => SetValue(NewMessagesSeperatorTextColorProperty, value);
     }
 
+    public static readonly BindableProperty EmojiReactionFontSizeProperty = BindableProperty.Create(nameof(EmojiReactionFontSize), typeof(float), typeof(ChatView), 10f);
+    public float EmojiReactionFontSize
+    {
+        get => (float)GetValue(EmojiReactionFontSizeProperty);
+        set => SetValue(EmojiReactionFontSizeProperty, value);
+    }
+
+
+    public static readonly BindableProperty EmojiReactionTextColorProperty = BindableProperty.Create(nameof(EmojiReactionTextColor), typeof(Color), typeof(ChatView), Colors.LightGray);
+    public Color EmojiReactionTextColor
+    {
+        get => (Color)GetValue(EmojiReactionTextColorProperty);
+        set => SetValue(EmojiReactionTextColorProperty, value);
+    }
+
+
     public static readonly BindableProperty AvatarSizeProperty = BindableProperty.Create(nameof(AvatarSize), typeof(float), typeof(ChatView), 36f);
     public float AvatarSize
     {
@@ -178,6 +194,13 @@ public class ChatView : View
     {
         get => (bool)GetValue(ScrollToFirstNewMessageProperty);
         set => SetValue(ScrollToFirstNewMessageProperty, value);
+    }
+
+    public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
+    public int MessageSpacing
+    {
+        get => (int)GetValue(MessageSpacingProperty);
+        set => SetValue(MessageSpacingProperty, value);
     }
 
     private static void OnMessagesChanged(BindableObject bindable, object oldValue, object newValue)
