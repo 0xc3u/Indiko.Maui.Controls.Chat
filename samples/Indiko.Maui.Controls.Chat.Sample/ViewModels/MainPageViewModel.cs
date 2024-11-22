@@ -175,6 +175,12 @@ public partial class MainPageViewModel : BaseViewModel
             ReadState = MessageReadState.New,
             DeliveryState = MessageDeliveryState.Sent,
         };
+        imageMessage.Reactions.Add(new ChatMessageReaction
+        {
+            Emoji = "❤️",
+            Count = 55,
+            ParticipantIds = new List<string> { "user4", "user5" }
+        });
 
         messages.Add(imageMessage);
 
@@ -190,6 +196,12 @@ public partial class MainPageViewModel : BaseViewModel
             ReadState = MessageReadState.New,
             DeliveryState = MessageDeliveryState.Delivered,
         };
+        videoMessage.Reactions.Add(new ChatMessageReaction
+        {
+            Emoji = "😊",
+            Count = 5,
+            ParticipantIds = new List<string> { "user4", "user5" }
+        });
 
         messages.Add(videoMessage);
 
