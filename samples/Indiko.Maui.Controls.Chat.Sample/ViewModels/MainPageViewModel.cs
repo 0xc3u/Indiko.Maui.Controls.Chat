@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+Ôªøusing System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Indiko.Maui.Controls.Chat.Models;
@@ -54,36 +54,36 @@ public partial class MainPageViewModel : BaseViewModel
         var messageTemplates = new[]
         {
             "Hey everyone, are we still on for the mountain hike tomorrow?",
-            "Yes, Iím all packed up and ready! Can't wait for the adventure.",
+            "Yes, I‚Äôm all packed up and ready! Can't wait for the adventure.",
             "Same here! I checked the weather forecast; it looks perfect for a hike.",
             "Awesome, what time are we meeting up?",
             "How about 7 AM? We want to make the most of the day.",
             "7 AM sounds great to me. Are we bringing lunch or just snacks?",
             "I think we should pack some sandwiches. It might be a long day.",
-            "Good idea! Iíll bring some energy bars and fruit as well.",
-            "Iíll take care of the sandwiches then. Any preference for fillings?",
+            "Good idea! I‚Äôll bring some energy bars and fruit as well.",
+            "I‚Äôll take care of the sandwiches then. Any preference for fillings?",
             "Turkey and cheese would be perfect for me, thanks!",
-            "Iím good with anything vegetarian if thatís okay.",
-            "Got it, one turkey and cheese, and one vegetarian. Iíll sort it out.",
-            "By the way, did we finalize the trail weíre taking?",
+            "I‚Äôm good with anything vegetarian if that‚Äôs okay.",
+            "Got it, one turkey and cheese, and one vegetarian. I‚Äôll sort it out.",
+            "By the way, did we finalize the trail we‚Äôre taking?",
             "I was thinking we could start with the North Ridge trail, then loop back via the river.",
-            "That route sounds amazing! Iíve heard the views are breathtaking.",
-            "Yeah, and weíll get to see the waterfall halfway through.",
+            "That route sounds amazing! I‚Äôve heard the views are breathtaking.",
+            "Yeah, and we‚Äôll get to see the waterfall halfway through.",
             "Perfect! Just make sure to bring your cameras.",
-            "Oh, definitely! Iím hoping to capture some wildlife shots too.",
-            "Same here, but I hope we donít run into any bears!",
-            "Haha, let's hope not! But I think weíll be safe if we stick together.",
-            "True, and Iím bringing a whistle just in case.",
+            "Oh, definitely! I‚Äôm hoping to capture some wildlife shots too.",
+            "Same here, but I hope we don‚Äôt run into any bears!",
+            "Haha, let's hope not! But I think we‚Äôll be safe if we stick together.",
+            "True, and I‚Äôm bringing a whistle just in case.",
             "Great thinking! Better safe than sorry.",
             "What about water? How many bottles are you guys bringing?",
-            "Iím packing two big bottles and a water filter just in case.",
-            "Smart move. Iíll bring a hydration pack and some electrolyte tablets.",
-            "Sounds like weíre all set then! Are we carpooling?",
+            "I‚Äôm packing two big bottles and a water filter just in case.",
+            "Smart move. I‚Äôll bring a hydration pack and some electrolyte tablets.",
+            "Sounds like we‚Äôre all set then! Are we carpooling?",
             "Yes, I can drive if you both want to chip in for gas.",
-            "Thanks, Alex! Iím in for carpooling and happy to pitch in.",
-            "Same here, much appreciated! Iíll bring some road snacks too.",
+            "Thanks, Alex! I‚Äôm in for carpooling and happy to pitch in.",
+            "Same here, much appreciated! I‚Äôll bring some road snacks too.",
             "Alright, see you both tomorrow bright and early!",
-            "Looking forward to it! Letís make it an unforgettable hike.",
+            "Looking forward to it! Let‚Äôs make it an unforgettable hike.",
             "Dolore tation nisl justo gubergren invidunt elitr te est sed vero invidunt. Et consequat dolore ea accumsan et voluptua ipsum ipsum. Possim labore justo tempor no soluta amet invidunt sed lorem consectetuer sed erat kasd. Consetetur ut amet dolor. Sit accusam dolor magna sea lorem dolore. Ex commodo ipsum nam labore diam rebum labore sadipscing. Et elitr aliquyam sadipscing dolore.\r\n"
         };
 
@@ -99,7 +99,7 @@ public partial class MainPageViewModel : BaseViewModel
             }
 
             var actor = actors[i % 3];
-            messages.Add(new ChatMessage
+            var chatMessage = new ChatMessage
             {
                 TextContent = messageTemplates[i],
                 IsOwnMessage = actor.IsOwnMessage,
@@ -109,9 +109,56 @@ public partial class MainPageViewModel : BaseViewModel
                 MessageId = Guid.NewGuid().ToString(),
                 MessageType = MessageType.Text,
                 ReadState = messageReadState,
-            });
+            };
 
-            // convert image1 to byteArray form base64
+            // Add emoji reactions to specific messages
+            if (i == 1) // Example: Add reactions to the second message
+            {
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "üòä",
+                    Count = 3,
+                    ParticipantIds = new List<string> { "user1", "user2", "user3" }
+                });
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "‚ù§Ô∏è",
+                    Count = 2,
+                    ParticipantIds = new List<string> { "user4", "user5" }
+                });
+            }
+            else if (i == 15) // Example: Add reactions to another message
+            {
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "üëç",
+                    Count = 1,
+                    ParticipantIds = new List<string> { "user2" }
+                });
+            }else if (i == 20) // Example: Add reactions to the second message
+            {
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "üòä",
+                    Count = 3,
+                    ParticipantIds = new List<string> { "user1", "user2", "user3" }
+                });
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "‚ù§Ô∏è",
+                    Count = 10,
+                    ParticipantIds = new List<string> { "user4", "user5" }
+                });
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "üëç",
+                    Count = 4,
+                    ParticipantIds = new List<string> { "user2" }
+                });
+            }
+
+            messages.Add(chatMessage);
+
         }
 
         var imageMessage = new ChatMessage

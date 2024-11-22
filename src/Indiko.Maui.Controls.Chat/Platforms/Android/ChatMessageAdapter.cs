@@ -158,9 +158,30 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         timestampTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
         constraintLayout.AddView(timestampTextView);
 
+        // Add the reaction container (LinearLayout)
+        var reactionContainer = new LinearLayout(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            Orientation = Orientation.Horizontal,
+            LayoutParameters = new ConstraintLayout.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        // Set margin or padding for the reaction container if needed
+        reactionContainer.SetPadding(16, 8, 16, 8);
+
+        constraintLayout.AddView(reactionContainer);
+
         // Set up constraints for views
         var constraintSet = new ConstraintSet();
         constraintSet.Clone(constraintLayout);
+
+        // Constraints for the reaction container (below the message bubble)
+        constraintSet.Connect(reactionContainer.Id, ConstraintSet.Top, frameLayout.Id, ConstraintSet.Bottom, 4);
+        constraintSet.Connect(reactionContainer.Id, ConstraintSet.Start, frameLayout.Id, ConstraintSet.Start);
+        constraintSet.Connect(reactionContainer.Id, ConstraintSet.End, frameLayout.Id, ConstraintSet.End);
+
 
         // Constraints for avatarView
         constraintSet.Connect(avatarView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top, 0);
@@ -188,7 +209,8 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         constraintSet.ApplyTo(constraintLayout);
 
-        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, newMessagesSeparatorTextView, avatarView);
+        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, 
+            newMessagesSeparatorTextView, avatarView, reactionContainer);
 
     }
 
@@ -366,6 +388,36 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 }
             }
 
+            if (chatHolder.ReactionContainer.ChildCount > 0)
+            {
+                chatHolder.ReactionContainer.RemoveAllViews(); // Clear existing reactions
+            }
+
+            if (message.Reactions != null && message.Reactions.Any())
+            {
+                foreach (var reaction in message.Reactions)
+                {
+                    // Create a TextView for each reaction
+                    var reactionTextView = new TextView(_context)
+                    {
+                        Text = $"{reaction.Emoji} {reaction.Count}",
+                        TextSize = 14 // Adjust text size
+                    };
+
+                    // Optional: Add padding or margins
+                    var layoutParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WrapContent,
+                        ViewGroup.LayoutParams.WrapContent)
+                    {
+                        LeftMargin = 8 // Add spacing between reactions
+                    };
+                    reactionTextView.LayoutParameters = layoutParams;
+
+                    chatHolder.ReactionContainer.AddView(reactionTextView);
+                }
+            }
+
+
             // Set dynamic width for the message bubble (65% of screen width)
             var displayMetrics = _context.Resources.DisplayMetrics;
             int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
@@ -406,6 +458,22 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.End);
                 constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
             }
+
+
+            // Align the ReactionContainer based on IsOwnMessage
+            if (message.IsOwnMessage)
+            {
+                // Align ReactionContainer to the left of the chat bubble
+                constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.End);
+                constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
+            }
+            else
+            {
+                // Align ReactionContainer to the right of the chat bubble
+                constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.Start);
+                constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
+            }
+
 
             constraintSet.ApplyTo((ConstraintLayout)holder.ItemView);
         }

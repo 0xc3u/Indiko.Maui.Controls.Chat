@@ -12,4 +12,14 @@ public class ChatMessage
     public string SenderInitials { get; set; }
     public MessageType MessageType { get; set; }
     public MessageReadState ReadState { get; set; }
+
+    // property for grouped emoji reactions
+    public List<ChatMessageReaction> Reactions { get; set; } = new List<ChatMessageReaction>();
+}
+
+public class ChatMessageReaction
+{
+    public string Emoji { get; set; } // Emoji identifier (e.g., "😊")
+    public int Count { get; set; } // Number of reactions for this emoji
+    public List<string> ParticipantIds { get; set; } = new List<string>(); // IDs of users who reacted
 }
