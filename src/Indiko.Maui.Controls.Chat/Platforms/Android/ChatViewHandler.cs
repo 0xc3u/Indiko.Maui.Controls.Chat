@@ -68,7 +68,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             }
             ));
 
-        RenderMessages(recyclerView);
+        RenderMessages(recyclerView, MauiContext);
         return recyclerView;
     }
 
@@ -79,15 +79,17 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
     private static void MapProperties(ChatViewHandler handler, ChatView chatView)
     {
-        handler.RenderMessages(handler.PlatformView);
+        handler.RenderMessages(handler.PlatformView, handler.MauiContext);
     }
 
-    private void RenderMessages(RecyclerView recyclerView)
+    private void RenderMessages(RecyclerView recyclerView, IMauiContext mauiContext)
     {
         if (VirtualView.Messages == null)
             return;
 
-        var adapter = new ChatMessageAdapter(Context, VirtualView.Messages)
+        
+
+        var adapter = new ChatMessageAdapter(Context, VirtualView.Messages, mauiContext)
         {
             OwnMessageBackgroundColor = VirtualView.OwnMessageBackgroundColor,
             OtherMessageBackgroundColor = VirtualView.OtherMessageBackgroundColor,
@@ -106,7 +108,11 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             AvatarBackgroundColor = VirtualView.AvatarBackgroundColor,
             AvatarTextColor = VirtualView.AvatarTextColor,
             EmojiReactionTextColor = VirtualView.EmojiReactionTextColor,
-            EmojiReactionFontSize = VirtualView.EmojiReactionFontSize
+            EmojiReactionFontSize = VirtualView.EmojiReactionFontSize,
+            SendIcon = VirtualView.SendIcon,
+            DeliveredIcon = VirtualView.DeliveredIcon,
+            ReadIcon = VirtualView.ReadIcon,
+
         };
 
         recyclerView.SetAdapter(adapter);

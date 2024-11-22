@@ -109,6 +109,7 @@ public partial class MainPageViewModel : BaseViewModel
                 MessageId = Guid.NewGuid().ToString(),
                 MessageType = MessageType.Text,
                 ReadState = messageReadState,
+                DeliveryState = MessageDeliveryState.Delivered,
             };
 
             // Add emoji reactions to specific messages
@@ -170,7 +171,8 @@ public partial class MainPageViewModel : BaseViewModel
             SenderInitials = "AS",
             MessageId = Guid.NewGuid().ToString(),
             MessageType = MessageType.Image,
-            ReadState = MessageReadState.New
+            ReadState = MessageReadState.New,
+            DeliveryState = MessageDeliveryState.Sent,
         };
 
         messages.Add(imageMessage);
@@ -184,7 +186,8 @@ public partial class MainPageViewModel : BaseViewModel
             SenderInitials = "AS",
             MessageId = Guid.NewGuid().ToString(),
             MessageType = MessageType.Video,
-            ReadState = MessageReadState.New
+            ReadState = MessageReadState.New,
+            DeliveryState = MessageDeliveryState.Delivered,
         };
 
         messages.Add(videoMessage);

@@ -21,6 +21,8 @@ using AndroidX.ConstraintLayout.Widget;
 using Android.Views;
 using Indiko.Maui.Controls.Chat.Models;
 using aIO = Java.IO;
+using Microsoft.Maui;
+using Microsoft.Maui.Controls;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 // Android Part
@@ -53,10 +55,17 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public Color EmojiReactionTextColor { get; set; }
     public float EmojiReactionFontSize { get; set; }
 
-    public ChatMessageAdapter(Context context, IList<ChatMessage> messages)
+    public ImageSource SendIcon { get; set; }
+    public ImageSource DeliveredIcon { get; set; }
+    public ImageSource ReadIcon { get; set; }
+
+    private readonly IMauiContext _mauiContext;
+
+    public ChatMessageAdapter(Context context, IList<ChatMessage> messages, IMauiContext mauiContext)
     {
         _context = context;
         _messages = messages;
+        _mauiContext = mauiContext;
     }
 
     public override int ItemCount => _messages.Count;
@@ -176,9 +185,23 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         constraintLayout.AddView(reactionContainer);
 
+
+        // Delivery status icon
+        var deliveryStatusIcon = new ImageView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            LayoutParameters = new ConstraintLayout.LayoutParams(32, 32) // Set the size of the icon
+        };
+        constraintLayout.AddView(deliveryStatusIcon);
+
         // Set up constraints for views
         var constraintSet = new ConstraintSet();
         constraintSet.Clone(constraintLayout);
+
+        // Constraints for DeliveryStatusIcon
+        constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Top, timestampTextView.Id, ConstraintSet.Top);
+        constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Start, timestampTextView.Id, ConstraintSet.End, 8); // Add spacing
+
 
         // Constraints for the reaction container (below the message bubble)
         constraintSet.Connect(reactionContainer.Id, ConstraintSet.Top, frameLayout.Id, ConstraintSet.Bottom, 4);
@@ -213,7 +236,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintSet.ApplyTo(constraintLayout);
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, 
-            newMessagesSeparatorTextView, avatarView, reactionContainer);
+            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon);
 
     }
 
@@ -422,6 +445,19 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 }
             }
 
+            if (message.DeliveryState == MessageDeliveryState.Sent && SendIcon!=null)
+            {
+                SetImageSourceToImageView(SendIcon, chatHolder.DeliveryStatusIcon);
+
+            }
+            else if (message.DeliveryState == MessageDeliveryState.Delivered && DeliveredIcon!=null)
+            {
+                SetImageSourceToImageView(DeliveredIcon, chatHolder.DeliveryStatusIcon);
+            }
+            else if (message.DeliveryState == MessageDeliveryState.Read && ReadIcon != null)
+            {
+                SetImageSourceToImageView(ReadIcon, chatHolder.DeliveryStatusIcon);
+            }
 
             // Set dynamic width for the message bubble (65% of screen width)
             var displayMetrics = _context.Resources.DisplayMetrics;
@@ -481,6 +517,28 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
 
             constraintSet.ApplyTo((ConstraintLayout)holder.ItemView);
+        }
+    }
+
+    public void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
+    {
+        if (imageSource == null || imageView == null || _mauiContext == null)
+            return;
+
+        try
+        {
+            ImageSourceExtensions.LoadImage(imageSource, _mauiContext, (img) =>
+            {
+                if (img.Value != null)
+                {
+                    imageView.SetImageDrawable(img.Value);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            // Handle exceptions, e.g., invalid image sources
+            Console.WriteLine($"Error resolving ImageSource: {ex.Message}");
         }
     }
 

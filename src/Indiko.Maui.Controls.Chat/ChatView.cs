@@ -166,14 +166,12 @@ public class ChatView : View
         set => SetValue(EmojiReactionTextColorProperty, value);
     }
 
-
     public static readonly BindableProperty AvatarSizeProperty = BindableProperty.Create(nameof(AvatarSize), typeof(float), typeof(ChatView), 36f);
     public float AvatarSize
     {
         get => (float)GetValue(AvatarSizeProperty);
         set => SetValue(AvatarSizeProperty, value);
     }
-
 
     public static readonly BindableProperty AvatarBackgroundColorProperty = BindableProperty.Create(nameof(AvatarBackgroundColor), typeof(Color), typeof(ChatView), Colors.LightBlue);
     public Color AvatarBackgroundColor
@@ -202,6 +200,30 @@ public class ChatView : View
         get => (int)GetValue(MessageSpacingProperty);
         set => SetValue(MessageSpacingProperty, value);
     }
+
+
+
+    public static readonly BindableProperty SendIconProperty = BindableProperty.Create(nameof(SendIcon), typeof(ImageSource), typeof(ChatView));
+    public ImageSource SendIcon
+    {
+        get => (ImageSource)GetValue(SendIconProperty);
+        set => SetValue(SendIconProperty, value);
+    }
+
+    public static readonly BindableProperty ReadIconProperty = BindableProperty.Create(nameof(ReadIcon), typeof(ImageSource), typeof(ChatView));
+    public ImageSource ReadIcon
+    {
+        get => (ImageSource)GetValue(ReadIconProperty);
+        set => SetValue(ReadIconProperty, value);
+    }
+
+    public static readonly BindableProperty DeliveredIconProperty = BindableProperty.Create(nameof(DeliveredIcon), typeof(ImageSource), typeof(ChatView));
+    public ImageSource DeliveredIcon
+    {
+        get => (ImageSource)GetValue(DeliveredIconProperty);
+        set => SetValue(DeliveredIconProperty, value);
+    }
+
 
     private static void OnMessagesChanged(BindableObject bindable, object oldValue, object newValue)
     {
