@@ -223,20 +223,30 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         {
             Id = AViews.View.GenerateViewId(),
             Orientation = Orientation.Vertical,
-            Visibility = ViewStates.Gone
+            Visibility = ViewStates.Gone // Initially hidden
         };
-        replyContainer.SetPadding(16, 8, 16, 8); // Add padding for the reply container
+        replyContainer.SetPadding(16, 8, 16, 8);
         constraintLayout.AddView(replyContainer);
 
-        // Reply text view
-        var replyTextView = new TextView(_context)
+        // TextView for the original sender name
+        var replySenderTextView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            TextSize = MessageFontSize - 2, // Slightly smaller font size for reply
+            TextSize = 12f, // Smaller font for the sender
+            Typeface = Typeface.DefaultBold,
         };
+        timestampTextView.SetTextColor(AColor.Blue);
 
-        replyTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
-        replyContainer.AddView(replyTextView);
+        replyContainer.AddView(replySenderTextView);
+
+        // TextView for the original message preview
+        var replyPreviewTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = 12f, // Smaller font for the preview text
+        };
+        replyPreviewTextView.SetTextColor(AColor.Gray);
+        replyContainer.AddView(replyPreviewTextView);
 
 
         // Set up constraints for views
@@ -244,10 +254,11 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintSet.Clone(constraintLayout);
 
 
-        // Add constraints for the reply container
+        // Constraints for reply container
         constraintSet.Connect(replyContainer.Id, ConstraintSet.Top, frameLayout.Id, ConstraintSet.Bottom, 8);
         constraintSet.Connect(replyContainer.Id, ConstraintSet.Start, frameLayout.Id, ConstraintSet.Start);
         constraintSet.Connect(replyContainer.Id, ConstraintSet.End, frameLayout.Id, ConstraintSet.End);
+
 
 
         // Constraints for DeliveryStatusIcon
@@ -288,7 +299,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintSet.ApplyTo(constraintLayout);
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout, 
-            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replyContainer, replyTextView);
+            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replyContainer, replyPreviewTextView, replySenderTextView);
 
     }
 
@@ -515,18 +526,25 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 SetImageSourceToImageView(ReadIcon, chatHolder.DeliveryStatusIcon);
             }
 
+            // Set dynamic width for the message bubble (65% of screen width)
+            var displayMetrics = _context.Resources.DisplayMetrics;
+            int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
+            chatHolder.FrameLayout.LayoutParameters.Width = maxWidth;
+
             if (message.IsRepliedMessage && message.ReplyToMessage != null)
             {
                 chatHolder.ReplyContainer.Visibility = ViewStates.Visible;
 
-                // Set reply preview text
-                var replyPreview = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
-                chatHolder.ReplyTextView.Text = $"Reply to: {replyPreview}";
+                // Set the original sender name
+                chatHolder.ReplySenderTextView.Text = message.ReplyToMessage.SenderId;
 
-                // Set background for reply container
+                // Set the original message preview
+                chatHolder.ReplyPreviewTextView.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
+
+                // Style the reply container
                 var replyBackground = new GradientDrawable();
-                replyBackground.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-                replyBackground.SetCornerRadius(16f);
+                replyBackground.SetColor(AColor.LightGray); // Light gray for background
+                replyBackground.SetCornerRadius(12f);
                 chatHolder.ReplyContainer.SetBackgroundDrawable(replyBackground);
             }
             else
@@ -534,10 +552,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.ReplyContainer.Visibility = ViewStates.Gone;
             }
 
-            // Set dynamic width for the message bubble (65% of screen width)
-            var displayMetrics = _context.Resources.DisplayMetrics;
-            int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
-            chatHolder.FrameLayout.LayoutParameters.Width = maxWidth;
 
             // Set date and time
             bool isFirstMessageOfDate = position == 0 || _messages[position - 1].Timestamp.Date != message.Timestamp.Date;
