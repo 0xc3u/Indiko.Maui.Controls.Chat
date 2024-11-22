@@ -28,9 +28,9 @@
             EmojiReactionTextColor="{StaticResource Primary}"
             LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
             ScrolledCommand="{Binding ScrolledCommand}"
-            SendIcon="dev.png"
-            DeliveredIcon="dev.png"
-            ReadIcon="dev.png">
+            SendIcon="send.png"
+            DeliveredIcon="check.png"
+            ReadIcon="read.png">
 
         </idk:ChatView>
 

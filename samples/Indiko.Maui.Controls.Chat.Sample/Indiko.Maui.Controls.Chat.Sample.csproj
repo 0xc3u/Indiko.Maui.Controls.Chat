@@ -43,8 +43,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Images\check.png" />
 	  <None Remove="Resources\Images\dev.png" />
 	  <None Remove="Resources\Images\dotnet_bot.svg" />
+	  <None Remove="Resources\Images\read.png" />
+	  <None Remove="Resources\Images\send.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -57,8 +60,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiImage Include="Resources\Images\check.png" />
 	  <MauiImage Include="Resources\Images\dev.png" />
 	  <MauiImage Include="Resources\Images\dotnet_bot.svg" />
+	  <MauiImage Include="Resources\Images\read.png" />
+	  <MauiImage Include="Resources\Images\send.png" />
 	</ItemGroup>
 
 	<ItemGroup>
