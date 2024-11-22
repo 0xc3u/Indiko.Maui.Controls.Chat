@@ -87,33 +87,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         if (VirtualView.Messages == null)
             return;
 
-        
-
-        var adapter = new ChatMessageAdapter(Context, VirtualView.Messages, mauiContext)
-        {
-            OwnMessageBackgroundColor = VirtualView.OwnMessageBackgroundColor,
-            OtherMessageBackgroundColor = VirtualView.OtherMessageBackgroundColor,
-            OwnMessageTextColor = VirtualView.OwnMessageTextColor,
-            OtherMessageTextColor = VirtualView.OtherMessageTextColor,
-            DateTextColor = VirtualView.DateTextColor,
-            MessageTimeTextColor = VirtualView.MessageTimeTextColor,
-            DateTextFontSize = VirtualView.DateTextFontSize,
-            MessageTimeFontSize = VirtualView.MessageTimeFontSize,
-            MessageFontSize = VirtualView.MessageFontSize,
-            NewMessagesSeperatorFontSize = VirtualView.NewMessagesSeperatorFontSize,
-            NewMessagesSeperatorTextColor = VirtualView.NewMessagesSeperatorTextColor,
-            NewMessagesSeperatorText = VirtualView.NewMessagesSeperatorText,
-            ScrollToFirstNewMessage = VirtualView.ScrollToFirstNewMessage,
-            AvatarSize = VirtualView.AvatarSize,
-            AvatarBackgroundColor = VirtualView.AvatarBackgroundColor,
-            AvatarTextColor = VirtualView.AvatarTextColor,
-            EmojiReactionTextColor = VirtualView.EmojiReactionTextColor,
-            EmojiReactionFontSize = VirtualView.EmojiReactionFontSize,
-            SendIcon = VirtualView.SendIcon,
-            DeliveredIcon = VirtualView.DeliveredIcon,
-            ReadIcon = VirtualView.ReadIcon,
-
-        };
+        var adapter = new ChatMessageAdapter(Context, mauiContext, VirtualView);
 
         recyclerView.SetAdapter(adapter);
 

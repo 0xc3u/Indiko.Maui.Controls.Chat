@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Indiko.Maui.Controls.Chat.Models;
@@ -235,6 +236,21 @@ public partial class MainPageViewModel : BaseViewModel
     {
 
     }
+
+    public ICommand OnAvatarTappedCommand => new Command<ChatMessage>((message) =>
+    {
+        Console.WriteLine($"Avatar tapped for message: {message.MessageId}");
+    });
+
+    public ICommand OnMessageTappedCommand => new Command<ChatMessage>((message) =>
+    {
+        Console.WriteLine($"Message tapped: {message.MessageId}");
+    });
+
+    public ICommand OnEmojiReactionTappedCommand => new Command<ChatMessage>((message) =>
+    {
+        Console.WriteLine($"Emoji Reaction tapped: {message.MessageId}");
+    });
 
 }
 

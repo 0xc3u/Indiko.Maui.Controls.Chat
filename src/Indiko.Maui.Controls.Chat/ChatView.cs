@@ -46,6 +46,21 @@ public class ChatView : View
         set => SetValue(MessageTappedCommandProperty, value);
     }
 
+
+    public static readonly BindableProperty AvatarTappedCommandProperty = BindableProperty.Create(nameof(AvatarTappedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand AvatarTappedCommand
+    {
+        get => (ICommand)GetValue(AvatarTappedCommandProperty);
+        set => SetValue(AvatarTappedCommandProperty, value);
+    }
+
+    public static readonly BindableProperty EmojiReactionTappedCommandProperty = BindableProperty.Create(nameof(EmojiReactionTappedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand EmojiReactionTappedCommand
+    {
+        get => (ICommand)GetValue(EmojiReactionTappedCommandProperty);
+        set => SetValue(EmojiReactionTappedCommandProperty, value);
+    }
+
     public static readonly BindableProperty LoadMoreMessagesCommandProperty = BindableProperty.Create(nameof(LoadMoreMessagesCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
     public ICommand LoadMoreMessagesCommand
     {

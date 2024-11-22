@@ -31,41 +31,66 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     private readonly Context _context;
     private readonly IList<ChatMessage> _messages;
 
-    public Color OwnMessageBackgroundColor { get; set; }
-    public Color OtherMessageBackgroundColor { get; set; }
-    public Color OwnMessageTextColor { get; set; }
-    public Color OtherMessageTextColor { get; set; }
+    public Color OwnMessageBackgroundColor { get; }
+    public Color OtherMessageBackgroundColor { get; }
+    public Color OwnMessageTextColor { get; }
+    public Color OtherMessageTextColor { get; }
 
-    public float MessageFontSize { get; set; }
+    public float MessageFontSize { get; }
 
-    public Color MessageTimeTextColor { get; set; }
-    public float MessageTimeFontSize { get; set; }
+    public Color MessageTimeTextColor { get; }
+    public float MessageTimeFontSize { get; }
 
-    public Color DateTextColor { get; set; }
-    public float DateTextFontSize { get; set; }
+    public Color DateTextColor { get; }
+    public float DateTextFontSize { get; }
 
-    public Color NewMessagesSeperatorTextColor { get; set; }
-    public float NewMessagesSeperatorFontSize { get; set; }
-    public string NewMessagesSeperatorText { get; set; }
-    public float AvatarSize { get; set; }
-    public Color AvatarBackgroundColor { get; set; }
-    public Color AvatarTextColor { get; set; }
-    public bool ScrollToFirstNewMessage { get; set; }
+    public Color NewMessagesSeperatorTextColor { get; }
+    public float NewMessagesSeperatorFontSize { get; }
+    public string NewMessagesSeperatorText { get; }
+    public float AvatarSize { get; }
+    public Color AvatarBackgroundColor { get; }
+    public Color AvatarTextColor { get; }
+    public bool ScrollToFirstNewMessage { get; }
 
-    public Color EmojiReactionTextColor { get; set; }
-    public float EmojiReactionFontSize { get; set; }
+    public Color EmojiReactionTextColor { get; }
+    public float EmojiReactionFontSize { get; }
 
-    public ImageSource SendIcon { get; set; }
-    public ImageSource DeliveredIcon { get; set; }
-    public ImageSource ReadIcon { get; set; }
+    public ImageSource SendIcon { get; }
+    public ImageSource DeliveredIcon { get; }
+    public ImageSource ReadIcon { get; }
 
     private readonly IMauiContext _mauiContext;
+    private readonly ChatView VirtualView; // Add reference to ChatView
 
-    public ChatMessageAdapter(Context context, IList<ChatMessage> messages, IMauiContext mauiContext)
+    public ChatMessageAdapter(Context context, IMauiContext mauiContext, ChatView virtualView)
     {
         _context = context;
-        _messages = messages;
+        _messages = virtualView.Messages;
         _mauiContext = mauiContext;
+        VirtualView = virtualView;
+
+        OwnMessageBackgroundColor = VirtualView.OwnMessageBackgroundColor;
+        OtherMessageBackgroundColor = VirtualView.OtherMessageBackgroundColor;
+        OwnMessageTextColor = VirtualView.OwnMessageTextColor;
+        OtherMessageTextColor = VirtualView.OtherMessageTextColor;
+        DateTextColor = VirtualView.DateTextColor;
+        MessageTimeTextColor = VirtualView.MessageTimeTextColor;
+        DateTextFontSize = VirtualView.DateTextFontSize;
+        MessageTimeFontSize = VirtualView.MessageTimeFontSize;
+        MessageFontSize = VirtualView.MessageFontSize;
+        NewMessagesSeperatorFontSize = VirtualView.NewMessagesSeperatorFontSize;
+        NewMessagesSeperatorTextColor = VirtualView.NewMessagesSeperatorTextColor;
+        NewMessagesSeperatorText = VirtualView.NewMessagesSeperatorText;
+        ScrollToFirstNewMessage = VirtualView.ScrollToFirstNewMessage;
+        AvatarSize = VirtualView.AvatarSize;
+        AvatarBackgroundColor = VirtualView.AvatarBackgroundColor;
+        AvatarTextColor = VirtualView.AvatarTextColor;
+        EmojiReactionTextColor = VirtualView.EmojiReactionTextColor;
+        EmojiReactionFontSize = VirtualView.EmojiReactionFontSize;
+        SendIcon = VirtualView.SendIcon;
+        DeliveredIcon = VirtualView.DeliveredIcon;
+        ReadIcon = VirtualView.ReadIcon;
+
     }
 
     public override int ItemCount => _messages.Count;
@@ -245,6 +270,10 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         if (holder is ChatMessageViewHolder chatHolder)
         {
             var message = _messages[position];
+
+            chatHolder.DetachEventHandlers(); // Ensure no previous handlers are attached
+            chatHolder.AttachEventHandlers(message, VirtualView);
+
 
             // Check if this is the first "New" message in the list
             bool isFirstNewMessage = message.ReadState == MessageReadState.New &&
@@ -520,7 +549,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         }
     }
 
-    public void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
+    private void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
     {
         if (imageSource == null || imageView == null || _mauiContext == null)
             return;

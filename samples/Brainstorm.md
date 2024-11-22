@@ -4,7 +4,7 @@
    - Show a small animation or label at the bottom of the chat to indicate when another user is typing.
    - Example: "User is typing…" with a pulsing dots animation.
 
-### 2. **Delivery and Read Receipts**
+### 2. **Delivery and Read Receipts** [x] 
    - Add small icons next to messages to show their delivery/read status:
      - ✅ Sent
      - 📬 Delivered
@@ -74,4 +74,30 @@
 ### 18. **Adaptive Layout**
    - Ensure the chat adapts well to different screen sizes (e.g., tablets or landscape orientation).
 
-Let me know which features you'd like to explore further, and I can help guide you through the implementation!
+
+
+Suggestions for Enhancements
+Performance Optimizations:
+
+Recycling Bitmaps: Ensure Bitmap objects (like for avatars) are properly disposed of when no longer needed to avoid memory leaks.
+Preload Video Files: Preload videos asynchronously in the background to minimize lag when displaying video messages.
+Dynamic Avatar and Icon Loading:
+
+Move the SetImageSourceToImageView logic to an asynchronous operation using Task to avoid blocking the UI thread.
+Use an image caching library like Glide or Coil for better performance with remote image sources.
+Scalable Font and Spacing Adjustments:
+
+Consider scaling font sizes and spacings dynamically based on device screen size and density to ensure the UI looks consistent across devices.
+Error Handling for Media:
+
+Add error states for failed media loading (images/videos) with appropriate placeholders or retry mechanisms.
+RecyclerView Adapter Diffing:
+
+Use ListAdapter with a DiffUtil.Callback for more efficient updates when the message list changes.
+Accessibility Improvements:
+
+Add ContentDescription to ImageView and TextView components for better screen reader support.
+Testing and Logging:
+
+Ensure logging for potential issues (like invalid message types or missing content).
+Add unit tests for key rendering scenarios and adapter behavior.
