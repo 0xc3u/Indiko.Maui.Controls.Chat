@@ -1,5 +1,4 @@
 ﻿using AViews = Android.Views;
-using AGraphics = Android.Graphics;
 using AndroidX.RecyclerView.Widget;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Handlers;
@@ -104,60 +103,6 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             {
                 recyclerView.Post(() => recyclerView.SmoothScrollToPosition(firstNewMessageIndex));
             }
-        }
-    }
-
-}
-
-// Custom OnScrollListener to detect scrolling to the top
-public class OnScrollListener : RecyclerView.OnScrollListener
-{
-    private readonly Action<ScrolledArgs> _onScrolled;
-    private readonly Action _onScrolledToTop;
-
-    public OnScrollListener(Action<ScrolledArgs> onScrolled, Action onScrolledToTop)
-    {
-        _onScrolled = onScrolled;
-        _onScrolledToTop = onScrolledToTop;
-    }
-
-    public override void OnScrolled(RecyclerView recyclerView, int dx, int dy)
-    {
-        base.OnScrolled(recyclerView, dx, dy);
-
-        var scrolledArgs = new ScrolledArgs { X = dx, Y = dy };
-        _onScrolled.Invoke(scrolledArgs);
-
-        var layoutManager = recyclerView.GetLayoutManager() as LinearLayoutManager;
-        if (layoutManager != null && layoutManager.FindFirstVisibleItemPosition() == 0)
-        {
-            _onScrolledToTop.Invoke();
-        }
-    }
-}
-
-
-public class SpacingItemDecoration : RecyclerView.ItemDecoration
-{
-    private readonly int _verticalSpacing;
-
-    public SpacingItemDecoration(int verticalSpacing)
-    {
-        _verticalSpacing = verticalSpacing;
-    }
-
-    public override void GetItemOffsets(AGraphics.Rect outRect, AViews.View view, RecyclerView parent, RecyclerView.State state)
-    {
-        // Apply vertical spacing to all items except the last one
-        if (parent.GetChildAdapterPosition(view) != state.ItemCount - 1)
-        {
-            outRect.Bottom = _verticalSpacing;
-        }
-
-        // Optional: Add top margin for the first item
-        if (parent.GetChildAdapterPosition(view) == 0)
-        {
-            outRect.Top = _verticalSpacing;
         }
     }
 }

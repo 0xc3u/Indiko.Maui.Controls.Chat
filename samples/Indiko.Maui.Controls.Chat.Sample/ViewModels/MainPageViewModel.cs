@@ -234,23 +234,26 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private void Scrolled(ScrolledArgs scrolledArgs)
     {
-
+        Console.WriteLine($"Chat Scrolled: x={scrolledArgs.X} y={scrolledArgs.Y}");
     }
 
-    public ICommand OnAvatarTappedCommand => new Command<ChatMessage>((message) =>
+    [RelayCommand]
+    private void OnAvatarTapped(ChatMessage message)
     {
         Console.WriteLine($"Avatar tapped for message: {message.MessageId}");
-    });
+    }
 
-    public ICommand OnMessageTappedCommand => new Command<ChatMessage>((message) =>
+    [RelayCommand]
+    private void OnMessageTapped(ChatMessage message)
     {
-        Console.WriteLine($"Message tapped: {message.MessageId}");
-    });
+        Console.WriteLine($"Message tapped for message: {message.MessageId}");
+    }
 
-    public ICommand OnEmojiReactionTappedCommand => new Command<ChatMessage>((message) =>
+    [RelayCommand]
+    private void OnEmojiReactionTapped(ChatMessage message)
     {
         Console.WriteLine($"Emoji Reaction tapped: {message.MessageId}");
-    });
+    }
 
 }
 
