@@ -7,16 +7,17 @@ using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
-public class ChatMessageCollectionViewSource : UICollectionViewDataSource, IUICollectionViewDelegateFlowLayout, IUIScrollViewDelegate
+public class ChatMessageAdapter : UICollectionViewDataSource, IUICollectionViewDelegateFlowLayout, IUIScrollViewDelegate
 {
     private readonly ChatView _chatView;
-    private ObservableCollection<ChatMessage> _messages;
+    private IList<ChatMessage> _messages;
 
-    public ChatMessageCollectionViewSource(ChatView chatView)
+    public ChatMessageAdapter(ChatView chatView)
     {
         _chatView = chatView;
-        _messages = new ObservableCollection<ChatMessage>();
+        _messages = chatView.Messages;
     }
+
 
     public void UpdateMessages(ObservableCollection<ChatMessage> messages)
     {
@@ -27,10 +28,9 @@ public class ChatMessageCollectionViewSource : UICollectionViewDataSource, IUICo
 
     public override UICollectionViewCell GetCell(UICollectionView collectionView, NSIndexPath indexPath)
     {
-        var message = _messages[indexPath.Row];
-        var cell = (ChatMessageCell)collectionView.DequeueReusableCell(ChatMessageCell.Key, indexPath);
-
-        cell.Update(message, _chatView);
+        var cell = (ChatMessageCell)collectionView.DequeueReusableCell(ChatMessageCell.CellId, indexPath);
+        var message = _messages[(int)indexPath.Item];
+        cell.Bind(message, _chatView, (int)indexPath.Item);
         return cell;
     }
 

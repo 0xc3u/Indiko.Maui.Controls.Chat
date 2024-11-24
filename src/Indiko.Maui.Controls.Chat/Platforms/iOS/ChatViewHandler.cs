@@ -39,7 +39,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     {
     }
 
-    private ChatMessageCollectionViewSource _dataSource;
+    private ChatMessageAdapter _dataSource;
 
     protected override UICollectionView CreatePlatformView()
     {
@@ -51,11 +51,11 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             BackgroundColor = UIColor.Clear
         };
 
-        _dataSource = new ChatMessageCollectionViewSource(VirtualView);
+        _dataSource = new ChatMessageAdapter(VirtualView);
         collectionView.DataSource = _dataSource;
         collectionView.Delegate = _dataSource;
 
-        collectionView.RegisterClassForCell(typeof(ChatMessageCell), ChatMessageCell.Key);
+        collectionView.RegisterClassForCell(typeof(ChatMessageCell), ChatMessageCell.CellId);
 
         return collectionView;
     }
