@@ -2,10 +2,16 @@
 using AndroidX.RecyclerView.Widget;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Handlers;
+using System.Collections.Specialized;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
+
 public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 {
+    private ChatMessageAdapter _adapter;
+    private WeakReference<ChatView> _weakChatView;
+
+
     public static IPropertyMapper<ChatView, ChatViewHandler> PropertyMapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
     {
         [nameof(ChatView.Messages)] = MapProperties,
@@ -51,9 +57,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
                 AViews.ViewGroup.LayoutParams.MatchParent)
         };
 
-        
         recyclerView.AddItemDecoration(new SpacingItemDecoration(VirtualView.MessageSpacing));
-
 
         var layoutManager = new LinearLayoutManager(Context);
         recyclerView.SetLayoutManager(layoutManager);
@@ -89,9 +93,8 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         if (VirtualView.Messages == null)
             return;
 
-        var adapter = new ChatMessageAdapter(Context, mauiContext, VirtualView);
-
-        recyclerView.SetAdapter(adapter);
+        _adapter = new ChatMessageAdapter(Context, mauiContext, VirtualView);
+        recyclerView.SetAdapter(_adapter);
 
         // Check if ScrollToFirstNewMessage is enabled and there are messages
         if (VirtualView.ScrollToFirstNewMessage)
@@ -106,6 +109,65 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             {
                 recyclerView.Post(() => recyclerView.SmoothScrollToPosition(firstNewMessageIndex));
             }
+        }
+
+        // Create a weak reference to the ChatView
+        _weakChatView = new WeakReference<ChatView>(VirtualView);
+
+        // Listen for changes in the Messages collection using a weak event reference
+        VirtualView.Messages.CollectionChanged += OnMessagesCollectionChanged;
+    }
+
+
+    private void OnMessagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
+    {
+        if (_weakChatView.TryGetTarget(out var chatView))
+        {
+            switch (args.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    foreach (var item in args.NewItems)
+                    {
+                        var index = chatView.Messages.IndexOf((ChatMessage)item);
+                        _adapter.NotifyItemInserted(index);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    foreach (var item in args.OldItems)
+                    {
+                        var index = args.OldStartingIndex;
+                        _adapter.NotifyItemRemoved(index);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Replace:
+                    foreach (var item in args.NewItems)
+                    {
+                        var index = chatView.Messages.IndexOf((ChatMessage)item);
+                        _adapter.NotifyItemChanged(index);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Move:
+                    _adapter.NotifyItemMoved(args.OldStartingIndex, args.NewStartingIndex);
+                    break;
+                case NotifyCollectionChangedAction.Reset:
+                    _adapter.NotifyDataSetChanged();
+                    break;
+            }
+
+            // Scroll to the bottom when a new message is added
+            if (args.Action == NotifyCollectionChangedAction.Add)
+            {
+                PlatformView.Post(() => PlatformView.SmoothScrollToPosition(chatView.Messages.Count - 1));
+            }
+        }
+    }
+
+    protected override void DisconnectHandler(RecyclerView platformView)
+    {
+        base.DisconnectHandler(platformView);
+        if (_weakChatView.TryGetTarget(out var chatView))
+        {
+            chatView.Messages.CollectionChanged -= OnMessagesCollectionChanged;
         }
     }
 }
