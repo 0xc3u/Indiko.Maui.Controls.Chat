@@ -21,7 +21,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     public LinearLayout ReactionContainer { get; }
     public ImageView DeliveryStatusIcon { get; }
 
-    public LinearLayout ReplyContainer { get; }
+    public LinearLayout ReplySummaryFrame { get; }
     public TextView ReplySenderTextView { get; }
     public TextView ReplyPreviewTextView { get; }
 
@@ -44,7 +44,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         ImageView avatarView,
         LinearLayout reactionContainer,
         ImageView deliveryStatusIcon,
-        LinearLayout replyContainer, // Add reply container
+        LinearLayout replySummaryFrame, // Add reply container
         TextView replyPreviewTextView,
         TextView replySenderTextView) // Add reply text view)
         : base(itemView)
@@ -61,7 +61,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         ReactionContainer = reactionContainer;
         DeliveryStatusIcon = deliveryStatusIcon;
 
-        ReplyContainer = replyContainer; // Initialize reply container
+        ReplySummaryFrame = replySummaryFrame; // Initialize reply container
         ReplySenderTextView = replySenderTextView;
         ReplyPreviewTextView = replyPreviewTextView;
     }

@@ -240,6 +240,28 @@ public class ChatView : View
     }
 
 
+    public static readonly BindableProperty ReplyMessageBackgroundColorProperty = BindableProperty.Create(nameof(ReplyMessageBackgroundColor), typeof(Color), typeof(ChatView), Colors.LightYellow);
+    public Color ReplyMessageBackgroundColor
+    {
+        get => (Color)GetValue(ReplyMessageBackgroundColorProperty);
+        set => SetValue(ReplyMessageBackgroundColorProperty, value);
+    }
+
+    public static readonly BindableProperty ReplyMessageTextColorProperty = BindableProperty.Create(nameof(ReplyMessageTextColor), typeof(Color), typeof(ChatView), Colors.Black);
+    public Color ReplyMessageTextColor
+    {
+        get => (Color)GetValue(ReplyMessageTextColorProperty);
+        set => SetValue(ReplyMessageTextColorProperty, value);
+    }
+
+    public static readonly BindableProperty ReplyMessageFontSizeProperty = BindableProperty.Create(nameof(ReplyMessageFontSize), typeof(float), typeof(ChatView), 10f);
+    public float ReplyMessageFontSize
+    {
+        get => (float)GetValue(ReplyMessageFontSizeProperty);
+        set => SetValue(ReplyMessageFontSizeProperty, value);
+    }
+
+
     private static void OnMessagesChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var chatView = (ChatView)bindable;

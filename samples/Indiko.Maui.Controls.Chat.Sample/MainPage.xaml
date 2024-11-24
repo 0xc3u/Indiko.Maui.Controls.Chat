@@ -26,6 +26,8 @@
             ScrollToFirstNewMessage="True"
             EmojiReactionFontSize="14"
             EmojiReactionTextColor="{StaticResource Primary}"
+            ReplyMessageBackgroundColor="{StaticResource Tertiary}"
+            ReplyMessageTextColor="{StaticResource White}"
             LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
             ScrolledCommand="{Binding ScrolledCommand}"
             AvatarTappedCommand="{Binding AvatarTappedCommand}"

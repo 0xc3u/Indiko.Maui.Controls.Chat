@@ -25,6 +25,9 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         [nameof(ChatView.AvatarTextColor)] = MapProperties,
         [nameof(ChatView.EmojiReactionFontSize)] = MapProperties,
         [nameof(ChatView.EmojiReactionTextColor)] = MapProperties,
+        [nameof(ChatView.ReplyMessageBackgroundColor)] = MapProperties,
+        [nameof(ChatView.ReplyMessageTextColor)] = MapProperties,
+        [nameof(ChatView.ReplyMessageFontSize)] = MapProperties,
 
     };
 
