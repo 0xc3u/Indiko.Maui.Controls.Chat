@@ -8,9 +8,11 @@
              BackgroundColor="White"
              Title="ChatView Sample">
 
+
+    <Grid RowDefinitions="*, 80">
+
+        <idk:ChatView Grid.Row="0" x:Name="chatView"
     
-        <idk:ChatView x:Name="chatView"
-            
             OwnMessageBackgroundColor="{StaticResource Primary}" 
             OwnMessageTextColor="{StaticResource White}"
             OtherMessageBackgroundColor="{StaticResource Secondary}"
@@ -39,10 +41,24 @@
 
         </idk:ChatView>
 
-       
-    
+        <Grid Grid.Row="1" BackgroundColor="{StaticResource Gray100}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Editor Grid.Column="0" x:Name="messageEntry" Placeholder="Type a message" Text="{Binding NewMessage}" TextColor="{StaticResource Primary}" />
+            <Button Grid.Column="1" Text="Send" Command="{Binding SendMessageCommand}" />
 
-   
+        </Grid>
+    </Grid>
+
+
+
+
+
+
+
+
 
 
 </ContentPage>

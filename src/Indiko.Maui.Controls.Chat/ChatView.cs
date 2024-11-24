@@ -265,12 +265,21 @@ public class ChatView : View
     private static void OnMessagesChanged(BindableObject bindable, object oldValue, object newValue)
     {
         var chatView = (ChatView)bindable;
+
+        if (oldValue is ObservableCollection<ChatMessage> oldMessages && newValue is ObservableCollection<ChatMessage> newMessages)
+        {
+            // compare old and new messages to find new messages
+            var newMessagesList = newMessages.Except(oldMessages).ToList();
+          
+        }
+
         chatView.MessagesUpdated();
     }
 
     private void MessagesUpdated()
     {
         MessagesUpdatedEvent?.Invoke(this, EventArgs.Empty);
+
     }
 }
 
