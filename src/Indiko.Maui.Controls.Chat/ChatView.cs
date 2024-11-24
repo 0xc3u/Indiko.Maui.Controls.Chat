@@ -160,6 +160,14 @@ public class ChatView : View
         set => SetValue(NewMessagesSeperatorTextColorProperty, value);
     }
 
+
+    public static readonly BindableProperty ShowNewMessagesSeperatorProperty = BindableProperty.Create(nameof(ShowNewMessagesSeperator), typeof(bool), typeof(ChatView), false);
+    public bool ShowNewMessagesSeperator
+    {
+        get => (bool)GetValue(ShowNewMessagesSeperatorProperty);
+        set => SetValue(ShowNewMessagesSeperatorProperty, value);
+    }
+
     public static readonly BindableProperty EmojiReactionFontSizeProperty = BindableProperty.Create(nameof(EmojiReactionFontSize), typeof(float), typeof(ChatView), 10f);
     public float EmojiReactionFontSize
     {

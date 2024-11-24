@@ -38,11 +38,12 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public Color NewMessagesSeperatorTextColor { get; }
     public float NewMessagesSeperatorFontSize { get; }
     public string NewMessagesSeperatorText { get; }
+    public bool ShowNewMessagesSeperator { get; }
+
     public float AvatarSize { get; }
     public Color AvatarBackgroundColor { get; }
     public Color AvatarTextColor { get; }
     public bool ScrollToFirstNewMessage { get; }
-
     public Color EmojiReactionTextColor { get; }
     public float EmojiReactionFontSize { get; }
 
@@ -88,6 +89,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         ReplyMessageBackgroundColor = VirtualView.ReplyMessageBackgroundColor;
         ReplyMessageTextColor = VirtualView.ReplyMessageTextColor;
         ReplyMessageFontSize = VirtualView.ReplyMessageFontSize;
+        ShowNewMessagesSeperator = VirtualView.ShowNewMessagesSeperator;
     }
 
     public override int ItemCount => _messages.Count;
@@ -316,7 +318,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                                       (position == 0 || _messages[position - 1].ReadState != MessageReadState.New);
 
             // Display the New Messages Separator and lines only above the first "New" message
-            if (isFirstNewMessage)
+            if (isFirstNewMessage && ShowNewMessagesSeperator)
             {
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Visible;
                 chatHolder.NewMessagesSeparatorTextView.Text = NewMessagesSeperatorText;
