@@ -11,7 +11,7 @@ public partial class MainPageViewModel : BaseViewModel
     List<User> actors;
 
     [ObservableProperty]
-    ObservableCollection<ChatMessage> chatMessages;
+    ObservableRangeCollection<ChatMessage> chatMessages;
 
     public override void OnAppearing(object param)
     {
@@ -236,7 +236,7 @@ public partial class MainPageViewModel : BaseViewModel
 
         messages.Add(videoMessage);
 
-        ChatMessages = new ObservableCollection<ChatMessage>(messages);
+        ChatMessages = new ObservableRangeCollection<ChatMessage>(messages);
 
     }
 
@@ -321,18 +321,14 @@ public partial class MainPageViewModel : BaseViewModel
             ReplyToMessage = null
         };
 
-        var currentMessages = ChatMessages.ToList();
-
-        for (int n = 0; n < currentMessages.Count; n++)
+        for (int n = 0; n < ChatMessages.Count; n++)
         {
-            if (currentMessages[n].ReadState == MessageReadState.New)
+            if (ChatMessages[n].ReadState == MessageReadState.New)
             {
-                currentMessages[n].ReadState = MessageReadState.Read;
+                ChatMessages[n].ReadState = MessageReadState.Read;
             }
         }
-
-        currentMessages.Add(newChatMessage);
-        ChatMessages = new ObservableCollection<ChatMessage>(currentMessages);
+        ChatMessages.Add(newChatMessage);
         NewMessage = string.Empty;
     }
 }

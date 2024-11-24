@@ -30,6 +30,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         [nameof(ChatView.NewMessagesSeperatorFontSize)] = MapProperties,
         [nameof(ChatView.AvatarSize)] = MapProperties,
         [nameof(ChatView.ScrollToFirstNewMessage)] = MapProperties,
+        [nameof(ChatView.ScrollToLastMessage)] = MapProperties,
         [nameof(ChatView.AvatarBackgroundColor)] = MapProperties,
         [nameof(ChatView.AvatarTextColor)] = MapProperties,
     };
@@ -114,7 +115,16 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             {
                 ScrollToFirstNewMessage();
             }
+            else if(VirtualView.ScrollToLastMessage)
+            {
+                ScrollToLastMessage();
+            }
         }
+    }
+
+    private void ScrollToLastMessage()
+    {
+        PlatformView.ScrollToItem(NSIndexPath.FromRowSection(VirtualView.Messages.Count - 1, 0), UICollectionViewScrollPosition.Bottom, true);
     }
 
     private void ScrollToFirstNewMessage()
@@ -123,6 +133,10 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         if (index < VirtualView.Messages.Count)
         {
             PlatformView.ScrollToItem(NSIndexPath.FromRowSection(index, 0), UICollectionViewScrollPosition.Top, true);
+        }
+        else
+        {
+            ScrollToLastMessage();
         }
     }
 }

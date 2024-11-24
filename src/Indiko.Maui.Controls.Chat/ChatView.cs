@@ -69,12 +69,12 @@ public class ChatView : View
     }
 
 
-    public static readonly BindableProperty MessagesProperty = BindableProperty.Create(nameof(Messages), typeof(ObservableCollection<ChatMessage>), typeof(ChatView), default(ObservableCollection<ChatMessage>),
+    public static readonly BindableProperty MessagesProperty = BindableProperty.Create(nameof(Messages), typeof(ObservableRangeCollection<ChatMessage>), typeof(ChatView), default(ObservableRangeCollection<ChatMessage>),
         propertyChanged: OnMessagesChanged);
 
-    public ObservableCollection<ChatMessage> Messages
+    public ObservableRangeCollection<ChatMessage> Messages
     {
-        get => (ObservableCollection<ChatMessage>)GetValue(MessagesProperty);
+        get => (ObservableRangeCollection<ChatMessage>)GetValue(MessagesProperty);
         set => SetValue(MessagesProperty, value);
     }
 
@@ -209,6 +209,14 @@ public class ChatView : View
         set => SetValue(ScrollToFirstNewMessageProperty, value);
     }
 
+    public static readonly BindableProperty ScrollToLastMessageProperty = BindableProperty.Create(nameof(ScrollToFirstNewMessage), typeof(bool), typeof(ChatView), true);
+    public bool ScrollToLastMessage
+    {
+        get => (bool)GetValue(ScrollToLastMessageProperty);
+        set => SetValue(ScrollToLastMessageProperty, value);
+    }
+
+
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {
@@ -266,7 +274,7 @@ public class ChatView : View
     {
         var chatView = (ChatView)bindable;
 
-        if (oldValue is ObservableCollection<ChatMessage> oldMessages && newValue is ObservableCollection<ChatMessage> newMessages)
+        if (oldValue is ObservableRangeCollection<ChatMessage> oldMessages && newValue is ObservableRangeCollection<ChatMessage> newMessages)
         {
             // compare old and new messages to find new messages
             var newMessagesList = newMessages.Except(oldMessages).ToList();
