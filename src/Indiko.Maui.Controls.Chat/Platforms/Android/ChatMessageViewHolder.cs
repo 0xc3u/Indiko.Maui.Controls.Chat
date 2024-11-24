@@ -1,9 +1,7 @@
-﻿using aViews = Android.Views;
+﻿using Android.Widget;
 using AndroidX.RecyclerView.Widget;
-using Android.Widget;
 using Indiko.Maui.Controls.Chat.Models;
-using Android.Graphics.Drawables;
-using Microsoft.Maui.Controls.Platform;
+using aViews = Android.Views;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 
@@ -44,9 +42,9 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         ImageView avatarView,
         LinearLayout reactionContainer,
         ImageView deliveryStatusIcon,
-        LinearLayout replySummaryFrame, // Add reply container
+        LinearLayout replySummaryFrame,
         TextView replyPreviewTextView,
-        TextView replySenderTextView) // Add reply text view)
+        TextView replySenderTextView)
         : base(itemView)
     {
         DateTextView = dateTextView;
@@ -61,7 +59,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         ReactionContainer = reactionContainer;
         DeliveryStatusIcon = deliveryStatusIcon;
 
-        ReplySummaryFrame = replySummaryFrame; // Initialize reply container
+        ReplySummaryFrame = replySummaryFrame;
         ReplySenderTextView = replySenderTextView;
         ReplyPreviewTextView = replyPreviewTextView;
     }

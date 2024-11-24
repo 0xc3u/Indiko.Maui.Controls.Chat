@@ -1,31 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Android.Content;
-using Android.Graphics.Drawables;
-using aWidgets = Android.Widget;
-using AndroidX.RecyclerView.Widget;
-using Microsoft.Maui.Platform;
-using Android.Widget;
-using AViews = Android.Views;
-using ANet = Android.Net;
+﻿using Android.Content;
 using Android.Graphics;
+using Android.Graphics.Drawables;
+using Android.Views;
+using Android.Widget;
+using AndroidX.ConstraintLayout.Widget;
+using AndroidX.RecyclerView.Widget;
+using Indiko.Maui.Controls.Chat.Models;
+using Microsoft.Maui.Platform;
+using aIO = Java.IO;
+using ANet = Android.Net;
+using AViews = Android.Views;
+using Color = Microsoft.Maui.Graphics.Color;
 using Paint = Android.Graphics.Paint;
 using Rect = Android.Graphics.Rect;
 using RectF = Android.Graphics.RectF;
-using AColor = Android.Graphics.Color;
-using Color = Microsoft.Maui.Graphics.Color;
-using AndroidX.ConstraintLayout.Widget;
-using Android.Views;
-using Indiko.Maui.Controls.Chat.Models;
-using aIO = Java.IO;
-using Microsoft.Maui;
-using Microsoft.Maui.Controls;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
-// Android Part
+
 public class ChatMessageAdapter : RecyclerView.Adapter
 {
     private readonly Context _context;
@@ -122,8 +113,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         // Add a circular shape drawable
         var avatarBackground = new GradientDrawable();
         avatarBackground.SetShape(ShapeType.Oval);
-        avatarBackground.SetColor(AColor.LightGray); // Default color
-        avatarView.SetBackgroundDrawable(avatarBackground);
+        avatarBackground.SetColor(AvatarBackgroundColor.ToPlatform());
+        avatarView.Background = avatarBackground;
+
 
         // Date TextView
         var dateTextView = new TextView(_context)
@@ -172,7 +164,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             Orientation = Orientation.Vertical,
             Visibility = ViewStates.Gone // Initially hidden
         };
-        replySummaryFrame.SetPadding(16, 8, 16, 8); // Padding for the reply summary
+        replySummaryFrame.SetPadding(32, 16, 32, 16); // Padding for the reply summary
         linearLayout.AddView(replySummaryFrame, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.WrapContent));
@@ -364,7 +356,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     var avatarPlaceholder = new GradientDrawable();
                     avatarPlaceholder.SetShape(ShapeType.Oval);
                     avatarPlaceholder.SetColor(AvatarBackgroundColor.ToPlatform()); // Placeholder color
-                    chatHolder.AvatarView.SetBackgroundDrawable(avatarPlaceholder);
+                    chatHolder.AvatarView.Background = avatarPlaceholder;
                     chatHolder.AvatarView.SetImageBitmap(null);
                 }
             }
@@ -382,12 +374,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.TextView.Visibility = ViewStates.Visible;
                 chatHolder.TextView.Text = message.TextContent;
                 chatHolder.TextView.SetTextColor(message.IsOwnMessage ? OwnMessageTextColor.ToPlatform() : OtherMessageTextColor.ToPlatform());
-
-                var backgroundColor = message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform();
-                var backgroundDrawable = new GradientDrawable();
-                backgroundDrawable.SetColor(backgroundColor);
-                backgroundDrawable.SetCornerRadius(24f);
-                chatHolder.TextView.SetBackgroundDrawable(backgroundDrawable);
             }
             else if (message.MessageType == MessageType.Image)
             {
@@ -402,13 +388,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     var bitmap = BitmapFactory.DecodeByteArray(message.BinaryContent, 0, message.BinaryContent.Length);
                     chatHolder.ImageView.SetImageBitmap(bitmap);
 
-                    // Create a drawable for rounded corners
-                    var imageBackgroundDrawable = new GradientDrawable();
-                    imageBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-                    imageBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
-                    chatHolder.ImageView.SetBackgroundDrawable(imageBackgroundDrawable);
-
-                    // Calculate the dimensions for the image bubble
+                   // Calculate the dimensions for the image bubble
                     var imageDisplayMetrics = _context.Resources.DisplayMetrics;
                     int imagemaxWidth = (int)(imageDisplayMetrics.WidthPixels * 0.65); // Limit width to 65% of screen
                     float aspectRatio = (float)bitmap.Height / bitmap.Width;
@@ -453,13 +433,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.VideoView.SetVideoURI(videoUri);
                     chatHolder.VideoView.RequestFocus();
 
-                    // Apply background with rounded corners to the container instead of VideoView
-                    var videoBackgroundDrawable = new GradientDrawable();
-                    videoBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-                    videoBackgroundDrawable.SetCornerRadius(24f);
-                    chatHolder.VideoContainer.SetBackgroundDrawable(videoBackgroundDrawable);
-
-                    // Calculate dimensions for the video bubble
+                     // Calculate dimensions for the video bubble
                     var videodisplayMetrics = _context.Resources.DisplayMetrics;
                     int videomaxWidth = (int)(videodisplayMetrics.WidthPixels * 0.65);
                     float aspectRatio = 9f / 16f;
@@ -532,6 +506,12 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
             chatHolder.FrameLayout.LayoutParameters.Width = maxWidth;
 
+
+            var frameLayoutBackgroundDrawable = new GradientDrawable();
+            frameLayoutBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
+            frameLayoutBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
+            chatHolder.FrameLayout.Background = frameLayoutBackgroundDrawable;
+
             if (message.IsRepliedMessage && message.ReplyToMessage != null)
             {
                 chatHolder.ReplySummaryFrame.Visibility = ViewStates.Visible;
@@ -543,11 +523,10 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.ReplyPreviewTextView.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
                 chatHolder.ReplyPreviewTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
 
-                // Optional: Style the reply summary frame
                 var replyBackground = new GradientDrawable();
-                replyBackground.SetColor(ReplyMessageBackgroundColor.ToPlatform()); // Light gray background
-                replyBackground.SetCornerRadius(8f); // Rounded corners
-                chatHolder.ReplySummaryFrame.SetBackgroundDrawable(replyBackground);
+                replyBackground.SetColor(ReplyMessageBackgroundColor.ToPlatform());
+                replyBackground.SetCornerRadius(24f);
+                chatHolder.ReplySummaryFrame.Background = replyBackground;
             }
             else
             {
