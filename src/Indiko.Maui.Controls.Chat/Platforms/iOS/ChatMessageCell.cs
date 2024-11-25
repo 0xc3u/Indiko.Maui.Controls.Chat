@@ -138,8 +138,8 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
         private void SetupConstraints()
         {
             // AvatarView constraints
-            _avatarView.WidthAnchor.ConstraintEqualTo(48).Active = true; // Adjusted avatar size
-            _avatarView.HeightAnchor.ConstraintEqualTo(48).Active = true; // Adjusted avatar size
+            _avatarView.WidthAnchor.ConstraintEqualTo(28).Active = true; // Adjusted avatar size
+            _avatarView.HeightAnchor.ConstraintEqualTo(28).Active = true; // Adjusted avatar size
             _avatarView.LeadingAnchor.ConstraintEqualTo(ContentView.LeadingAnchor, 16).Active = true;
             _avatarView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 16).Active = true;
 
@@ -197,6 +197,13 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             // ReplyPreviewLabel constraints
             _replyPreviewLabel.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
             _replyPreviewLabel.TopAnchor.ConstraintEqualTo(_replySenderLabel.BottomAnchor, 8).Active = true;
+
+            // ReactionContainer constraints
+            _reactionContainer.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
+            _reactionContainer.TopAnchor.ConstraintEqualTo(_frameView.BottomAnchor, 8).Active = true;
+            _reactionContainer.TrailingAnchor.ConstraintEqualTo(_frameView.TrailingAnchor, -16).Active = true;
+            _reactionContainer.HeightAnchor.ConstraintGreaterThanOrEqualTo(20).Active = true; // Adjust height if needed
+
         }
 
         public void Bind(ChatMessage message, ChatView chatView, int index)
@@ -213,7 +220,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             }
             else if (!message.IsOwnMessage)
             {
-                _avatarView.Image = CreateInitialsImage(message.SenderInitials, 48, 48); // Adjusted avatar size
+                _avatarView.Image = CreateInitialsImage(message.SenderInitials, 28, 28); // Adjusted avatar size
             }
             else
             {
@@ -259,6 +266,54 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                     _imageView.Hidden = true;
                     _videoContainer.Hidden = true;
                 }
+            }
+
+
+            // Clear previous reactions
+            foreach (var subview in _reactionContainer.Subviews)
+            {
+                subview.RemoveFromSuperview();
+            }
+
+            // Add reactions if available
+            if (message.Reactions != null && message.Reactions.Any())
+            {
+                foreach (var reaction in message.Reactions)
+                {
+                    var reactionLabel = new UILabel
+                    {
+                        Text = $"{reaction.Emoji} {reaction.Count}",
+                        Font = UIFont.SystemFontOfSize(12),
+                        TextColor = UIColor.Gray,
+                        TranslatesAutoresizingMaskIntoConstraints = false
+                    };
+
+                    _reactionContainer.AddSubview(reactionLabel);
+
+                    // Set constraints for each reaction (stacked horizontally)
+                    if (_reactionContainer.Subviews.Length == 1)
+                    {
+                        // First reaction: align to the left
+                        reactionLabel.LeadingAnchor.ConstraintEqualTo(_reactionContainer.LeadingAnchor).Active = true;
+                    }
+                    else
+                    {
+                        // Subsequent reactions: align to the previous reaction
+                        var previousLabel = _reactionContainer.Subviews[_reactionContainer.Subviews.Length - 2];
+                        reactionLabel.LeadingAnchor.ConstraintEqualTo(previousLabel.TrailingAnchor, 8).Active = true;
+                    }
+
+                    // Align vertically to the container
+                    reactionLabel.CenterYAnchor.ConstraintEqualTo(_reactionContainer.CenterYAnchor).Active = true;
+                }
+
+                // Show the reaction container
+                _reactionContainer.Hidden = false;
+            }
+            else
+            {
+                // Hide the reaction container if no reactions
+                _reactionContainer.Hidden = true;
             }
 
             // Set delivery status icon
