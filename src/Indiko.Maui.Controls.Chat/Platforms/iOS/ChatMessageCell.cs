@@ -26,6 +26,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
         private UILabel _replySenderLabel;
         private UILabel _replyPreviewLabel;
         private AVPlayerViewController _videoPlayer;
+        private UIStackView _replyContainer;
 
         public ChatMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
         {
@@ -108,6 +109,12 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                     TranslatesAutoresizingMaskIntoConstraints = false
                 };
 
+                _reactionContainer = new UIView
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false
+                };
+
+
                 _replySenderLabel = new UILabel
                 {
                     TranslatesAutoresizingMaskIntoConstraints = false,
@@ -123,19 +130,19 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                 };
 
 
-                _reactionContainer = new UIView
+                _replyContainer = new UIStackView
                 {
                     TranslatesAutoresizingMaskIntoConstraints = false
                 };
 
-                _reactionContainer.AddSubviews(_replySenderLabel, _replyPreviewLabel);
+                _replyContainer.AddSubviews(_replySenderLabel, _replyPreviewLabel);
 
 
                 // Add all subviews to ContentView
-                _frameView.AddSubviews(_messageLabel, _imageView, _videoContainer, _reactionContainer);
+                _frameView.AddSubviews(_replyContainer,_messageLabel, _imageView, _videoContainer);
 
                 ContentView.BackgroundColor = UIColor.Clear;
-                ContentView.AddSubviews(_avatarView, _dateLabel, _frameView, _timestampLabel, _newMessagesSeparatorLabel);
+                ContentView.AddSubviews(_avatarView, _dateLabel, _frameView, _timestampLabel, _newMessagesSeparatorLabel, _reactionContainer);
 
                 // Set up constraints
                 SetupConstraints();
@@ -199,12 +206,12 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             _deliveryStatusIcon.HeightAnchor.ConstraintEqualTo(16).Active = true;
 
             // ReplySenderLabel constraints
-            _replySenderLabel.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
-            _replySenderLabel.TopAnchor.ConstraintEqualTo(_frameView.TopAnchor, 16).Active = true;
+            _replyContainer.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
+            _replyContainer.TopAnchor.ConstraintEqualTo(_frameView.TopAnchor, 16).Active = true;
 
             // ReplyPreviewLabel constraints
-            _replyPreviewLabel.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
-            _replyPreviewLabel.TopAnchor.ConstraintEqualTo(_replySenderLabel.BottomAnchor, 8).Active = true;
+            _replyContainer.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
+            _replyContainer.TopAnchor.ConstraintEqualTo(_replySenderLabel.BottomAnchor, 8).Active = true;
 
             // ReactionContainer constraints
             _reactionContainer.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
@@ -243,55 +250,55 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                 _messageLabel.Hidden = false;
                 _messageLabel.TextColor = message.IsOwnMessage ? chatView.OwnMessageTextColor.ToPlatform() : chatView.OtherMessageTextColor.ToPlatform();
             }
-            else if (message.MessageType == MessageType.Image)
-            {
-                if (message.BinaryContent != null)
-                {
-                    _messageLabel.Hidden = true;
-                    _imageView.Hidden = false;
-                    _videoContainer.Hidden = true;
+            //else if (message.MessageType == MessageType.Image)
+            //{
+            //    if (message.BinaryContent != null)
+            //    {
+            //        _messageLabel.Hidden = true;
+            //        _imageView.Hidden = false;
+            //        _videoContainer.Hidden = true;
 
-                    var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.png");
+            //        var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.png");
 
-                    if (!File.Exists(tempFile))
-                    {
-                        File.WriteAllBytes(tempFile, message.BinaryContent);
-                    }
+            //        if (!File.Exists(tempFile))
+            //        {
+            //            File.WriteAllBytes(tempFile, message.BinaryContent);
+            //        }
 
-                    _imageView.Image = UIImage.FromFile(tempFile);
-                }
-                else
-                {
-                    _messageLabel.Hidden = true;
-                    _imageView.Hidden = true;
-                    _videoContainer.Hidden = true;
-                }
-            }
-            else if (message.MessageType == MessageType.Video)
-            {
-                if (message.BinaryContent != null)
-                {
+            //        _imageView.Image = UIImage.FromFile(tempFile);
+            //    }
+            //    else
+            //    {
+            //        _messageLabel.Hidden = true;
+            //        _imageView.Hidden = true;
+            //        _videoContainer.Hidden = true;
+            //    }
+            //}
+            //else if (message.MessageType == MessageType.Video)
+            //{
+            //    if (message.BinaryContent != null)
+            //    {
 
-                    var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.mp4");
+            //        var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.mp4");
 
-                    if(!File.Exists(tempFile))
-                    {
-                        File.WriteAllBytes(tempFile, message.BinaryContent);
-                    }
+            //        if(!File.Exists(tempFile))
+            //        {
+            //            File.WriteAllBytes(tempFile, message.BinaryContent);
+            //        }
 
-                    var player = new AVPlayer(NSUrl.FromFilename(tempFile));
-                    _videoPlayer.Player = player;
-                    _videoContainer.Hidden = false;
-                    _messageLabel.Hidden = true;
-                    _imageView.Hidden = true;
-                }
-                else
-                {
-                    _messageLabel.Hidden = true;
-                    _imageView.Hidden = true;
-                    _videoContainer.Hidden = true;
-                }
-            }
+            //        var player = new AVPlayer(NSUrl.FromFilename(tempFile));
+            //        _videoPlayer.Player = player;
+            //        _videoContainer.Hidden = false;
+            //        _messageLabel.Hidden = true;
+            //        _imageView.Hidden = true;
+            //    }
+            //    else
+            //    {
+            //        _messageLabel.Hidden = true;
+            //        _imageView.Hidden = true;
+            //        _videoContainer.Hidden = true;
+            //    }
+            //}
 
 
             // Clear previous reactions
@@ -357,7 +364,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
 
             // Set dynamic width for the message bubble (65% of screen width)
             var displayMetrics = UIScreen.MainScreen.Bounds;
-            var maxWidth = (nfloat)(displayMetrics.Width * 1.65);
+            var maxWidth = (nfloat)(displayMetrics.Width * 0.65);
             _frameView.WidthAnchor.ConstraintEqualTo(maxWidth).Active = true;
 
             // Set background color for the message bubble
@@ -370,11 +377,27 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                 _replyPreviewLabel.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
                 _replySenderLabel.Hidden = false;
                 _replyPreviewLabel.Hidden = false;
+
+                _replyContainer.BackgroundColor = chatView.ReplyMessageBackgroundColor.ToPlatform();
+                _replyContainer.ContentMode = UIViewContentMode.ScaleToFill;
+                _replySenderLabel.TextColor = chatView.ReplyMessageTextColor.ToPlatform();
+                _replyPreviewLabel.TextColor = chatView.ReplyMessageTextColor.ToPlatform();
+
+                _replyContainer.Hidden = false;
             }
             else
             {
                 _replySenderLabel.Hidden = true;
                 _replyPreviewLabel.Hidden = true;
+                _replyContainer.Hidden = true;
+
+                foreach (var subview in _frameView.Subviews)
+                {
+                    if (subview == _replyContainer)
+                    {
+                        subview.RemoveFromSuperview();
+                    }
+                }
             }
 
             // Set date and time
