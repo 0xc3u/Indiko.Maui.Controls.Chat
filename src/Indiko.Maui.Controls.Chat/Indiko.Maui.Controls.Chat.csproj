@@ -39,9 +39,6 @@
 
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.10" />
-	  <PackageReference Include="CSharpMath.SkiaSharp" Version="0.5.1" />
-	  <PackageReference Include="SkiaSharp.Extended.UI.Maui" Version="2.0.0" />
-	  <PackageReference Include="SkiaSharp.Svg" Version="1.60.0" />
 	</ItemGroup>
 
 	<ItemGroup>

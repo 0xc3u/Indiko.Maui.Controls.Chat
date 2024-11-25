@@ -1,6 +1,27 @@
+![Indiko.Maui.Controls.Chat](nuget.png)
+
 # ChatView Control for MAUI.NET
 
 The `ChatView` control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, loading more messages, and rendering replies, emojis, and avatars. The control leverages native performance using `RecyclerView` on Android and `UICollectionView` on iOS.
+
+## Build Status
+![ci](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/actions/workflows/symanticrelease.yml/badge.svg)
+
+## Installation
+
+You can install the `Indiko.Maui.Controls.Chat` package via NuGet Package Manager or CLI:
+
+[![NuGet](https://img.shields.io/nuget/v/Indiko.Maui.Controls.Chat.svg?label=NuGet)](https://www.nuget.org/packages/Indiko.Maui.Controls.Chat/)
+
+### NuGet Package Manager
+```bash
+Install-Package Indiko.Maui.Controls.Chat
+```
+
+### .NET CLI
+```bash
+dotnet add package Indiko.Maui.Controls.Chat
+```
 
 ---
 

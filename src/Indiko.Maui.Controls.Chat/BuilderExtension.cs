@@ -1,5 +1,4 @@
 ﻿using Microsoft.Maui.Hosting;
-using SkiaSharp.Views.Maui.Controls.Hosting;
 #if ANDROID
 using Indiko.Maui.Controls.Chat.Platforms.Android;
 #endif
