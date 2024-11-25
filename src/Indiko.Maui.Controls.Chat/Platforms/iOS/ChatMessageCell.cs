@@ -4,6 +4,8 @@ using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Graphics;
 using Foundation;
 using Microsoft.Maui.Platform;
+using AVKit;
+using AVFoundation;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS
 {
@@ -24,6 +26,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
         private UIImageView _deliveryStatusIcon;
         private UILabel _replySenderLabel;
         private UILabel _replyPreviewLabel;
+        private AVPlayerViewController _videoPlayer;
 
         // Constructor required for marshaling
         public ChatMessageCell(IntPtr handle) : base(handle)
@@ -64,21 +67,30 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             _imageView = new UIImageView
             {
                 TranslatesAutoresizingMaskIntoConstraints = false,
-                ContentMode = UIViewContentMode.ScaleAspectFill,
+                ContentMode = UIViewContentMode.ScaleAspectFit,
                 ClipsToBounds = true
             };
 
+
+            // Video container for video messages
             _videoContainer = new UIView
             {
-                TranslatesAutoresizingMaskIntoConstraints = false
+                Layer = { CornerRadius = 16 },
+                ClipsToBounds = true,
+                TranslatesAutoresizingMaskIntoConstraints = false,
+                Hidden = true // Initially hidden
             };
 
-            _videoThumbnail = new UIImageView
+            // Video player
+            _videoPlayer = new AVPlayerViewController
             {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                ContentMode = UIViewContentMode.ScaleAspectFill,
-                ClipsToBounds = true
+                View =
+            {
+                TranslatesAutoresizingMaskIntoConstraints = false
+            }
             };
+            _videoContainer.AddSubview(_videoPlayer.View);
+
 
             _timestampLabel = new UILabel
             {
@@ -242,7 +254,15 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                     _messageLabel.Hidden = true;
                     _imageView.Hidden = false;
                     _videoContainer.Hidden = true;
-                    _imageView.Image = UIImage.LoadFromData(NSData.FromArray(message.BinaryContent));
+
+                    var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.png");
+
+                    if (!File.Exists(tempFile))
+                    {
+                        File.WriteAllBytes(tempFile, message.BinaryContent);
+                    }
+
+                    _imageView.Image = UIImage.FromFile(tempFile);
                 }
                 else
                 {
@@ -255,10 +275,19 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             {
                 if (message.BinaryContent != null)
                 {
+
+                    var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.mp4");
+
+                    if(!File.Exists(tempFile))
+                    {
+                        File.WriteAllBytes(tempFile, message.BinaryContent);
+                    }
+
+                    var player = new AVPlayer(NSUrl.FromFilename(tempFile));
+                    _videoPlayer.Player = player;
+                    _videoContainer.Hidden = false;
                     _messageLabel.Hidden = true;
                     _imageView.Hidden = true;
-                    _videoContainer.Hidden = false;
-                    _videoThumbnail.Image = UIImage.LoadFromData(NSData.FromArray(message.BinaryContent));
                 }
                 else
                 {
