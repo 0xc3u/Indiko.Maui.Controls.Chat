@@ -6,6 +6,7 @@ using Foundation;
 using Microsoft.Maui.Platform;
 using AVKit;
 using AVFoundation;
+using Microsoft.Maui.Layouts;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS
 {
@@ -56,7 +57,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                 {
                     TranslatesAutoresizingMaskIntoConstraints = false,
                     Lines = 0,
-                    LineBreakMode = UILineBreakMode.WordWrap
+                    LineBreakMode = UILineBreakMode.WordWrap,
                 };
 
                 _imageView = new UIImageView
@@ -132,7 +133,10 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
 
                 _replyContainer = new UIStackView
                 {
-                    TranslatesAutoresizingMaskIntoConstraints = false
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Alignment = UIStackViewAlignment.Leading,
+                    Axis = UILayoutConstraintAxis.Vertical,
+                    DirectionalLayoutMargins = new NSDirectionalEdgeInsets(8, 16, 8, 16),
                 };
 
                 _replyContainer.AddSubviews(_replySenderLabel, _replyPreviewLabel);
@@ -158,10 +162,10 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
         private void SetupConstraints()
         {
             // AvatarView constraints
-            _avatarView.WidthAnchor.ConstraintEqualTo(28).Active = true; // Adjusted avatar size
-            _avatarView.HeightAnchor.ConstraintEqualTo(28).Active = true; // Adjusted avatar size
-            _avatarView.LeadingAnchor.ConstraintEqualTo(ContentView.LeadingAnchor, 16).Active = true;
-            _avatarView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 16).Active = true;
+            _avatarView.WidthAnchor.ConstraintEqualTo(48).Active = true; // Adjusted avatar size
+            _avatarView.HeightAnchor.ConstraintEqualTo(48).Active = true; // Adjusted avatar size
+            _avatarView.LeadingAnchor.ConstraintEqualTo(ContentView.LeadingAnchor, 8).Active = true;
+            _avatarView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 8).Active = true;
 
             // DateLabel constraints
             _dateLabel.CenterXAnchor.ConstraintEqualTo(ContentView.CenterXAnchor).Active = true;
@@ -186,7 +190,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             _imageView.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
             _imageView.TopAnchor.ConstraintEqualTo(_frameView.TopAnchor, 16).Active = true;
             _imageView.TrailingAnchor.ConstraintEqualTo(_frameView.TrailingAnchor, 16).Active = true;
-            _imageView.HeightAnchor.ConstraintEqualTo(_imageView.WidthAnchor, 0.5625f).Active = true; // 16:9 aspect ratio
+            //_imageView.HeightAnchor.ConstraintEqualTo(_imageView.WidthAnchor, 0.5625f).Active = true; // 16:9 aspect ratio
 
             // VideoContainer constraints
             _videoContainer.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
@@ -250,30 +254,30 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                 _messageLabel.Hidden = false;
                 _messageLabel.TextColor = message.IsOwnMessage ? chatView.OwnMessageTextColor.ToPlatform() : chatView.OtherMessageTextColor.ToPlatform();
             }
-            //else if (message.MessageType == MessageType.Image)
-            //{
-            //    if (message.BinaryContent != null)
-            //    {
-            //        _messageLabel.Hidden = true;
-            //        _imageView.Hidden = false;
-            //        _videoContainer.Hidden = true;
+            else if (message.MessageType == MessageType.Image)
+            {
+                if (message.BinaryContent != null)
+                {
+                    var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.png");
 
-            //        var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.png");
+                    if (!File.Exists(tempFile))
+                    {
+                        File.WriteAllBytes(tempFile, message.BinaryContent);
+                    }
 
-            //        if (!File.Exists(tempFile))
-            //        {
-            //            File.WriteAllBytes(tempFile, message.BinaryContent);
-            //        }
+                    _imageView.Image = UIImage.FromFile(tempFile);
 
-            //        _imageView.Image = UIImage.FromFile(tempFile);
-            //    }
-            //    else
-            //    {
-            //        _messageLabel.Hidden = true;
-            //        _imageView.Hidden = true;
-            //        _videoContainer.Hidden = true;
-            //    }
-            //}
+                    _messageLabel.Hidden = true;
+                    _imageView.Hidden = false;
+                    _videoContainer.Hidden = true;
+                }
+                else
+                {
+                    _messageLabel.Hidden = true;
+                    _imageView.Hidden = true;
+                    _videoContainer.Hidden = true;
+                }
+            }
             //else if (message.MessageType == MessageType.Video)
             //{
             //    if (message.BinaryContent != null)
@@ -315,8 +319,8 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
                     var reactionLabel = new UILabel
                     {
                         Text = $"{reaction.Emoji} {reaction.Count}",
-                        Font = UIFont.SystemFontOfSize(12),
-                        TextColor = UIColor.Gray,
+                        Font = UIFont.SystemFontOfSize(chatView.EmojiReactionFontSize),
+                        TextColor = chatView.EmojiReactionTextColor.ToPlatform(),
                         TranslatesAutoresizingMaskIntoConstraints = false
                     };
 
@@ -366,6 +370,18 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             var displayMetrics = UIScreen.MainScreen.Bounds;
             var maxWidth = (nfloat)(displayMetrics.Width * 0.65);
             _frameView.WidthAnchor.ConstraintEqualTo(maxWidth).Active = true;
+
+            if (message.IsOwnMessage)
+            {
+                // align _frameView right
+                _frameView.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor, -16).Active = true;
+            }
+            else
+            {
+                // align _frameView left
+                _frameView.LeadingAnchor.ConstraintEqualTo(_avatarView.TrailingAnchor, 16).Active = true;
+            }
+
 
             // Set background color for the message bubble
             _frameView.BackgroundColor = message.IsOwnMessage ? chatView.OwnMessageBackgroundColor.ToPlatform() : chatView.OtherMessageBackgroundColor.ToPlatform();

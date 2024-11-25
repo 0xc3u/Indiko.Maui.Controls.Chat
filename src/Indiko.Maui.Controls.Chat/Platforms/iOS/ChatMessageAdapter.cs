@@ -1,6 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Linq;
-using CoreGraphics;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using UIKit;
