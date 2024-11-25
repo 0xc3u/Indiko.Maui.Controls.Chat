@@ -10,11 +10,13 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 public class ChatMessageAdapter : UICollectionViewDataSource, IUICollectionViewDelegateFlowLayout, IUIScrollViewDelegate
 {
     private readonly ChatView _chatView;
+    private readonly IMauiContext _mauiContext;
     private IList<ChatMessage> _messages;
 
-    public ChatMessageAdapter(ChatView chatView)
+    public ChatMessageAdapter(ChatView chatView, IMauiContext mauiContext)
     {
         _chatView = chatView;
+        _mauiContext = mauiContext;
         _messages = chatView.Messages;
     }
 
@@ -28,9 +30,11 @@ public class ChatMessageAdapter : UICollectionViewDataSource, IUICollectionViewD
 
     public override UICollectionViewCell GetCell(UICollectionView collectionView, NSIndexPath indexPath)
     {
-        var cell = (ChatMessageCell)collectionView.DequeueReusableCell(ChatMessageCell.CellId, indexPath);
+        var cell = (ChatMessageCell)collectionView.DequeueReusableCell(ChatMessageCell.CellId, indexPath) 
+            ?? throw new InvalidOperationException($"Failed to dequeue a cell of type {nameof(ChatMessageCell)}.");
+        
         var message = _messages[(int)indexPath.Item];
-        cell.Bind(message, _chatView, (int)indexPath.Item);
+        cell.Bind(message, _chatView, _mauiContext, (int)indexPath.Item);
         return cell;
     }
 

@@ -18,7 +18,6 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
         private UILabel _messageLabel;
         private UIImageView _imageView;
         private UIView _videoContainer;
-        private UIImageView _videoThumbnail;
         private UILabel _timestampLabel;
         private UIView _frameView;
         private UILabel _newMessagesSeparatorLabel;
@@ -28,124 +27,126 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
         private UILabel _replyPreviewLabel;
         private AVPlayerViewController _videoPlayer;
 
-        // Constructor required for marshaling
-        public ChatMessageCell(IntPtr handle) : base(handle)
-        {
-            Initialize();
-        }
-
-        public ChatMessageCell(CGRect frame) : base(frame)
+        public ChatMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
         {
             Initialize();
         }
 
         private void Initialize()
         {
-            ContentView.BackgroundColor = UIColor.Clear;
-
-            _avatarView = new UIImageView
+            try
             {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                Layer = { CornerRadius = 24, MasksToBounds = true } // Adjusted avatar size
-            };
+                // Initialize all subviews
+                _avatarView = new UIImageView
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Layer = { CornerRadius = 24, MasksToBounds = true }
+                };
 
-            _dateLabel = new UILabel
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                TextAlignment = UITextAlignment.Center,
-                Font = UIFont.BoldSystemFontOfSize(12),
-                TextColor = UIColor.Gray
-            };
+                _dateLabel = new UILabel
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    TextAlignment = UITextAlignment.Center,
+                    Font = UIFont.BoldSystemFontOfSize(12),
+                    TextColor = UIColor.Gray
+                };
 
-            _messageLabel = new UILabel
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                Lines = 0,
-                LineBreakMode = UILineBreakMode.WordWrap
-            };
+                _messageLabel = new UILabel
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Lines = 0,
+                    LineBreakMode = UILineBreakMode.WordWrap
+                };
 
-            _imageView = new UIImageView
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                ContentMode = UIViewContentMode.ScaleAspectFit,
-                ClipsToBounds = true
-            };
+                _imageView = new UIImageView
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    ContentMode = UIViewContentMode.ScaleAspectFit,
+                    ClipsToBounds = true
+                };
 
 
-            // Video container for video messages
-            _videoContainer = new UIView
-            {
-                Layer = { CornerRadius = 16 },
-                ClipsToBounds = true,
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                Hidden = true // Initially hidden
-            };
+                // Video player
+               _videoPlayer = new AVPlayerViewController();
 
-            // Video player
-            _videoPlayer = new AVPlayerViewController
-            {
-                View =
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false
+                _videoContainer = new UIView
+                {
+                    Layer = { CornerRadius = 16 },
+                    ClipsToBounds = true,
+                    TranslatesAutoresizingMaskIntoConstraints = false
+                };
+
+                if (_videoPlayer != null)
+                {
+                    _videoContainer.AddSubview(_videoPlayer.View);
+                }
+
+                _timestampLabel = new UILabel
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Font = UIFont.SystemFontOfSize(10),
+                    TextColor = UIColor.Gray
+                };
+
+                _frameView = new UIView
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Layer = { CornerRadius = 12, MasksToBounds = true }
+                };
+
+                _newMessagesSeparatorLabel = new UILabel
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Text = "New messages",
+                    TextColor = UIColor.Gray,
+                    Font = UIFont.SystemFontOfSize(12),
+                    Hidden = true
+                };
+
+                _deliveryStatusIcon = new UIImageView
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false
+                };
+
+                _replySenderLabel = new UILabel
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Font = UIFont.BoldSystemFontOfSize(12),
+                    TextColor = UIColor.Gray
+                };
+
+                _replyPreviewLabel = new UILabel
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false,
+                    Font = UIFont.SystemFontOfSize(12),
+                    TextColor = UIColor.Gray
+                };
+
+
+                _reactionContainer = new UIView
+                {
+                    TranslatesAutoresizingMaskIntoConstraints = false
+                };
+
+                _reactionContainer.AddSubviews(_replySenderLabel, _replyPreviewLabel);
+
+
+                // Add all subviews to ContentView
+                _frameView.AddSubviews(_messageLabel, _imageView, _videoContainer, _reactionContainer);
+
+                ContentView.BackgroundColor = UIColor.Clear;
+                ContentView.AddSubviews(_avatarView, _dateLabel, _frameView, _timestampLabel, _newMessagesSeparatorLabel);
+
+                // Set up constraints
+                SetupConstraints();
+
             }
-            };
-            _videoContainer.AddSubview(_videoPlayer.View);
-
-
-            _timestampLabel = new UILabel
+            catch (Exception ex)
             {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                Font = UIFont.SystemFontOfSize(10),
-                TextColor = UIColor.Gray
-            };
-
-            _frameView = new UIView
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                Layer = { CornerRadius = 12, MasksToBounds = true }
-            };
-
-            _newMessagesSeparatorLabel = new UILabel
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                TextAlignment = UITextAlignment.Center,
-                Font = UIFont.BoldSystemFontOfSize(12),
-                TextColor = UIColor.Gray
-            };
-
-            _reactionContainer = new UIView
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false
-            };
-
-            _deliveryStatusIcon = new UIImageView
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                ContentMode = UIViewContentMode.ScaleAspectFit
-            };
-
-            _replySenderLabel = new UILabel
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                Font = UIFont.BoldSystemFontOfSize(12),
-                TextColor = UIColor.Gray
-            };
-
-            _replyPreviewLabel = new UILabel
-            {
-                TranslatesAutoresizingMaskIntoConstraints = false,
-                Font = UIFont.SystemFontOfSize(12),
-                TextColor = UIColor.Gray
-            };
-
-            // Add subviews
-            ContentView.AddSubviews(_avatarView, _dateLabel, _frameView, _newMessagesSeparatorLabel, _timestampLabel, _deliveryStatusIcon);
-            _frameView.AddSubviews(_messageLabel, _imageView, _videoContainer, _reactionContainer, _replySenderLabel, _replyPreviewLabel);
-            _videoContainer.AddSubview(_videoThumbnail);
-
-            // Set up constraints
-            SetupConstraints();
+                Console.WriteLine(ex.Message);
+            }
         }
+
 
         private void SetupConstraints()
         {
@@ -186,12 +187,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             _videoContainer.TrailingAnchor.ConstraintEqualTo(_frameView.TrailingAnchor, 16).Active = true;
             _videoContainer.HeightAnchor.ConstraintEqualTo(_videoContainer.WidthAnchor, 0.5625f).Active = true; // 16:9 aspect ratio
 
-            // VideoThumbnail constraints
-            _videoThumbnail.LeadingAnchor.ConstraintEqualTo(_videoContainer.LeadingAnchor).Active = true;
-            _videoThumbnail.TopAnchor.ConstraintEqualTo(_videoContainer.TopAnchor).Active = true;
-            _videoThumbnail.TrailingAnchor.ConstraintEqualTo(_videoContainer.TrailingAnchor).Active = true;
-            _videoThumbnail.BottomAnchor.ConstraintEqualTo(_videoContainer.BottomAnchor).Active = true;
-
+            
             // TimestampLabel constraints
             _timestampLabel.LeadingAnchor.ConstraintEqualTo(_frameView.LeadingAnchor, 16).Active = true;
             _timestampLabel.TopAnchor.ConstraintEqualTo(_frameView.BottomAnchor, 8).Active = true;
@@ -218,7 +214,7 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
 
         }
 
-        public void Bind(ChatMessage message, ChatView chatView, int index)
+        public void Bind(ChatMessage message, ChatView chatView, IMauiContext mauiContext, int index)
         {
             // Bind data to views
             _dateLabel.Text = message.Timestamp.ToString("dddd MMM dd");
@@ -346,22 +342,22 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             }
 
             // Set delivery status icon
-            // if (message.DeliveryState == MessageDeliveryState.Sent && chatView.SendIcon != null)
-            // {
-            //     _deliveryStatusIcon.Image = UIImage.LoadFromData(NSData.FromArray(chatView.SendIcon.ToBytes()));
-            // }
-            // else if (message.DeliveryState == MessageDeliveryState.Delivered && chatView.DeliveredIcon != null)
-            // {
-            //     _deliveryStatusIcon.Image = UIImage.LoadFromData(NSData.FromArray(chatView.DeliveredIcon.ToBytes()));
-            // }
-            // else if (message.DeliveryState == MessageDeliveryState.Read && chatView.ReadIcon != null)
-            // {
-            //     _deliveryStatusIcon.Image = UIImage.LoadFromData(NSData.FromArray(chatView.ReadIcon.ToBytes()));
-            // }
+            if (message.DeliveryState == MessageDeliveryState.Sent && chatView.SendIcon != null)
+            {
+                _deliveryStatusIcon.Image = GetImageFromImageSource(mauiContext, chatView.SendIcon);
+            }
+            else if (message.DeliveryState == MessageDeliveryState.Delivered && chatView.DeliveredIcon != null)
+            {
+                _deliveryStatusIcon.Image = GetImageFromImageSource(mauiContext, chatView.DeliveredIcon);
+            }
+            else if (message.DeliveryState == MessageDeliveryState.Read && chatView.ReadIcon != null)
+            {
+                _deliveryStatusIcon.Image = GetImageFromImageSource(mauiContext, chatView.ReadIcon);
+            }
 
             // Set dynamic width for the message bubble (65% of screen width)
             var displayMetrics = UIScreen.MainScreen.Bounds;
-            var maxWidth = (nfloat)(displayMetrics.Width * 0.65);
+            var maxWidth = (nfloat)(displayMetrics.Width * 1.65);
             _frameView.WidthAnchor.ConstraintEqualTo(maxWidth).Active = true;
 
             // Set background color for the message bubble
@@ -411,6 +407,31 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             var image = UIGraphics.GetImageFromCurrentImageContext();
             UIGraphics.EndImageContext();
             return image;
+        }
+
+        private UIImage GetImageFromImageSource(IMauiContext mauiContext, ImageSource imageSource)
+        {
+            UIImage uIImage = null;
+
+            if (imageSource == null && mauiContext == null)
+                return null;
+
+            try
+            {
+                ImageSourceExtensions.LoadImage(imageSource, mauiContext, (img) =>
+                {
+                    if (img.Value != null)
+                    {
+                        uIImage = img.Value;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions, e.g., invalid image sources
+                Console.WriteLine($"Error resolving ImageSource: {ex.Message}");
+            }
+            return uIImage;
         }
     }
 }

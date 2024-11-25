@@ -44,14 +44,14 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     protected override UICollectionView CreatePlatformView()
     {
         // Create UICollectionViewCompositionalLayout
-        var layout = CreateCompositionalLayout();
+        var layout = CreateFlowLayout();
 
         var collectionView = new UICollectionView(CGRect.Empty, layout)
         {
             BackgroundColor = UIColor.Clear
         };
 
-        _dataSource = new ChatMessageAdapter(VirtualView);
+        _dataSource = new ChatMessageAdapter(VirtualView, MauiContext);
         collectionView.DataSource = _dataSource;
         collectionView.Delegate = _dataSource;
 
@@ -59,6 +59,18 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
         return collectionView;
     }
+
+
+    private UICollectionViewFlowLayout CreateFlowLayout()
+    {
+        return new UICollectionViewFlowLayout
+        {
+            EstimatedItemSize = UICollectionViewFlowLayout.AutomaticSize,
+            MinimumLineSpacing = 10,
+            SectionInset = new UIEdgeInsets(10, 10, 10, 10)
+        };
+    }
+
 
     private UICollectionViewCompositionalLayout CreateCompositionalLayout()
     {
