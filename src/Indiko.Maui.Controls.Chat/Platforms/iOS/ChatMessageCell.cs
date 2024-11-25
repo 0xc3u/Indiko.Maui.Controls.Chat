@@ -384,6 +384,8 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS
             // Set date and time
             bool isFirstMessageOfDate = index == 0 || chatView.Messages[index - 1].Timestamp.Date != message.Timestamp.Date;
             _dateLabel.Hidden = !isFirstMessageOfDate;
+
+            LayoutIfNeeded();
         }
 
         private UIImage CreateInitialsImage(string initials, nfloat width, nfloat height)
