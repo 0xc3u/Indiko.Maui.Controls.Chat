@@ -130,6 +130,27 @@ public partial class MainPageViewModel : BaseViewModel
                     ParticipantIds = new List<string> { "user4", "user5" }
                 });
             }
+            else if (i == 2) // Example: Add reactions to the second message
+            {
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "😂",
+                    Count = 4,
+                    ParticipantIds = new List<string> { "user1", "user2", "user3" }
+                });
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "❤️",
+                    Count = 10,
+                    ParticipantIds = new List<string> { "user4", "user5" }
+                });
+                chatMessage.Reactions.Add(new ChatMessageReaction
+                {
+                    Emoji = "👍",
+                    Count = 4,
+                    ParticipantIds = new List<string> { "user2" }
+                });
+            }
             else if (i == 15) // Example: Add reactions to another message
             {
                 chatMessage.Reactions.Add(new ChatMessageReaction
