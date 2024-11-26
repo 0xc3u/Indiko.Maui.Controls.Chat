@@ -23,7 +23,7 @@
             NewMessagesSeperatorFontSize="16"
             NewMessagesSeperatorText="New Messages"
             AvatarTextColor="{StaticResource White}"
-            AvatarBackgroundColor="{StaticResource Secondary}"
+            AvatarBackgroundColor="{StaticResource Tertiary}"
             Messages="{Binding ChatMessages}"
             ScrollToFirstNewMessage="True"
             EmojiReactionFontSize="14"

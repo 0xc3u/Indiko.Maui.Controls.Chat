@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using CoreGraphics;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using UIKit;
@@ -18,6 +19,8 @@ public class ChatMessageAdapter : UICollectionViewDataSource, IUICollectionViewD
         _messages = chatView.Messages;
     }
 
+    public override nint NumberOfSections(UICollectionView collectionView)
+        => 1;
 
     public void UpdateMessages(ObservableCollection<ChatMessage> messages)
     {
@@ -28,12 +31,34 @@ public class ChatMessageAdapter : UICollectionViewDataSource, IUICollectionViewD
 
     public override UICollectionViewCell GetCell(UICollectionView collectionView, NSIndexPath indexPath)
     {
-        var cell = (ChatMessageCell)collectionView.DequeueReusableCell(ChatMessageCell.CellId, indexPath) 
-            ?? throw new InvalidOperationException($"Failed to dequeue a cell of type {nameof(ChatMessageCell)}.");
-        
-        var message = _messages[(int)indexPath.Item];
-        cell.Bind(message, _chatView, _mauiContext, (int)indexPath.Item);
-        return cell;
+        try
+        {
+            var message = _messages[(int)indexPath.Item];
+
+            if (message == null)
+            {
+                return new UICollectionViewCell();
+            }
+
+            if (message.IsOwnMessage)
+            {
+                var cell = collectionView.DequeueReusableCell(OwnMessageCell.Key, indexPath) as OwnMessageCell;
+                cell.Update((int)indexPath.Item, message, _chatView, _mauiContext);
+                return cell;
+            }
+            else
+            {
+                var cell = collectionView.DequeueReusableCell(OtherMessageCell.Key, indexPath) as OtherMessageCell;
+                cell.Update((int)indexPath.Item, message, _chatView, _mauiContext);
+                return cell;
+            }
+
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Error in {nameof(ChatMessageAdapter)}.{nameof(GetCell)}: {ex.Message}");
+            throw;
+        }
     }
 
     [Export("collectionView:didSelectItemAtIndexPath:")]
@@ -73,4 +98,3 @@ public class ChatMessageAdapter : UICollectionViewDataSource, IUICollectionViewD
         }
     }
 }
-

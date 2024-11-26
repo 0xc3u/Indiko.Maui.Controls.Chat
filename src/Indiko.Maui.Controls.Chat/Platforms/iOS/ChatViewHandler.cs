@@ -42,10 +42,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
     protected override UICollectionView CreatePlatformView()
     {
-        // Create UICollectionViewCompositionalLayout
-        var layout = CreateFlowLayout();
-
-        var collectionView = new UICollectionView(CGRect.Empty, layout)
+        var collectionView = new UICollectionView(CGRect.Empty, new ChatCollectionViewLayout())
         {
             BackgroundColor = UIColor.Clear
         };
@@ -53,27 +50,16 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         _dataSource = new ChatMessageAdapter(VirtualView, MauiContext);
         collectionView.DataSource = _dataSource;
         collectionView.Delegate = _dataSource;
+        collectionView.AlwaysBounceVertical = true;
+        collectionView.AllowsMultipleSelection = false;
+        collectionView.AllowsSelection = false;
 
-        collectionView.RegisterClassForCell(typeof(ChatMessageCell), ChatMessageCell.CellId);
+        collectionView.RegisterClassForCell(typeof(OwnMessageCell), OwnMessageCell.Key);
+        collectionView.RegisterClassForCell(typeof(OtherMessageCell), OtherMessageCell.Key);
 
         return collectionView;
     }
 
-
-    private UICollectionViewFlowLayout CreateFlowLayout()
-    {
-        return new UICollectionViewFlowLayout
-        {
-            EstimatedItemSize = UICollectionViewFlowLayout.AutomaticSize,
-            ItemSize = UICollectionViewFlowLayout.AutomaticSize,
-            ScrollDirection= UICollectionViewScrollDirection.Vertical,
-            MinimumLineSpacing = 10,
-            SectionInset = new UIEdgeInsets(10, 10, 10, 10),
-        };
-    }
-
-
-    
     private static void MapProperties(ChatViewHandler handler, ChatView chatView)
     {
         handler.UpdateMessages();
