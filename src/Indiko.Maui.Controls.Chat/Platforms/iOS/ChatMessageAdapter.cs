@@ -40,15 +40,28 @@ public class ChatMessageAdapter : UICollectionViewDataSource, IUICollectionViewD
                 return new UICollectionViewCell();
             }
 
-            if (message.IsOwnMessage)
+            if (message.IsDateSeperator)
             {
-                var cell = collectionView.DequeueReusableCell(OwnMessageCell.Key, indexPath) as OwnMessageCell;
+                var cell = collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;
+                cell.Update((int)indexPath.Item, message, _chatView, _mauiContext);
+                return cell;
+            }
+
+            if (message.MessageType == MessageType.Text && message.IsOwnMessage)
+            {
+                var cell = collectionView.DequeueReusableCell(OwnTextMessageCell.Key, indexPath) as OwnTextMessageCell;
+                cell.Update((int)indexPath.Item, message, _chatView, _mauiContext);
+                return cell;
+            }
+            else if(message.MessageType == MessageType.Text && !message.IsOwnMessage)
+            {
+                var cell = collectionView.DequeueReusableCell(OtherTextMessageCell.Key, indexPath) as OtherTextMessageCell;
                 cell.Update((int)indexPath.Item, message, _chatView, _mauiContext);
                 return cell;
             }
             else
             {
-                var cell = collectionView.DequeueReusableCell(OtherMessageCell.Key, indexPath) as OtherMessageCell;
+                var cell = collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;
                 cell.Update((int)indexPath.Item, message, _chatView, _mauiContext);
                 return cell;
             }

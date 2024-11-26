@@ -1,33 +1,41 @@
-﻿
-using CoreGraphics;
-using Foundation;
+﻿using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Platform;
 using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
-public class OwnMessageCell : UICollectionViewCell
+public class OtherTextMessageCell : UICollectionViewCell
 {
-    public static readonly NSString Key = new(nameof(OwnMessageCell));
+    public static readonly NSString Key = new(nameof(OtherTextMessageCell));
 
     private UILabel _messageLabel;
+    private UIImageView _avatarImageView;
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
 
-    public OwnMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
+    public OtherTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
     }
 
     private void SetupLayout()
     {
+        // Avatar-Setup
+        _avatarImageView = new UIImageView
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            ContentMode = UIViewContentMode.ScaleAspectFill,
+            ClipsToBounds = true
+        };
+        _avatarImageView.Layer.CornerRadius = 20; // Runde Form für 40x40 Größe
+
         // Nachrichtenblase (Hintergrund)
         _bubbleView = new UIView
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
-            BackgroundColor = UIColor.FromRGBA(113 / 255.0f, 0 / 255.0f, 223 / 255.0f, 1.0f), // Dunkles Lila
+            BackgroundColor = UIColor.FromRGBA(230 / 255.0f, 223 / 255.0f, 255 / 255.0f, 1.0f), // Helles Lila
             ClipsToBounds = true
         };
         _bubbleView.Layer.CornerRadius = 16; // Abgerundete Ecken
@@ -39,7 +47,7 @@ public class OwnMessageCell : UICollectionViewCell
             LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left,
-            TextColor = UIColor.White // Weißer Text für Kontrast
+            TextColor = UIColor.Black
         };
 
         // Zeitstempel
@@ -48,7 +56,7 @@ public class OwnMessageCell : UICollectionViewCell
             Font = UIFont.SystemFontOfSize(12),
             TextColor = UIColor.LightGray,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Right // Rechtsbündig
+            TextAlignment = UITextAlignment.Left // Zeitstempel links ausrichten
         };
 
         // Reaktionsstack (Horizontale Emoji-Liste)
@@ -61,13 +69,21 @@ public class OwnMessageCell : UICollectionViewCell
             TranslatesAutoresizingMaskIntoConstraints = false
         };
 
-        ContentView.AddSubviews(_bubbleView, _messageLabel, _timeLabel, _reactionsStackView);
+        // Hierarchische Ansicht
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _messageLabel, _timeLabel, _reactionsStackView);
 
+        // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
         {
+            // Avatar
+            _avatarImageView.LeadingAnchor.ConstraintEqualTo(ContentView.LeadingAnchor, 10),
+            _avatarImageView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
+            _avatarImageView.WidthAnchor.ConstraintEqualTo(40),
+            _avatarImageView.HeightAnchor.ConstraintEqualTo(40),
+
             // Nachrichtenblase
-            _bubbleView.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor, -10),
-            _bubbleView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(ContentView.LeadingAnchor, 50),
+            _bubbleView.LeadingAnchor.ConstraintEqualTo(_avatarImageView.TrailingAnchor, 10),
+            _bubbleView.TrailingAnchor.ConstraintLessThanOrEqualTo(ContentView.TrailingAnchor, -50),
             _bubbleView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
             _bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
 
@@ -79,14 +95,14 @@ public class OwnMessageCell : UICollectionViewCell
 
             // Emoji-Reaktionen
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
-            _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
-            _reactionsStackView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(_bubbleView.LeadingAnchor),
+            _reactionsStackView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
+            _reactionsStackView.TrailingAnchor.ConstraintLessThanOrEqualTo(_bubbleView.TrailingAnchor),
             _reactionsStackView.BottomAnchor.ConstraintEqualTo(_timeLabel.TopAnchor, -4),
 
             // Zeitstempel
             _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.BottomAnchor, 4),
-            _timeLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
             _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
+            _timeLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
             _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10)
         });
     }
@@ -100,12 +116,16 @@ public class OwnMessageCell : UICollectionViewCell
 
         try
         {
+            // set width to 65% of the _bubbleView
+            var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
+            _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
+
             // Nachrichtentext setzen
             _messageLabel.Text = message.TextContent;
 
             // Blasenhintergrund und Textfarbe
-            _bubbleView.BackgroundColor = chatView.OwnMessageBackgroundColor.ToPlatform();
-            _messageLabel.TextColor = chatView.OwnMessageTextColor.ToPlatform();
+            _bubbleView.BackgroundColor = chatView.OtherMessageBackgroundColor.ToPlatform();
+            _messageLabel.TextColor = chatView.OtherMessageTextColor.ToPlatform();
 
             // Zeitstempel setzen
             _timeLabel.Text = message.Timestamp.ToString("HH:mm");
@@ -113,11 +133,32 @@ public class OwnMessageCell : UICollectionViewCell
             // Reaktionen aktualisieren
             EmojiHelper.UpdateReactions(_reactionsStackView, message.Reactions, chatView);
 
+            // Avatar setzen
+            if (message.SenderAvatar != null)
+            {
+                _avatarImageView.Image = UIImage.LoadFromData(NSData.FromArray(message.SenderAvatar));
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(message.SenderInitials))
+                {
+                    // Initialen anzeigen, falls kein Avatar verfügbar
+                    _avatarImageView.Image = UIImageExtensions.CreateInitialsImage(message.SenderId.Trim().Substring(0, 2).ToUpperInvariant(), 40f, 40f,
+                        chatView.AvatarTextColor.ToPlatform(), chatView.AvatarBackgroundColor.ToCGColor());
+                }
+                else
+                {
+                    _avatarImageView.Image = UIImageExtensions.CreateInitialsImage(message.SenderInitials, 40f, 40f,
+                        chatView.AvatarTextColor.ToPlatform(), chatView.AvatarBackgroundColor.ToCGColor());
+                }
+            }
+
             SetNeedsLayout();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in {nameof(OwnMessageCell)}.{nameof(Update)}: {ex.Message}");
+            Console.WriteLine($"Error in {nameof(OtherTextMessageCell)}.{nameof(Update)}: {ex.Message}");
         }
     }
+
 }

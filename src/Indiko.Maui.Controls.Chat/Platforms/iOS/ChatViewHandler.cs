@@ -54,8 +54,9 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         collectionView.AllowsMultipleSelection = false;
         collectionView.AllowsSelection = false;
 
-        collectionView.RegisterClassForCell(typeof(OwnMessageCell), OwnMessageCell.Key);
-        collectionView.RegisterClassForCell(typeof(OtherMessageCell), OtherMessageCell.Key);
+        collectionView.RegisterClassForCell(typeof(DateGroupSeperatorCell), DateGroupSeperatorCell.Key);
+        collectionView.RegisterClassForCell(typeof(OwnTextMessageCell), OwnTextMessageCell.Key);
+        collectionView.RegisterClassForCell(typeof(OtherTextMessageCell), OtherTextMessageCell.Key);
 
         return collectionView;
     }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Indiko.Maui.Controls.Chat.Models;
+﻿using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Platform;
 using UIKit;
 
@@ -30,7 +25,6 @@ public static class EmojiHelper
 
             reactionsStackView.AddArrangedSubview(reactionLabel);
         }
-
         reactionsStackView.Hidden = reactions.Count == 0; // Verstecke, falls keine Reaktionen vorhanden sind
     }
 }

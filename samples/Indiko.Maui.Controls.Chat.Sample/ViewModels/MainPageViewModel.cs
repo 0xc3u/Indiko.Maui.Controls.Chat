@@ -218,10 +218,12 @@ public partial class MainPageViewModel : BaseViewModel
         var imageMessage = new ChatMessage
         {
             BinaryContent = Convert.FromBase64String(image1),
+            TextContent = "Nice picture, isn't it?",
             IsOwnMessage = false,
             Timestamp = DateTime.Now,
             SenderAvatar = null,
             SenderInitials = "AS",
+            SenderId = Guid.NewGuid().ToString(),
             MessageId = Guid.NewGuid().ToString(),
             MessageType = MessageType.Image,
             ReadState = MessageReadState.New,
