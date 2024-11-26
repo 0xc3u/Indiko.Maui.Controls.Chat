@@ -1,7 +1,6 @@
-﻿using UIKit;
-using CoreGraphics;
+﻿using CoreGraphics;
 using Foundation;
-using Microsoft.Maui.Graphics.Platform;
+using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 public static class UIImageExtensions
@@ -68,6 +67,18 @@ public static class UIImageExtensions
             Console.WriteLine($"Error resolving ImageSource: {ex.Message}");
         }
         return uIImage;
+    }
+
+
+    public static UIImage GetOrSetCachedImage(string cacheId, byte[] content)
+    {
+        var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{cacheId}.png");
+
+        if (!File.Exists(tempFile))
+        {
+            File.WriteAllBytes(tempFile, content);
+        }
+        return UIImage.FromFile(tempFile);
     }
 
 }
