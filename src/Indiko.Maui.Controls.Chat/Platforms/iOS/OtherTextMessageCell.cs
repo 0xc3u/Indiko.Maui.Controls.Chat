@@ -116,10 +116,9 @@ public class OtherTextMessageCell : UICollectionViewCell
 
         try
         {
-            // set width to 65% of the _bubbleView
-            var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
-            _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
-
+            // // set width to 65% of the _bubbleView
+            // var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
+            // _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
             // Nachrichtentext setzen
             _messageLabel.Text = message.TextContent;
 

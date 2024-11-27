@@ -38,26 +38,28 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     {
     }
 
-    private ChatMessageAdapter _dataSource;
+    //private ChatMessageAdapter _dataSource;
+
+    private ChatViewDataSource _dataSource;
+    private ChatViewDelegate _delegate;
+    private ChatViewFlowLayout _flowLayout;
 
     protected override UICollectionView CreatePlatformView()
     {
-        var collectionView = new UICollectionView(CGRect.Empty, new ChatCollectionViewLayout())
+        
+        _flowLayout = new ChatViewFlowLayout();
+        
+        CGRect initialBounds = new CGRect(0, 0, UIScreen.MainScreen.Bounds.Width, 0);
+        
+        var collectionView = new UICollectionView(initialBounds, _flowLayout)
         {
-            BackgroundColor = UIColor.Clear
+            BackgroundColor = UIColor.Clear,
+            AllowsSelection = true,
+            AllowsMultipleSelection = false,
+            BouncesHorizontally = false,
+            BouncesVertically = true,
         };
-
-        _dataSource = new ChatMessageAdapter(VirtualView, MauiContext);
-        collectionView.DataSource = _dataSource;
-        collectionView.Delegate = _dataSource;
-        collectionView.AlwaysBounceVertical = true;
-        collectionView.AllowsMultipleSelection = false;
-        collectionView.AllowsSelection = false;
-
-        collectionView.RegisterClassForCell(typeof(DateGroupSeperatorCell), DateGroupSeperatorCell.Key);
-        collectionView.RegisterClassForCell(typeof(OwnTextMessageCell), OwnTextMessageCell.Key);
-        collectionView.RegisterClassForCell(typeof(OtherTextMessageCell), OtherTextMessageCell.Key);
-
+ 
         return collectionView;
     }
 
@@ -73,10 +75,9 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
     private void UpdateMessages()
     {
-        if (PlatformView != null)
-        {
+       
             _dataSource.UpdateMessages(VirtualView.Messages);
-            PlatformView.ReloadData();
+            // PlatformView.ReloadData();
 
             if (VirtualView.ScrollToFirstNewMessage)
             {
@@ -86,7 +87,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             {
                 ScrollToLastMessage();
             }
-        }
+        
     }
 
     private void ScrollToLastMessage()
@@ -106,4 +107,42 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             ScrollToLastMessage();
         }
     }
+
+
+    protected override void ConnectHandler(UICollectionView platformView)
+    {
+        base.ConnectHandler(platformView);
+        
+        _dataSource = new ChatViewDataSource(VirtualView, MauiContext);
+        _delegate = new ChatViewDelegate(VirtualView, MauiContext);
+        
+        
+        platformView.RegisterClassForCell(typeof(DateGroupSeperatorCell), DateGroupSeperatorCell.Key);
+        platformView.RegisterClassForCell(typeof(OwnTextMessageCell), OwnTextMessageCell.Key);
+        platformView.RegisterClassForCell(typeof(OtherTextMessageCell), OtherTextMessageCell.Key);
+
+        
+        platformView.DataSource = _dataSource;
+        platformView.Delegate = _delegate;
+       
+        // Add this line to ensure the layout is invalidated after bounds are set
+        
+        platformView.ReloadData();
+      
+    }
+
+    protected override void DisconnectHandler(UICollectionView nativeView)
+    {
+        nativeView.DataSource.Dispose();
+        nativeView.Delegate.Dispose();
+        nativeView.CollectionViewLayout.Dispose();
+        
+        _delegate.Dispose();
+        _dataSource.Dispose();
+        _flowLayout.Dispose();
+
+        base.DisconnectHandler(nativeView);
+    }
+    
+    
 }
