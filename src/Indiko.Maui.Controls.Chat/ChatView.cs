@@ -280,7 +280,7 @@ public class ChatView : View
         {
             // compare old and new messages to find new messages
             var newMessagesList = newMessages.Except(oldMessages).ToList();
-          
+
         }
 
         chatView.MessagesUpdated();

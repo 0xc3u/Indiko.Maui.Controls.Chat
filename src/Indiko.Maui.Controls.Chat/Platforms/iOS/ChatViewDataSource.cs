@@ -70,7 +70,7 @@ public class ChatViewDataSource : UICollectionViewDataSource
         }
         catch(Exception ex)
         {
-            Console.WriteLine($"Error in {nameof(ChatMessageAdapter)}.{nameof(GetCell)}: {ex.Message}");
+            Console.WriteLine($"Error in {nameof(ChatViewDataSource)}.{nameof(GetCell)}: {ex.Message}");
             throw;
         }
     }

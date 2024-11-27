@@ -1,6 +1,7 @@
 ﻿using CoreGraphics;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Handlers;
 using UIKit;
 
@@ -49,17 +50,20 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         
         _flowLayout = new ChatViewFlowLayout();
         
-        CGRect initialBounds = new CGRect(0, 0, UIScreen.MainScreen.Bounds.Width, 0);
-        
-        var collectionView = new UICollectionView(initialBounds, _flowLayout)
+        var collectionView = new UICollectionView(CGRect.Empty, _flowLayout)
         {
             BackgroundColor = UIColor.Clear,
             AllowsSelection = true,
             AllowsMultipleSelection = false,
             BouncesHorizontally = false,
-            BouncesVertically = true,
+            BouncesVertically = false,
+            AlwaysBounceVertical = false
         };
- 
+
+
+        // Force layout update after initial load
+        collectionView.LayoutIfNeeded();
+
         return collectionView;
     }
 
@@ -75,37 +79,52 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
     private void UpdateMessages()
     {
-       
-            _dataSource.UpdateMessages(VirtualView.Messages);
-            // PlatformView.ReloadData();
+        if (_dataSource != null)
+        {
+            SaveScrollPosition(); // Save current position
 
-            if (VirtualView.ScrollToFirstNewMessage)
-            {
-                ScrollToFirstNewMessage();
-            }
-            else if(VirtualView.ScrollToLastMessage)
-            {
-                ScrollToLastMessage();
-            }
-        
+            _dataSource.UpdateMessages(VirtualView.Messages);
+            PlatformView.ReloadData();
+
+            RestoreScrollPosition(); // Restore position
+        }
     }
 
     private void ScrollToLastMessage()
     {
-        PlatformView.ScrollToItem(NSIndexPath.FromRowSection(VirtualView.Messages.Count - 1, 0), UICollectionViewScrollPosition.Bottom, true);
+        if (VirtualView.ScrollToLastMessage)
+        {
+            PlatformView.ScrollToItem(NSIndexPath.FromRowSection(VirtualView.Messages.Count - 1, 0), UICollectionViewScrollPosition.Bottom, true);
+        }
     }
 
     private void ScrollToFirstNewMessage()
     {
-        var index = VirtualView.Messages.TakeWhile(m => m.ReadState != MessageReadState.New).Count();
-        if (index < VirtualView.Messages.Count)
+        if (VirtualView.ScrollToFirstNewMessage)
         {
-            PlatformView.ScrollToItem(NSIndexPath.FromRowSection(index, 0), UICollectionViewScrollPosition.Top, true);
+            var index = VirtualView.Messages.TakeWhile(m => m.ReadState != MessageReadState.New).Count();
+            if (index < VirtualView.Messages.Count)
+            {
+                PlatformView.ScrollToItem(NSIndexPath.FromRowSection(index, 0), UICollectionViewScrollPosition.Top, true);
+            }
+            else
+            {
+                ScrollToLastMessage();
+            }
         }
-        else
-        {
-            ScrollToLastMessage();
-        }
+    }
+
+
+    private CGPoint _lastContentOffset;
+
+    private void SaveScrollPosition()
+    {
+        _lastContentOffset = PlatformView.ContentOffset;
+    }
+
+    private void RestoreScrollPosition()
+    {
+        PlatformView.SetContentOffset(_lastContentOffset, false);
     }
 
 
@@ -114,7 +133,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         base.ConnectHandler(platformView);
         
         _dataSource = new ChatViewDataSource(VirtualView, MauiContext);
-        _delegate = new ChatViewDelegate(VirtualView, MauiContext);
+        _delegate = new ChatViewDelegate(VirtualView, MauiContext,_flowLayout);
         
         
         platformView.RegisterClassForCell(typeof(DateGroupSeperatorCell), DateGroupSeperatorCell.Key);
@@ -124,11 +143,12 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         
         platformView.DataSource = _dataSource;
         platformView.Delegate = _delegate;
-       
-        // Add this line to ensure the layout is invalidated after bounds are set
-        
+
+        platformView.LayoutIfNeeded();
         platformView.ReloadData();
-      
+
+        
+
     }
 
     protected override void DisconnectHandler(UICollectionView nativeView)

@@ -10,9 +10,10 @@ public class ChatViewFlowLayout : UICollectionViewFlowLayout
 
     public ChatViewFlowLayout() : base()
     {
-        EstimatedItemSize = UICollectionViewFlowLayout.AutomaticSize;
+        EstimatedItemSize = EstimatedItemSize = new CGSize(UIScreen.MainScreen.Bounds.Width, 80);
+        ItemSize = UICollectionViewFlowLayout.AutomaticSize;
         MinimumInteritemSpacing = 0f;
-        MinimumLineSpacing = 15f;
+        MinimumLineSpacing = 10f;
         ScrollDirection = UICollectionViewScrollDirection.Vertical;
         SectionInset = new UIEdgeInsets(10, 0, 10, 0);
     }
@@ -23,23 +24,17 @@ public class ChatViewFlowLayout : UICollectionViewFlowLayout
 
         if (CollectionView?.Bounds.Width > 0)
         {
-            // Calculate the item width based on the collection view bounds
             _calculatedItemWidth = CollectionView.Bounds.Width - SectionInset.Left - SectionInset.Right;
         }
     }
-
     public override UICollectionViewLayoutAttributes LayoutAttributesForItem(NSIndexPath indexPath)
     {
         var layoutAttributes = base.LayoutAttributesForItem(indexPath);
 
-        var x = SectionInset.Left;
-       
-
-        
         if (_calculatedItemWidth > 0)
         {
             layoutAttributes.Frame = new CGRect(
-                x,
+                layoutAttributes.Frame.X,
                 layoutAttributes.Frame.Y,
                 _calculatedItemWidth,
                 layoutAttributes.Frame.Height
@@ -49,14 +44,17 @@ public class ChatViewFlowLayout : UICollectionViewFlowLayout
         return layoutAttributes;
     }
 
+
     public override bool ShouldInvalidateLayoutForBoundsChange(CGRect newBounds)
     {
-        // Recalculate item width when bounds change
+        // Only invalidate layout if width changes
         if (CollectionView != null && CollectionView.Bounds.Width != _calculatedItemWidth)
         {
             _calculatedItemWidth = CollectionView.Bounds.Width - SectionInset.Left - SectionInset.Right;
             return true;
         }
-        return base.ShouldInvalidateLayoutForBoundsChange(newBounds);
+        return false; // Do not invalidate during scrolling
     }
+
+
 }

@@ -1,4 +1,5 @@
-﻿using Foundation;
+﻿using CoreGraphics;
+using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Platform;
 using UIKit;
@@ -7,6 +8,8 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
 public class OwnTextMessageCell : UICollectionViewCell
 {
+    ChatView _chatView;
+
     public static readonly NSString Key = new(nameof(OwnTextMessageCell));
 
     private UILabel _messageLabel;
@@ -18,6 +21,22 @@ public class OwnTextMessageCell : UICollectionViewCell
     {
         SetupLayout();
     }
+
+    public override UICollectionViewLayoutAttributes PreferredLayoutAttributesFittingAttributes(UICollectionViewLayoutAttributes layoutAttributes)
+    {
+        //// Update the layout attributes for auto-sizing
+        //SetNeedsLayout();
+        //LayoutIfNeeded();
+
+        // Calculate the size fitting the content
+        var size = ContentView.SystemLayoutSizeFittingSize(UIView.UILayoutFittingCompressedSize);
+        var updatedAttributes = layoutAttributes.Copy() as UICollectionViewLayoutAttributes;
+
+        updatedAttributes.Frame = new CGRect(0, updatedAttributes.Frame.Y, layoutAttributes.Frame.Width, size.Height);
+
+        return updatedAttributes;
+    }
+
 
     private void SetupLayout()
     {
@@ -95,6 +114,8 @@ public class OwnTextMessageCell : UICollectionViewCell
         {
             return;
         }
+
+        _chatView = chatView;
 
         try
         {

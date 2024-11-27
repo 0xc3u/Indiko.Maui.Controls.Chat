@@ -1,4 +1,5 @@
-﻿using Foundation;
+﻿using CoreGraphics;
+using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Platform;
 using UIKit;
@@ -14,10 +15,31 @@ public class OtherTextMessageCell : UICollectionViewCell
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
+    private ChatView _chatView;
 
     public OtherTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
+    }
+
+
+    public override UICollectionViewLayoutAttributes PreferredLayoutAttributesFittingAttributes(UICollectionViewLayoutAttributes layoutAttributes)
+    {
+        //// Update the layout attributes for auto-sizing
+        SetNeedsLayout();
+        LayoutIfNeeded();
+
+        var widthConstraint = ContentView.WidthAnchor.ConstraintEqualTo(layoutAttributes.Frame.Width);
+        widthConstraint.Active = true;
+
+        // Calculate the size fitting the content
+        var size = ContentView.SystemLayoutSizeFittingSize(UIView.UILayoutFittingCompressedSize);
+        widthConstraint.Active = false;
+
+        var updatedAttributes = layoutAttributes.Copy() as UICollectionViewLayoutAttributes;
+        updatedAttributes.Frame = new CGRect(0, updatedAttributes.Frame.Y, layoutAttributes.Frame.Width, size.Height);
+
+        return updatedAttributes;
     }
 
     private void SetupLayout()
@@ -43,8 +65,8 @@ public class OtherTextMessageCell : UICollectionViewCell
         // Nachrichtentext
         _messageLabel = new UILabel
         {
-            Lines = 0, // Mehrzeiliger Text
-            LineBreakMode = UILineBreakMode.WordWrap,
+            Lines = 0, // Allows unlimited lines
+            LineBreakMode = UILineBreakMode.WordWrap, // Wraps text to the next line
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left,
             TextColor = UIColor.Black
@@ -58,6 +80,11 @@ public class OtherTextMessageCell : UICollectionViewCell
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left // Zeitstempel links ausrichten
         };
+
+        // Add these lines to set Compression Resistance and Hugging Priorities
+        _messageLabel.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
+        _timeLabel.SetContentHuggingPriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Horizontal);
+
 
         // Reaktionsstack (Horizontale Emoji-Liste)
         _reactionsStackView = new UIStackView
@@ -88,9 +115,10 @@ public class OtherTextMessageCell : UICollectionViewCell
             _bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
 
             // Nachrichtentext innerhalb der Blase
-            _messageLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
-            _messageLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
-            _messageLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            // Ensure the label is fully constrained within the bubble
+             _messageLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
+             _messageLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
+             _messageLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _messageLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
 
             // Emoji-Reaktionen
@@ -116,9 +144,8 @@ public class OtherTextMessageCell : UICollectionViewCell
 
         try
         {
-            // // set width to 65% of the _bubbleView
-            // var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
-            // _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
+            _chatView = chatView;
+
             // Nachrichtentext setzen
             _messageLabel.Text = message.TextContent;
 
@@ -152,7 +179,9 @@ public class OtherTextMessageCell : UICollectionViewCell
                 }
             }
 
+            // Force layout refresh
             SetNeedsLayout();
+            LayoutIfNeeded();
         }
         catch (Exception ex)
         {
