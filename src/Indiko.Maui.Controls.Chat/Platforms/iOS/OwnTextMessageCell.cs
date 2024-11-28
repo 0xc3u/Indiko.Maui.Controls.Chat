@@ -6,16 +6,16 @@ using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
-public class OwnTextMessageCell : UICollectionViewCell
+internal class OwnTextMessageCell : UICollectionViewCell
 {
-    ChatView _chatView;
-
     public static readonly NSString Key = new(nameof(OwnTextMessageCell));
+    ChatView _chatView;
 
     private UILabel _messageLabel;
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
+    private UIImageView _deliveryStateImageView;
 
     public OwnTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
@@ -82,7 +82,15 @@ public class OwnTextMessageCell : UICollectionViewCell
             TranslatesAutoresizingMaskIntoConstraints = false
         };
 
-        ContentView.AddSubviews(_bubbleView, _messageLabel, _timeLabel, _reactionsStackView);
+        // delivery state setup
+        _deliveryStateImageView = new UIImageView
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            ContentMode = UIViewContentMode.ScaleAspectFit,
+            ClipsToBounds = true
+        };
+
+        ContentView.AddSubviews(_bubbleView, _messageLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         NSLayoutConstraint.ActivateConstraints(new[]
         {
@@ -102,14 +110,39 @@ public class OwnTextMessageCell : UICollectionViewCell
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
             _reactionsStackView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
             _reactionsStackView.TrailingAnchor.ConstraintLessThanOrEqualTo(_bubbleView.TrailingAnchor),
-            _reactionsStackView.BottomAnchor.ConstraintEqualTo(_timeLabel.TopAnchor, -4),
+            _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f), // limit width to 50% of the chat bubble width
 
             // Zeitstempel
-            _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.BottomAnchor, 4),
-            _timeLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
+            _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, 4),
+            _timeLabel.TrailingAnchor.ConstraintEqualTo(_deliveryStateImageView.LeadingAnchor, -4),
             _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
-            _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10)
+            _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10),
+
+            _deliveryStateImageView.CenterYAnchor.ConstraintEqualTo(_timeLabel.CenterYAnchor),
+            _deliveryStateImageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
+            _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
+            _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
+
         });
+
+        /*// Message Emoji-reactions
+            _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
+            _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
+            _reactionsStackView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(_bubbleView.LeadingAnchor),
+            _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f), // limit width to 50% of the chat bubble width
+
+
+            // Message time stamp
+            _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, 4),
+            _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10),
+
+            // Delivery state icon
+            _deliveryStateImageView.CenterYAnchor.ConstraintEqualTo(_timeLabel.CenterYAnchor),
+            _deliveryStateImageView.LeadingAnchor.ConstraintEqualTo(_timeLabel.TrailingAnchor, 8),
+            _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
+            _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)*/
+
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)
@@ -127,7 +160,6 @@ public class OwnTextMessageCell : UICollectionViewCell
             // var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
             // _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
 
-            // Nachrichtentext setzen
             _messageLabel.Font = UIFont.SystemFontOfSize(chatView.MessageFontSize);
             _messageLabel.TextColor = chatView.OwnMessageTextColor.ToPlatform();
             _messageLabel.Text = message.TextContent;
@@ -136,12 +168,42 @@ public class OwnTextMessageCell : UICollectionViewCell
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
             _timeLabel.Text = message.Timestamp.ToString("HH:mm");
 
-
-            // Blasenhintergrund und Textfarbe
             _bubbleView.BackgroundColor = chatView.OwnMessageBackgroundColor.ToPlatform();
             
-            // Reaktionen aktualisieren
             EmojiHelper.UpdateReactions(_reactionsStackView, message.Reactions, chatView);
+
+            // Delivery state
+            _deliveryStateImageView.Image = null;
+            _deliveryStateImageView.Hidden = true;
+
+            switch (message.DeliveryState)
+            {
+                case MessageDeliveryState.Sent:
+                    if (chatView.SendIcon != null)
+                    {
+                        _deliveryStateImageView.Image = UIImageExtensions.GetImageFromImageSource(mauiContext, chatView.SendIcon);
+                    }
+                    break;
+                case MessageDeliveryState.Delivered:
+                    if (chatView.DeliveredIcon != null)
+                    {
+                        _deliveryStateImageView.Image = UIImageExtensions.GetImageFromImageSource(mauiContext, chatView.DeliveredIcon);
+                    }
+                    break;
+                case MessageDeliveryState.Read:
+                    if (chatView.ReadIcon != null)
+                    {
+                        _deliveryStateImageView.Image = UIImageExtensions.GetImageFromImageSource(mauiContext, chatView.ReadIcon);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if (_deliveryStateImageView.Image != null)
+            {
+                _deliveryStateImageView.Hidden = false;
+            }
 
             // Force layout refresh
             SetNeedsLayout();
