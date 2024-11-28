@@ -133,12 +133,11 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
             _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
             _reactionsStackView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(_bubbleView.LeadingAnchor),
-            _reactionsStackView.BottomAnchor.ConstraintEqualTo(_timeLabel.TopAnchor, -4),
             _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f), // limit width to 50% of the chat bubble width
 
 
             // Message time stamp
-            _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.BottomAnchor, 4),
+            _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, 4),
             _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10),
 
