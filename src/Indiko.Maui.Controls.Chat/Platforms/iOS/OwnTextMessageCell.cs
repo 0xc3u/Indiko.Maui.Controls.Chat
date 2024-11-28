@@ -24,14 +24,18 @@ public class OwnTextMessageCell : UICollectionViewCell
 
     public override UICollectionViewLayoutAttributes PreferredLayoutAttributesFittingAttributes(UICollectionViewLayoutAttributes layoutAttributes)
     {
-        //// Update the layout attributes for auto-sizing
-        //SetNeedsLayout();
-        //LayoutIfNeeded();
+        // Update the layout attributes for auto-sizing
+        SetNeedsLayout();
+        LayoutIfNeeded();
+
+        var widthConstraint = ContentView.WidthAnchor.ConstraintEqualTo(layoutAttributes.Frame.Width);
+        widthConstraint.Active = true;
 
         // Calculate the size fitting the content
         var size = ContentView.SystemLayoutSizeFittingSize(UIView.UILayoutFittingCompressedSize);
-        var updatedAttributes = layoutAttributes.Copy() as UICollectionViewLayoutAttributes;
+        widthConstraint.Active = false;
 
+        var updatedAttributes = layoutAttributes.Copy() as UICollectionViewLayoutAttributes;
         updatedAttributes.Frame = new CGRect(0, updatedAttributes.Frame.Y, layoutAttributes.Frame.Width, size.Height);
 
         return updatedAttributes;
@@ -96,8 +100,8 @@ public class OwnTextMessageCell : UICollectionViewCell
 
             // Emoji-Reaktionen
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
-            _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
-            _reactionsStackView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(_bubbleView.LeadingAnchor),
+            _reactionsStackView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
+            _reactionsStackView.TrailingAnchor.ConstraintLessThanOrEqualTo(_bubbleView.TrailingAnchor),
             _reactionsStackView.BottomAnchor.ConstraintEqualTo(_timeLabel.TopAnchor, -4),
 
             // Zeitstempel
@@ -123,21 +127,25 @@ public class OwnTextMessageCell : UICollectionViewCell
             // var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
             // _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
 
-
             // Nachrichtentext setzen
+            _messageLabel.Font = UIFont.SystemFontOfSize(chatView.MessageFontSize);
+            _messageLabel.TextColor = chatView.OwnMessageTextColor.ToPlatform();
             _messageLabel.Text = message.TextContent;
+
+            _timeLabel.Font = UIFont.SystemFontOfSize(chatView.MessageTimeFontSize);
+            _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
+            _timeLabel.Text = message.Timestamp.ToString("HH:mm");
+
 
             // Blasenhintergrund und Textfarbe
             _bubbleView.BackgroundColor = chatView.OwnMessageBackgroundColor.ToPlatform();
-            _messageLabel.TextColor = chatView.OwnMessageTextColor.ToPlatform();
-
-            // Zeitstempel setzen
-            _timeLabel.Text = message.Timestamp.ToString("HH:mm");
-
+            
             // Reaktionen aktualisieren
             EmojiHelper.UpdateReactions(_reactionsStackView, message.Reactions, chatView);
 
+            // Force layout refresh
             SetNeedsLayout();
+            LayoutIfNeeded();
         }
         catch (Exception ex)
         {

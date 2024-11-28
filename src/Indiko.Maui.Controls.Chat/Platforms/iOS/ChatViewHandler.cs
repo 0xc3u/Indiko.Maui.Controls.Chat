@@ -39,11 +39,10 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     {
     }
 
-    //private ChatMessageAdapter _dataSource;
-
     private ChatViewDataSource _dataSource;
     private ChatViewDelegate _delegate;
     private ChatViewFlowLayout _flowLayout;
+    private CGPoint _lastContentOffset;
 
     protected override UICollectionView CreatePlatformView()
     {
@@ -56,8 +55,8 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             AllowsSelection = true,
             AllowsMultipleSelection = false,
             BouncesHorizontally = false,
-            BouncesVertically = false,
-            AlwaysBounceVertical = false
+            BouncesVertically = true,
+            AlwaysBounceVertical = true
         };
 
 
@@ -114,9 +113,6 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         }
     }
 
-
-    private CGPoint _lastContentOffset;
-
     private void SaveScrollPosition()
     {
         _lastContentOffset = PlatformView.ContentOffset;
@@ -146,8 +142,6 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
         platformView.LayoutIfNeeded();
         platformView.ReloadData();
-
-        
 
     }
 

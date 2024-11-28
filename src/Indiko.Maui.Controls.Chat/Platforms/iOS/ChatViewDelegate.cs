@@ -22,8 +22,10 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
     public override CGSize GetSizeForItem(UICollectionView collectionView, UICollectionViewLayout layout, NSIndexPath indexPath)
     {
         var width = collectionView.Bounds.Width - _flowLayout.SectionInset.Left - _flowLayout.SectionInset.Right;
-        return new CGSize(width, 1);
+        nfloat estimatedHeight = 80; // chat bubble's average height
+        return new CGSize(width, estimatedHeight);
     }
+
 
 
     public override void ItemSelected(UICollectionView collectionView, NSIndexPath indexPath)
