@@ -18,6 +18,10 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
     private ChatView _chatView;
     private UIImageView _deliveryStateImageView;
 
+    private UIView _replyView;
+    private UILabel _replyPreviewTextLabel;
+    private UILabel _replySenderTextLabel;
+
     public OtherTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
@@ -73,6 +77,32 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             TextColor = UIColor.Black
         };
 
+        // Chat reply view setup
+        _replyView = new UIView
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            BackgroundColor = UIColor.FromRGBA(230 / 255.0f, 223 / 255.0f, 255 / 255.0f, 1.0f),
+            ClipsToBounds = true
+        };
+        _replyView.Layer.CornerRadius = 16;
+        _replyPreviewTextLabel = new UILabel
+        {
+            Lines = 0, // Allows unlimited lines
+            LineBreakMode = UILineBreakMode.WordWrap,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left,
+            TextColor = UIColor.Black
+        };
+
+        _replySenderTextLabel = new UILabel
+        {
+            Lines = 1,
+            LineBreakMode = UILineBreakMode.TailTruncation,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left,
+            TextColor = UIColor.Black
+        };
+
         // Message timestamp
         _timeLabel = new UILabel
         {
@@ -106,7 +136,7 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
         };
 
         // add child views into hierachical order
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _messageLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel,  _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
@@ -128,6 +158,15 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             _messageLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
             _messageLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _messageLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
+
+            // ToDo:
+            // Create Constraints for message replies
+            // 1. _replyView shall be inside the _bubbleView and above the _messageLabel
+            // 2. _replySenderTextLabel shall be inside the _replyView
+            // 3. _replyPreviewTextLabel shall be inside the _replyView and below the _replySenderTextLabel
+            // 4. the _replyView shall be only shown above the _messageLabel if the message is a reply
+
 
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
@@ -165,6 +204,30 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             _messageLabel.Font = UIFont.SystemFontOfSize(chatView.MessageFontSize);
             _messageLabel.TextColor = chatView.OtherMessageTextColor.ToPlatform();
             _messageLabel.Text = message.TextContent;
+
+            if(message.IsRepliedMessage && message.ReplyToMessage !=null)
+            {
+
+                _replyView.BackgroundColor = chatView.ReplyMessageBackgroundColor.ToPlatform();
+
+                _replyPreviewTextLabel.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
+                _replyPreviewTextLabel.TextColor = chatView.ReplyMessageTextColor.ToPlatform();
+                _replyPreviewTextLabel.Font = UIFont.SystemFontOfSize(chatView.ReplyMessageFontSize);
+
+                _replySenderTextLabel.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.SenderId);
+                _replySenderTextLabel.TextColor = chatView.ReplyMessageTextColor.ToPlatform();
+                _replySenderTextLabel.Font = UIFont.SystemFontOfSize(chatView.ReplyMessageFontSize);
+
+                _replyView.Hidden = false;
+                _replySenderTextLabel.Hidden = false;
+                _replyPreviewTextLabel.Hidden = false;
+            }
+            else
+            {
+                _replyView.Hidden = false;
+                _replySenderTextLabel.Hidden = true;
+                _replyPreviewTextLabel.Hidden = true;
+            }
 
             _timeLabel.Font = UIFont.SystemFontOfSize(chatView.MessageTimeFontSize);
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
