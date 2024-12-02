@@ -254,7 +254,9 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             }
             else
             {
-                _replyView.Hidden = false;
+                _messageLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
+
+                _replyView.Hidden = true;
                 _replySenderTextLabel.Hidden = true;
                 _replyPreviewTextLabel.Hidden = true;
             }
