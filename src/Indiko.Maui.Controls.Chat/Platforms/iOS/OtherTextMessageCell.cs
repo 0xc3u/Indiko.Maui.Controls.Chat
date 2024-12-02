@@ -84,7 +84,7 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             BackgroundColor = UIColor.FromRGBA(230 / 255.0f, 223 / 255.0f, 255 / 255.0f, 1.0f),
             ClipsToBounds = true
         };
-        _replyView.Layer.CornerRadius = 16;
+        _replyView.Layer.CornerRadius = 4;
         _replyPreviewTextLabel = new UILabel
         {
             Lines = 0, // Allows unlimited lines
