@@ -147,6 +147,19 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             _avatarImageView.WidthAnchor.ConstraintEqualTo(40),
             _avatarImageView.HeightAnchor.ConstraintEqualTo(40),
 
+            //// Chat bubble
+            //_bubbleView.LeadingAnchor.ConstraintEqualTo(_avatarImageView.TrailingAnchor, 10),
+            //_bubbleView.TrailingAnchor.ConstraintLessThanOrEqualTo(ContentView.TrailingAnchor, -50),
+            //_bubbleView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
+            //_bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
+
+            //// Message text inside chat bubble
+            //_messageLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
+            //_messageLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
+            //_messageLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            //_messageLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
+            
             // Chat bubble
             _bubbleView.LeadingAnchor.ConstraintEqualTo(_avatarImageView.TrailingAnchor, 10),
             _bubbleView.TrailingAnchor.ConstraintLessThanOrEqualTo(ContentView.TrailingAnchor, -50),
@@ -154,10 +167,27 @@ internal sealed class OtherTextMessageCell : UICollectionViewCell
             _bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
 
             // Message text inside chat bubble
-            _messageLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
+            _messageLabel.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
             _messageLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
             _messageLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _messageLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
+            // Message reply view inside chat bubble
+            _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
+            _replyView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _replyView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
+            // Reply sender text inside reply view
+            _replySenderTextLabel.TopAnchor.ConstraintEqualTo(_replyView.TopAnchor, 10),
+            _replySenderTextLabel.LeadingAnchor.ConstraintEqualTo(_replyView.LeadingAnchor, 10),
+            _replySenderTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
+
+            // Reply preview text inside reply view
+            _replyPreviewTextLabel.TopAnchor.ConstraintEqualTo(_replySenderTextLabel.BottomAnchor, 4),
+            _replyPreviewTextLabel.LeadingAnchor.ConstraintEqualTo(_replyView.LeadingAnchor, 10),
+            _replyPreviewTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
+            _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
+
 
 
             // ToDo:
