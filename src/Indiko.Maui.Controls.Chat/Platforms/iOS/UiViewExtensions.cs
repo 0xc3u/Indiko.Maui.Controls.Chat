@@ -12,12 +12,18 @@ internal static class UiViewExtensions
             return;
         }
 
+        if (uiView.GestureRecognizers?.Any(gr => gr is UITapGestureRecognizer) == true)
+        {
+            return; // Gesture recognizer already exists, do not add another one
+        }
+
         var messageRef = new WeakReference<ChatMessage>(message);
 
         var tapGestureRecognizer = new UITapGestureRecognizer(() => HandleViewTapped(uiView, messageRef, command))
         {
-            NumberOfTapsRequired = 1
+            NumberOfTapsRequired = 1,
         };
+
         uiView.AddGestureRecognizer(tapGestureRecognizer);
     }
 

@@ -122,12 +122,6 @@ internal class OwnImageMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
-        _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
-        _bubbleView.UserInteractionEnabled = true;
-
-        _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
-        _reactionsStackView.UserInteractionEnabled = true;
-
         // add child views into hierarchical order
         ContentView.AddSubviews(_bubbleView, _imageView, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
@@ -197,6 +191,13 @@ internal class OwnImageMessageCell : UICollectionViewCell
 
         try
         {
+            _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
+            _bubbleView.UserInteractionEnabled = true;
+
+            _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
+            _reactionsStackView.UserInteractionEnabled = true;
+
+
             // set width to 65% of the _bubbleView
             // var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
             // _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;

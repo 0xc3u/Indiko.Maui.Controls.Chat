@@ -135,15 +135,6 @@ internal class OtherTextMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
-        _avatarImageView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.AvatarTappedCommand);
-        _avatarImageView.UserInteractionEnabled = true;
-
-        _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
-        _bubbleView.UserInteractionEnabled = true;
-
-        _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
-        _reactionsStackView.UserInteractionEnabled = true;
-
         // add child views into hierarchical order
         ContentView.AddSubviews(_avatarImageView, _bubbleView, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
@@ -216,6 +207,15 @@ internal class OtherTextMessageCell : UICollectionViewCell
 
         try
         {
+            _avatarImageView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.AvatarTappedCommand);
+            _avatarImageView.UserInteractionEnabled = true;
+
+            _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
+            _bubbleView.UserInteractionEnabled = true;
+
+            _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
+            _reactionsStackView.UserInteractionEnabled = true;
+
             _bubbleView.BackgroundColor = chatView.OtherMessageBackgroundColor.ToPlatform();
 
             _messageLabel.Font = UIFont.SystemFontOfSize(chatView.MessageFontSize);

@@ -121,12 +121,6 @@ internal class OwnTextMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
-        _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
-        _bubbleView.UserInteractionEnabled = true;
-
-        _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
-        _reactionsStackView.UserInteractionEnabled = true;
-
         ContentView.AddSubviews(_bubbleView, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         NSLayoutConstraint.ActivateConstraints(new[]
@@ -194,6 +188,13 @@ internal class OwnTextMessageCell : UICollectionViewCell
             // set width to 65% of the _bubbleView
             // var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
             // _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
+
+            _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
+            _bubbleView.UserInteractionEnabled = true;
+
+            _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
+            _reactionsStackView.UserInteractionEnabled = true;
+
 
             _messageLabel.Font = UIFont.SystemFontOfSize(chatView.MessageFontSize);
             _messageLabel.TextColor = chatView.OwnMessageTextColor.ToPlatform();
