@@ -2,6 +2,7 @@
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Platform;
 using Microsoft.Maui.Handlers;
 using UIKit;
 
@@ -146,6 +147,10 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         platformView.LayoutIfNeeded();
         platformView.ReloadData();
 
+        if (_dataSource != null && _delegate != null)
+        {
+            ScrollToFirstNewMessage();
+        }
     }
 
     protected override void DisconnectHandler(UICollectionView nativeView)
