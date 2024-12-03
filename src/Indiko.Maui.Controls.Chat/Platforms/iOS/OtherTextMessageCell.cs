@@ -23,6 +23,7 @@ internal class OtherTextMessageCell : UICollectionViewCell
     private UILabel _replySenderTextLabel;
 
     private NSLayoutConstraint _messageLabelTopConstraint;
+    private ChatMessage _message;
 
     public OtherTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
@@ -136,21 +137,21 @@ internal class OtherTextMessageCell : UICollectionViewCell
         };
 
         // Add tap gesture recognizers
-        var avatarTapGesture = new UITapGestureRecognizer(AvatarTapped)
+        var avatarTapGesture = new UITapGestureRecognizer(() => AvatarTapped(_message))
         {
             NumberOfTapsRequired = 1
         };
         _avatarImageView.AddGestureRecognizer(avatarTapGesture);
         _avatarImageView.UserInteractionEnabled = true;
 
-        var messageTapGesture = new UITapGestureRecognizer(MessageTapped)
+        var messageTapGesture = new UITapGestureRecognizer(() => MessageTapped(_message))
         {
             NumberOfTapsRequired = 1
         };
         _bubbleView.AddGestureRecognizer(messageTapGesture);
         _bubbleView.UserInteractionEnabled = true;
 
-        var emojiTapGesture = new UITapGestureRecognizer(EmojiReactionTapped)
+        var emojiTapGesture = new UITapGestureRecognizer(() => EmojiReactionTapped(_message))
         {
             NumberOfTapsRequired = 1
         };
@@ -224,10 +225,11 @@ internal class OtherTextMessageCell : UICollectionViewCell
             return;
         }
 
+        _message = message;
+        _chatView = chatView;
+
         try
         {
-            _chatView = chatView;
-
             _bubbleView.BackgroundColor = chatView.OtherMessageBackgroundColor.ToPlatform();
 
             _messageLabel.Font = UIFont.SystemFontOfSize(chatView.MessageFontSize);
@@ -334,29 +336,38 @@ internal class OtherTextMessageCell : UICollectionViewCell
         }
     }
 
-    private void AvatarTapped()
+    private void AvatarTapped(ChatMessage message)
     {
-        if (_chatView.AvatarTappedCommand?.CanExecute(null) == true)
+        if (_chatView.AvatarTappedCommand == null)
+            return;
+
+        if (_chatView.AvatarTappedCommand.CanExecute(message) == true)
         {
-            _chatView.AvatarTappedCommand.Execute(null);
+            _chatView.AvatarTappedCommand.Execute(message);
             AnimateFade(_avatarImageView);
         }
     }
 
-    private void MessageTapped()
+    private void MessageTapped(ChatMessage message)
     {
-        if (_chatView.MessageTappedCommand?.CanExecute(null) == true)
+        if (_chatView.MessageTappedCommand == null)
+            return;
+
+        if (_chatView.MessageTappedCommand.CanExecute(message) == true)
         {
-            _chatView.MessageTappedCommand.Execute(null);
+            _chatView.MessageTappedCommand.Execute(message);
             AnimateFade(_bubbleView);
         }
     }
 
-    private void EmojiReactionTapped()
+    private void EmojiReactionTapped(ChatMessage message)
     {
-        if (_chatView.EmojiReactionTappedCommand?.CanExecute(null) == true)
+        if (_chatView.EmojiReactionTappedCommand == null)
+            return;
+
+        if (_chatView.EmojiReactionTappedCommand.CanExecute(message) == true)
         {
-            _chatView.EmojiReactionTappedCommand.Execute(null);
+            _chatView.EmojiReactionTappedCommand.Execute(message);
             AnimateFade(_reactionsStackView);
         }
     }
@@ -375,6 +386,7 @@ internal class OtherTextMessageCell : UICollectionViewCell
         });
     }
 }
+
 
 
 
