@@ -243,7 +243,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
 
                 // Update the top constraint of the message label
                 _messageVideoTopConstraint.Active = false;
-                _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
+                _messageVideoTopConstraint = _videoPlayer.View.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
                 _messageVideoTopConstraint.Active = true;
             }
             else
@@ -254,7 +254,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
 
                 // Update the top constraint of the message label
                 _messageVideoTopConstraint.Active = false;
-                _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
+                _messageVideoTopConstraint = _videoPlayer.View.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
                 _messageVideoTopConstraint.Active = true;
             }
 
