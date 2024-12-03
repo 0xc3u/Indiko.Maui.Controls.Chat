@@ -1,9 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Indiko.Maui.Controls.Chat.Models;
-using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
 
 namespace Indiko.Maui.Controls.Chat.Sample.ViewModels;
 public partial class MainPageViewModel : BaseViewModel

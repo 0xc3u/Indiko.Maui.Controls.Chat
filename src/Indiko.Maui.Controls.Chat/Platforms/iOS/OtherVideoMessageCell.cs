@@ -11,6 +11,8 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 internal sealed class OtherVideoMessageCell : UICollectionViewCell
 {
     public static readonly NSString Key = new(nameof(OtherVideoMessageCell));
+    private ChatView _chatView;
+    private ChatMessage _message;
 
     private AVPlayerViewController _videoPlayer;
     private UIView _videoView;
@@ -19,7 +21,6 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
-    private ChatView _chatView;
     private UIImageView _deliveryStateImageView;
 
     private UIView _replyView;
@@ -279,7 +280,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
             _timeLabel.Text = message.Timestamp.ToString("HH:mm");
 
-            EmojiHelper.UpdateReactions(_reactionsStackView, message.Reactions, chatView);
+            _reactionsStackView.UpdateReactions(message.Reactions, chatView);
 
             if (message.SenderAvatar != null)
             {

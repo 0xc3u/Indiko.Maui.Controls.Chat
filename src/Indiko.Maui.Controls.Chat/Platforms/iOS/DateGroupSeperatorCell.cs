@@ -55,5 +55,4 @@ public class DateGroupSeperatorCell : UICollectionViewCell
             Console.WriteLine($"Error in {nameof(DateGroupSeperatorCell)}.{nameof(Update)}: {ex.Message}");
         }
     }
-
 }

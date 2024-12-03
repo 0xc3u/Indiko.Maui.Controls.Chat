@@ -9,7 +9,8 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 internal class OwnTextMessageCell : UICollectionViewCell
 {
     public static readonly NSString Key = new(nameof(OwnTextMessageCell));
-    ChatView _chatView;
+    private ChatView _chatView;
+    private ChatMessage _message;
 
     private UILabel _messageLabel;
     private UIView _bubbleView;
@@ -21,8 +22,7 @@ internal class OwnTextMessageCell : UICollectionViewCell
     private UILabel _replyPreviewTextLabel;
     private UILabel _replySenderTextLabel;
     private NSLayoutConstraint _messageLabelTopConstraint;
-    private ChatMessage _message;
-
+    
     public OwnTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
@@ -49,26 +49,26 @@ internal class OwnTextMessageCell : UICollectionViewCell
 
     private void SetupLayout()
     {
-        // Nachrichtenblase (Hintergrund)
+        // Chat bubble setup
         _bubbleView = new UIView
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
-            BackgroundColor = UIColor.FromRGBA(113 / 255.0f, 0 / 255.0f, 223 / 255.0f, 1.0f), // Dunkles Lila
+            BackgroundColor = UIColor.Clear,
             ClipsToBounds = true
         };
-        _bubbleView.Layer.CornerRadius = 16; // Abgerundete Ecken
+        _bubbleView.Layer.CornerRadius = 16;
 
         // Chat reply view setup
         _replyView = new UIView
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
-            BackgroundColor = UIColor.FromRGBA(230 / 255.0f, 223 / 255.0f, 255 / 255.0f, 1.0f),
+            BackgroundColor = UIColor.Clear,
             ClipsToBounds = true
         };
         _replyView.Layer.CornerRadius = 4;
         _replyPreviewTextLabel = new UILabel
         {
-            Lines = 0, // Allows unlimited lines
+            Lines = 0,
             LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left,
@@ -84,26 +84,26 @@ internal class OwnTextMessageCell : UICollectionViewCell
             TextColor = UIColor.Black
         };
 
-        // Nachrichtentext
+        // Message text
         _messageLabel = new UILabel
         {
-            Lines = 0, // Mehrzeiliger Text
+            Lines = 0, 
             LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left,
-            TextColor = UIColor.White // Weißer Text für Kontrast
+            TextColor = UIColor.Black
         };
 
-        // Zeitstempel
+        // Message timestamp
         _timeLabel = new UILabel
         {
             Font = UIFont.SystemFontOfSize(12),
             TextColor = UIColor.LightGray,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Right // Rechtsbündig
+            TextAlignment = UITextAlignment.Right
         };
 
-        // Reaktionsstack (Horizontale Emoji-Liste)
+        // Message reaction stack (horizontal Emoji-List)
         _reactionsStackView = new UIStackView
         {
             Axis = UILayoutConstraintAxis.Horizontal,
@@ -121,19 +121,10 @@ internal class OwnTextMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
-        // Add tap gesture recognizers
-        var messageTapGesture = new UITapGestureRecognizer(() => MessageTapped(new WeakReference<ChatMessage>(_message)))
-        {
-            NumberOfTapsRequired = 1
-        };
-        _bubbleView.AddGestureRecognizer(messageTapGesture);
+        _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
         _bubbleView.UserInteractionEnabled = true;
 
-        var emojiTapGesture = new UITapGestureRecognizer(() => EmojiReactionTapped(new WeakReference<ChatMessage>(_message)))
-        {
-            NumberOfTapsRequired = 1
-        };
-        _reactionsStackView.AddGestureRecognizer(emojiTapGesture);
+        _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
         _reactionsStackView.UserInteractionEnabled = true;
 
         ContentView.AddSubviews(_bubbleView, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
@@ -247,7 +238,7 @@ internal class OwnTextMessageCell : UICollectionViewCell
 
             _bubbleView.BackgroundColor = chatView.OwnMessageBackgroundColor.ToPlatform();
 
-            EmojiHelper.UpdateReactions(_reactionsStackView, message.Reactions, chatView);
+            _reactionsStackView.UpdateReactions(message.Reactions, chatView);
 
             // Delivery state
             _deliveryStateImageView.Image = null;
@@ -289,24 +280,6 @@ internal class OwnTextMessageCell : UICollectionViewCell
         catch (Exception ex)
         {
             Console.WriteLine($"Error in {nameof(OwnTextMessageCell)}.{nameof(Update)}: {ex.Message}");
-        }
-    }
-
-    private void MessageTapped(WeakReference<ChatMessage> messageRef)
-    {
-        if (messageRef.TryGetTarget(out var message) && _chatView.MessageTappedCommand?.CanExecute(message) == true)
-        {
-            _chatView.MessageTappedCommand.Execute(message);
-            _bubbleView.AnimateFade();
-        }
-    }
-
-    private void EmojiReactionTapped(WeakReference<ChatMessage> messageRef)
-    {
-        if (messageRef.TryGetTarget(out var message) && _chatView.EmojiReactionTappedCommand?.CanExecute(message) == true)
-        {
-            _chatView.EmojiReactionTappedCommand.Execute(message);
-            _reactionsStackView.AnimateFade();
         }
     }
 }

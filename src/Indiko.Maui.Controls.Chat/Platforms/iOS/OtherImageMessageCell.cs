@@ -9,15 +9,15 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 internal sealed class OtherImageMessageCell : UICollectionViewCell
 {
     public static readonly NSString Key = new(nameof(OtherImageMessageCell));
+    private ChatView _chatView;
+    private ChatMessage _message;
 
     private UIImageView _imageView;
-
 
     private UIImageView _avatarImageView;
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
-    private ChatView _chatView;
     private UIImageView _deliveryStateImageView;
 
     private UIView _replyView;
@@ -134,6 +134,15 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
+        _avatarImageView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.AvatarTappedCommand);
+        _avatarImageView.UserInteractionEnabled = true;
+
+        _bubbleView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.MessageTappedCommand);
+        _bubbleView.UserInteractionEnabled = true;
+
+        _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
+        _reactionsStackView.UserInteractionEnabled = true;
+
         // add child views into hierarchical order
         ContentView.AddSubviews(_avatarImageView, _bubbleView, _imageView, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
@@ -205,6 +214,7 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
         try
         {
             _chatView = chatView;
+            _message = message;
 
             _bubbleView.BackgroundColor = chatView.OtherMessageBackgroundColor.ToPlatform();
 
@@ -262,7 +272,7 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
             _timeLabel.Text = message.Timestamp.ToString("HH:mm");
 
-            EmojiHelper.UpdateReactions(_reactionsStackView, message.Reactions, chatView);
+            _reactionsStackView.UpdateReactions(message.Reactions, chatView);
 
             if (message.SenderAvatar != null)
             {

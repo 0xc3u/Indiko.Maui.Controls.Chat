@@ -5,15 +5,20 @@ using UIKit;
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 public static class EmojiHelper
 {
-    public static void UpdateReactions(UIStackView reactionsStackView, List<ChatMessageReaction> reactions, ChatView chatView)
+    public static void UpdateReactions(this UIStackView reactionsStackView, List<ChatMessageReaction> reactions, ChatView chatView)
     {
-        // Entferne alle vorhandenen Reaktionen
+        if(reactionsStackView == null || reactions == null || chatView == null)
+        {
+            return;
+        }
+
+        // remove all existing emoji reactions
         foreach (var view in reactionsStackView.ArrangedSubviews)
         {
             view.RemoveFromSuperview();
         }
 
-        // Füge neue Reaktionen hinzu
+        // add emoji reactions
         foreach (var reaction in reactions)
         {
             var reactionLabel = new UILabel
@@ -25,6 +30,6 @@ public static class EmojiHelper
 
             reactionsStackView.AddArrangedSubview(reactionLabel);
         }
-        reactionsStackView.Hidden = reactions.Count == 0; // Verstecke, falls keine Reaktionen vorhanden sind
+        reactionsStackView.Hidden = reactions.Count == 0;
     }
 }
