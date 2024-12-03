@@ -85,7 +85,6 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
         if (_videoPlayer != null)
         {
             _videoView.AddSubview(_videoPlayer.View);
-            _videoPlayer.View.Frame = _videoView.Bounds;
             _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
         }
 
@@ -235,6 +234,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
 
                 // Ensure the video view is visible
                 _videoView.Hidden = false;
+                _videoPlayer.View.Frame = _videoView.Bounds;
             }
             else
             {
