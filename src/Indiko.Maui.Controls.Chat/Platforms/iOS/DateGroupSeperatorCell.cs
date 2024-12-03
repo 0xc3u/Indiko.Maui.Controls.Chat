@@ -21,7 +21,7 @@ public class DateGroupSeperatorCell : UICollectionViewCell
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextColor = UIColor.LightGray,
-            BackgroundColor = UIColor.Blue,
+            BackgroundColor = UIColor.Clear,
             TextAlignment = UITextAlignment.Center,
             Font = UIFont.SystemFontOfSize(12)
         };

@@ -60,6 +60,12 @@ public class ChatViewDataSource : UICollectionViewDataSource
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
+            else if(message.MessageType == MessageType.Image && !message.IsOwnMessage)
+            {
+                var cell = collectionView.DequeueReusableCell(OtherImageMessageCell.Key, indexPath) as OtherImageMessageCell;
+                cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
+                return cell;
+            }
             else
             {
                 var cell = collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;

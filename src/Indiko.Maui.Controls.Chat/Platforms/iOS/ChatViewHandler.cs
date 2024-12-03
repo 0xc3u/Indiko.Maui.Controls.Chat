@@ -135,6 +135,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         platformView.RegisterClassForCell(typeof(DateGroupSeperatorCell), DateGroupSeperatorCell.Key);
         platformView.RegisterClassForCell(typeof(OwnTextMessageCell), OwnTextMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OtherTextMessageCell), OtherTextMessageCell.Key);
+        platformView.RegisterClassForCell(typeof(OtherImageMessageCell), OtherImageMessageCell.Key);
 
         
         platformView.DataSource = _dataSource;
