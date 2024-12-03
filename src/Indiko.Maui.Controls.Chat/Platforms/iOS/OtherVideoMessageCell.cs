@@ -1,4 +1,6 @@
-﻿using CoreGraphics;
+﻿using AVFoundation;
+using AVKit;
+using CoreGraphics;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Platform;
@@ -6,24 +8,27 @@ using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
-internal class OwnImageMessageCell : UICollectionViewCell
+internal sealed class OtherVideoMessageCell : UICollectionViewCell
 {
-    public static readonly NSString Key = new(nameof(OwnImageMessageCell));
-    ChatView _chatView;
+    public static readonly NSString Key = new(nameof(OtherVideoMessageCell));
 
-    private UIImageView _imageView;
+    private AVPlayerViewController _videoPlayer;
+    private UIView _videoView;
 
+    private UIImageView _avatarImageView;
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
+    private ChatView _chatView;
     private UIImageView _deliveryStateImageView;
 
     private UIView _replyView;
     private UILabel _replyPreviewTextLabel;
     private UILabel _replySenderTextLabel;
-    private NSLayoutConstraint _messageImagelTopConstraint;
 
-    public OwnImageMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
+    private NSLayoutConstraint _messageVideoTopConstraint;
+
+    public OtherVideoMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
     }
@@ -47,17 +52,40 @@ internal class OwnImageMessageCell : UICollectionViewCell
         return updatedAttributes;
     }
 
-
     private void SetupLayout()
     {
+        // Avatar setup
+        _avatarImageView = new UIImageView
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            ContentMode = UIViewContentMode.ScaleAspectFill,
+            ClipsToBounds = true
+        };
+        _avatarImageView.Layer.CornerRadius = 20;
+
         // Chat bubble setup
         _bubbleView = new UIView
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
-            BackgroundColor = UIColor.FromRGBA(113 / 255.0f, 0 / 255.0f, 223 / 255.0f, 1.0f),
+            BackgroundColor = UIColor.FromRGBA(230 / 255.0f, 223 / 255.0f, 255 / 255.0f, 1.0f),
             ClipsToBounds = true
         };
         _bubbleView.Layer.CornerRadius = 16;
+
+        // Message Video
+        _videoPlayer = new AVPlayerViewController();
+
+        _videoView = new UIView
+        {
+            ClipsToBounds = true,
+            TranslatesAutoresizingMaskIntoConstraints = false
+        };
+
+        if (_videoPlayer != null)
+        {
+            _videoView.AddSubview(_videoPlayer.View);
+        }
+
 
         // Chat reply view setup
         _replyView = new UIView
@@ -69,7 +97,7 @@ internal class OwnImageMessageCell : UICollectionViewCell
         _replyView.Layer.CornerRadius = 4;
         _replyPreviewTextLabel = new UILabel
         {
-            Lines = 0,
+            Lines = 0, // Allows unlimited lines
             LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left,
@@ -85,23 +113,17 @@ internal class OwnImageMessageCell : UICollectionViewCell
             TextColor = UIColor.Black
         };
 
-
-        // Message Image
-        _imageView = new UIImageView
-        {
-            TranslatesAutoresizingMaskIntoConstraints = false,
-            ContentMode = UIViewContentMode.ScaleAspectFit,
-            ClipsToBounds = true
-        };
-
         // Message timestamp
         _timeLabel = new UILabel
         {
             Font = UIFont.SystemFontOfSize(12),
             TextColor = UIColor.LightGray,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Right
+            TextAlignment = UITextAlignment.Left
         };
+
+        _videoView.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
+        _timeLabel.SetContentHuggingPriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Horizontal);
 
         // Message reaction stack (horizontal Emoji-List)
         _reactionsStackView = new UIStackView
@@ -110,7 +132,7 @@ internal class OwnImageMessageCell : UICollectionViewCell
             Distribution = UIStackViewDistribution.Fill,
             Alignment = UIStackViewAlignment.Center,
             Spacing = 8,
-            TranslatesAutoresizingMaskIntoConstraints = false
+            TranslatesAutoresizingMaskIntoConstraints = false,
         };
 
         // delivery state setup
@@ -122,22 +144,28 @@ internal class OwnImageMessageCell : UICollectionViewCell
         };
 
         // add child views into hierarchical order
-        ContentView.AddSubviews(_bubbleView, _imageView, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _videoView, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
         {
+            // Avatar
+            _avatarImageView.LeadingAnchor.ConstraintEqualTo(ContentView.LeadingAnchor, 10),
+            _avatarImageView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
+            _avatarImageView.WidthAnchor.ConstraintEqualTo(40),
+            _avatarImageView.HeightAnchor.ConstraintEqualTo(40),
+
             // Chat bubble
-            _bubbleView.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor, -10),
-            _bubbleView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(ContentView.LeadingAnchor, 50),
+            _bubbleView.LeadingAnchor.ConstraintEqualTo(_avatarImageView.TrailingAnchor, 10),
+            _bubbleView.TrailingAnchor.ConstraintLessThanOrEqualTo(ContentView.TrailingAnchor, -50),
             _bubbleView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
             _bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
 
-             // Message reply view inside chat bubble
+            // Message reply view inside chat bubble
             _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
             _replyView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _replyView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
-                        
+
             // Reply sender text inside reply view
             _replySenderTextLabel.TopAnchor.ConstraintEqualTo(_replyView.TopAnchor, 10),
             _replySenderTextLabel.LeadingAnchor.ConstraintEqualTo(_replyView.LeadingAnchor, 10),
@@ -150,31 +178,28 @@ internal class OwnImageMessageCell : UICollectionViewCell
             _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
 
             // Message Image inside chat bubble
-            _messageImagelTopConstraint = _imageView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
-            _imageView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
-            _imageView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
-            _imageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
-            //_imageView.WidthAnchor.ConstraintEqualTo(_imageView.HeightAnchor, multiplier: 16.0f / 9.0f), // Aspect ratio constraint for 16:9
+            _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
 
-         
+            _videoView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
+            _videoView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _videoView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
-            _reactionsStackView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
-            _reactionsStackView.TrailingAnchor.ConstraintLessThanOrEqualTo(_bubbleView.TrailingAnchor),
+            _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
+            _reactionsStackView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(_bubbleView.LeadingAnchor),
             _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f), // limit width to 50% of the chat bubble width
 
             // Message time stamp
             _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, 4),
-            _timeLabel.TrailingAnchor.ConstraintEqualTo(_deliveryStateImageView.LeadingAnchor, -4),
-            _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
+            _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10),
 
             // Delivery state icon
             _deliveryStateImageView.CenterYAnchor.ConstraintEqualTo(_timeLabel.CenterYAnchor),
-            _deliveryStateImageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
+            _deliveryStateImageView.LeadingAnchor.ConstraintEqualTo(_timeLabel.TrailingAnchor, 8),
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
-
         });
     }
 
@@ -185,29 +210,32 @@ internal class OwnImageMessageCell : UICollectionViewCell
             return;
         }
 
-        _chatView = chatView;
-
         try
         {
-            // set width to 65% of the _bubbleView
-            // var width = UIScreen.MainScreen.Bounds.Width * 0.65f;
-            // _bubbleView.WidthAnchor.ConstraintGreaterThanOrEqualTo(width).Active = true;
+            _chatView = chatView;
+
+            _bubbleView.BackgroundColor = chatView.OtherMessageBackgroundColor.ToPlatform();
 
             if (message.BinaryContent != null)
             {
-                var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.png");
+                var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.mp4");
 
                 if (!File.Exists(tempFile))
                 {
                     File.WriteAllBytes(tempFile, message.BinaryContent);
                 }
 
-                _imageView.Image = UIImage.FromFile(tempFile);
-                _imageView.Hidden = false;
+                // set video file to player
+                _videoPlayer.Player = new AVPlayer(NSUrl.FromFilename(tempFile));
+                _videoPlayer.ShowsPlaybackControls = true;
+                _videoPlayer.View.Frame = _videoView.Bounds;
+                _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.All;
+                _videoPlayer.Player.Play();
+
             }
             else
             {
-                _imageView.Hidden = true;
+                _videoView.Hidden = true;
             }
 
             if (message.IsRepliedMessage && message.ReplyToMessage != null)
@@ -227,9 +255,9 @@ internal class OwnImageMessageCell : UICollectionViewCell
                 _replyPreviewTextLabel.Hidden = false;
 
                 // Update the top constraint of the message label
-                _messageImagelTopConstraint.Active = false;
-                _messageImagelTopConstraint = _imageView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
-                _messageImagelTopConstraint.Active = true;
+                _messageVideoTopConstraint.Active = false;
+                _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
+                _messageVideoTopConstraint.Active = true;
             }
             else
             {
@@ -238,18 +266,34 @@ internal class OwnImageMessageCell : UICollectionViewCell
                 _replyPreviewTextLabel.Hidden = true;
 
                 // Update the top constraint of the message label
-                _messageImagelTopConstraint.Active = false;
-                _messageImagelTopConstraint = _imageView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
-                _messageImagelTopConstraint.Active = true;
+                _messageVideoTopConstraint.Active = false;
+                _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
+                _messageVideoTopConstraint.Active = true;
             }
 
             _timeLabel.Font = UIFont.SystemFontOfSize(chatView.MessageTimeFontSize);
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
             _timeLabel.Text = message.Timestamp.ToString("HH:mm");
 
-            _bubbleView.BackgroundColor = chatView.OwnMessageBackgroundColor.ToPlatform();
-
             EmojiHelper.UpdateReactions(_reactionsStackView, message.Reactions, chatView);
+
+            if (message.SenderAvatar != null)
+            {
+                _avatarImageView.Image = UIImage.LoadFromData(NSData.FromArray(message.SenderAvatar));
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(message.SenderInitials))
+                {
+                    _avatarImageView.Image = UIImageExtensions.CreateInitialsImage(message.SenderId.Trim()[..2].ToUpperInvariant(), 40f, 40f,
+                        chatView.AvatarTextColor.ToPlatform(), chatView.AvatarBackgroundColor.ToCGColor());
+                }
+                else
+                {
+                    _avatarImageView.Image = UIImageExtensions.CreateInitialsImage(message.SenderInitials, 40f, 40f,
+                        chatView.AvatarTextColor.ToPlatform(), chatView.AvatarBackgroundColor.ToCGColor());
+                }
+            }
 
             // Delivery state
             _deliveryStateImageView.Image = null;
@@ -290,7 +334,7 @@ internal class OwnImageMessageCell : UICollectionViewCell
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in {nameof(OwnImageMessageCell)}.{nameof(Update)}: {ex.Message}");
+            Console.WriteLine($"Error in {nameof(OtherVideoMessageCell)}.{nameof(Update)}: {ex.Message}");
         }
     }
 }
