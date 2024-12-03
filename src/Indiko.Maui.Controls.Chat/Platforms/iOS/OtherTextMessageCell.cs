@@ -137,21 +137,21 @@ internal class OtherTextMessageCell : UICollectionViewCell
         };
 
         // Add tap gesture recognizers
-        var avatarTapGesture = new UITapGestureRecognizer(() => AvatarTapped(_message))
+        var avatarTapGesture = new UITapGestureRecognizer(() => AvatarTapped(new WeakReference<ChatMessage>(_message)))
         {
             NumberOfTapsRequired = 1
         };
         _avatarImageView.AddGestureRecognizer(avatarTapGesture);
         _avatarImageView.UserInteractionEnabled = true;
 
-        var messageTapGesture = new UITapGestureRecognizer(() => MessageTapped(_message))
+        var messageTapGesture = new UITapGestureRecognizer(() => MessageTapped(new WeakReference<ChatMessage>(_message)))
         {
             NumberOfTapsRequired = 1
         };
         _bubbleView.AddGestureRecognizer(messageTapGesture);
         _bubbleView.UserInteractionEnabled = true;
 
-        var emojiTapGesture = new UITapGestureRecognizer(() => EmojiReactionTapped(_message))
+        var emojiTapGesture = new UITapGestureRecognizer(() => EmojiReactionTapped(new WeakReference<ChatMessage>(_message)))
         {
             NumberOfTapsRequired = 1
         };
@@ -336,36 +336,27 @@ internal class OtherTextMessageCell : UICollectionViewCell
         }
     }
 
-    private void AvatarTapped(ChatMessage message)
+    private void AvatarTapped(WeakReference<ChatMessage> messageRef)
     {
-        if (_chatView.AvatarTappedCommand == null)
-            return;
-
-        if (_chatView.AvatarTappedCommand.CanExecute(message) == true)
+        if (messageRef.TryGetTarget(out var message) && _chatView.AvatarTappedCommand?.CanExecute(message) == true)
         {
             _chatView.AvatarTappedCommand.Execute(message);
             AnimateFade(_avatarImageView);
         }
     }
 
-    private void MessageTapped(ChatMessage message)
+    private void MessageTapped(WeakReference<ChatMessage> messageRef)
     {
-        if (_chatView.MessageTappedCommand == null)
-            return;
-
-        if (_chatView.MessageTappedCommand.CanExecute(message) == true)
+        if (messageRef.TryGetTarget(out var message) && _chatView.MessageTappedCommand?.CanExecute(message) == true)
         {
             _chatView.MessageTappedCommand.Execute(message);
             AnimateFade(_bubbleView);
         }
     }
 
-    private void EmojiReactionTapped(ChatMessage message)
+    private void EmojiReactionTapped(WeakReference<ChatMessage> messageRef)
     {
-        if (_chatView.EmojiReactionTappedCommand == null)
-            return;
-
-        if (_chatView.EmojiReactionTappedCommand.CanExecute(message) == true)
+        if (messageRef.TryGetTarget(out var message) && _chatView.EmojiReactionTappedCommand?.CanExecute(message) == true)
         {
             _chatView.EmojiReactionTappedCommand.Execute(message);
             AnimateFade(_reactionsStackView);
@@ -386,7 +377,6 @@ internal class OtherTextMessageCell : UICollectionViewCell
         });
     }
 }
-
 
 
 

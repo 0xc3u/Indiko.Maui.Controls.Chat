@@ -25,32 +25,20 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
         return new CGSize(width, estimatedHeight);
     }
 
-
-
-    //public override void ItemSelected(UICollectionView collectionView, NSIndexPath indexPath)
-    //{
-    //    try
-    //    {
-    //        base.ItemSelected(collectionView, indexPath);
-
-    //        var message = _virtualView.Messages[indexPath.Row];
-
-    //        if (_virtualView.MessageTappedCommand?.CanExecute(message) == true)
-    //        {
-    //            _virtualView.MessageTappedCommand.Execute(message);
-    //        }
-
-    //    }catch(Exception ex)
-    //    {
-    //        Console.WriteLine(ex.Message);
-    //    }
-    //}
-
     public override void Scrolled(UIScrollView scrollView)
     {
         try
         {
-            base.Scrolled(scrollView);
+            ScrolledArgs args = new()
+            {
+                Y = (int)scrollView.ContentOffset.Y,
+                X = (int)scrollView.ContentOffset.X
+            };
+
+            if (_virtualView.ScrolledCommand?.CanExecute(args) == true)
+            {
+                _virtualView.ScrolledCommand.Execute(args);
+            }
 
             if (scrollView.ContentOffset.Y <= 0)
             {
@@ -62,7 +50,7 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
         }
         catch(Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Error in {nameof(ChatViewDelegate)}.{nameof(Scrolled)}: {ex.Message}");
         }
     }
 }
