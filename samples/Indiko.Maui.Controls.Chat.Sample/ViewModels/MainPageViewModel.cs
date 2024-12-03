@@ -267,7 +267,7 @@ public partial class MainPageViewModel : BaseViewModel
         var videoMessage = new ChatMessage
         {
             BinaryContent = Convert.FromBase64String(video1),
-            IsOwnMessage = true,
+            IsOwnMessage = false,
             Timestamp = DateTime.Now,
             SenderAvatar = null,
             SenderInitials = "AS",
