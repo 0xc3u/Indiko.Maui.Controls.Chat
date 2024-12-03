@@ -1,4 +1,5 @@
-﻿using AVFoundation;
+﻿using System;
+using AVFoundation;
 using AVKit;
 using CoreGraphics;
 using Foundation;
@@ -14,7 +15,8 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
     private ChatView _chatView;
     private ChatMessage _message;
 
-    private AVPlayerViewController _videoPlayer;
+    private AVPlayer _player;
+    private AVPlayerViewController _playerViewController;
     private UIView _videoView;
 
     private UIImageView _avatarImageView;
@@ -74,7 +76,8 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
         _bubbleView.Layer.CornerRadius = 16;
 
         // Message Video
-        _videoPlayer = new AVPlayerViewController();
+        _playerViewController = new AVPlayerViewController();
+        _player = new AVPlayer();
 
         _videoView = new UIView
         {
@@ -82,27 +85,30 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             TranslatesAutoresizingMaskIntoConstraints = false
         };
 
-        if (_videoPlayer != null)
+        if (_playerViewController != null && _player !=null)
         {
-            _videoView.AddSubview(_videoPlayer.View);
+            _playerViewController.Player = _player;
+            _playerViewController.View.Frame = this.Bounds;
 
             // Add Auto Layout constraints for _videoPlayer.View
-            _videoPlayer.View.TranslatesAutoresizingMaskIntoConstraints = false;
+            _playerViewController.View.TranslatesAutoresizingMaskIntoConstraints = false;
 
             NSLayoutConstraint.ActivateConstraints(new[]
             {
-                _videoPlayer.View.LeadingAnchor.ConstraintEqualTo(_videoView.LeadingAnchor),
-                _videoPlayer.View.TrailingAnchor.ConstraintEqualTo(_videoView.TrailingAnchor),
-                _videoPlayer.View.TopAnchor.ConstraintEqualTo(_videoView.TopAnchor),
-                _videoPlayer.View.BottomAnchor.ConstraintEqualTo(_videoView.BottomAnchor)
+                _playerViewController.View.LeadingAnchor.ConstraintEqualTo(_videoView.LeadingAnchor),
+                _playerViewController.View.TrailingAnchor.ConstraintEqualTo(_videoView.TrailingAnchor),
+                _playerViewController.View.TopAnchor.ConstraintEqualTo(_videoView.TopAnchor),
+                _playerViewController.View.BottomAnchor.ConstraintEqualTo(_videoView.BottomAnchor)
             });
 
             // Ensure the autoresizing mask is not conflicting with Auto Layout
-            _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.None;
+            _playerViewController.View.AutoresizingMask = UIViewAutoresizing.None;
+
+            _videoView.AddSubview(_playerViewController.View);
 
             // Force a layout update for the player
-            _videoPlayer.View.SetNeedsLayout();
-            _videoPlayer.View.LayoutIfNeeded();
+            _playerViewController.View.SetNeedsLayout();
+            _playerViewController.View.LayoutIfNeeded();
         }
 
         // Chat reply view setup
@@ -243,21 +249,25 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
                     File.WriteAllBytes(tempFile, message.BinaryContent);
                 }
 
-                // Set video file to player
-                _videoPlayer.Player = new AVPlayer(NSUrl.FromFilename(tempFile));
-                _videoPlayer.ShowsPlaybackControls = true;
-                _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
-                _videoPlayer.Player.Play();
-
-                InvokeOnMainThread(() =>
+                AVAsset asset = AVAsset.FromUrl(NSUrl.FromFilename(tempFile));
+                if (asset != null)
                 {
-                    _videoView.Hidden = false;
-                    _videoPlayer.View.Frame = _videoView.Bounds;
-                    _videoView.SetNeedsLayout();
-                    _videoView.LayoutIfNeeded();
-                    _videoPlayer.View.SetNeedsLayout();
-                    _videoPlayer.View.LayoutIfNeeded();
-                });
+                    // set asset to player
+                    _player.ReplaceCurrentItemWithPlayerItem(new AVPlayerItem(asset));
+                    _playerViewController.View.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
+                    _playerViewController.Player.Play();
+
+                    InvokeOnMainThread(() =>
+                    {
+                        _videoView.Hidden = false;
+                        _playerViewController.View.Frame = _videoView.Bounds;
+                        _videoView.SetNeedsLayout();
+                        _videoView.LayoutIfNeeded();
+                        _playerViewController.View.SetNeedsLayout();
+                        _playerViewController.View.LayoutIfNeeded();
+                    });
+                }
+                
             }
             else
             {
