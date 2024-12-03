@@ -71,7 +71,6 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
         _bubbleView.Layer.CornerRadius = 16;
 
         // Message Image
-    
         _imageView = new UIImageView
                         {
                             TranslatesAutoresizingMaskIntoConstraints = false,
@@ -111,10 +110,9 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             Font = UIFont.SystemFontOfSize(12),
             TextColor = UIColor.LightGray,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Left // Zeitstempel links ausrichten
+            TextAlignment = UITextAlignment.Left
         };
 
-        // Add these lines to set Compression Resistance and Hugging Priorities
         _imageView.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
         _timeLabel.SetContentHuggingPriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Horizontal);
 
@@ -170,12 +168,14 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             _replyPreviewTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
             _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
 
-            // Message text inside chat bubble
+            // Message Image inside chat bubble
             _messageImageTopConstraint = _imageView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
 
             _imageView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
             _imageView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _imageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+            _imageView.WidthAnchor.ConstraintEqualTo(_imageView.HeightAnchor, multiplier: 16.0f / 9.0f), // Aspect ratio constraint for 16:9
+
 
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),

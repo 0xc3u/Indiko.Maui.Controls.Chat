@@ -50,14 +50,14 @@ internal class OwnImageMessageCell : UICollectionViewCell
 
     private void SetupLayout()
     {
-        // Nachrichtenblase (Hintergrund)
+        // Chat bubble setup
         _bubbleView = new UIView
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
-            BackgroundColor = UIColor.FromRGBA(113 / 255.0f, 0 / 255.0f, 223 / 255.0f, 1.0f), // Dunkles Lila
+            BackgroundColor = UIColor.FromRGBA(113 / 255.0f, 0 / 255.0f, 223 / 255.0f, 1.0f),
             ClipsToBounds = true
         };
-        _bubbleView.Layer.CornerRadius = 16; // Abgerundete Ecken
+        _bubbleView.Layer.CornerRadius = 16;
 
         // Chat reply view setup
         _replyView = new UIView
@@ -69,7 +69,7 @@ internal class OwnImageMessageCell : UICollectionViewCell
         _replyView.Layer.CornerRadius = 4;
         _replyPreviewTextLabel = new UILabel
         {
-            Lines = 0, // Allows unlimited lines
+            Lines = 0,
             LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left,
@@ -94,16 +94,16 @@ internal class OwnImageMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
-        // Zeitstempel
+        // Message timestamp
         _timeLabel = new UILabel
         {
             Font = UIFont.SystemFontOfSize(12),
             TextColor = UIColor.LightGray,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Right // Rechtsbündig
+            TextAlignment = UITextAlignment.Right
         };
 
-        // Reaktionsstack (Horizontale Emoji-Liste)
+        // Message reaction stack (horizontal Emoji-List)
         _reactionsStackView = new UIStackView
         {
             Axis = UILayoutConstraintAxis.Horizontal,
@@ -121,8 +121,10 @@ internal class OwnImageMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
+        // add child views into hierarchical order
         ContentView.AddSubviews(_bubbleView, _imageView, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
+        // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
         {
             // Chat bubble
@@ -135,8 +137,7 @@ internal class OwnImageMessageCell : UICollectionViewCell
             _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
             _replyView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _replyView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
-
-            
+                        
             // Reply sender text inside reply view
             _replySenderTextLabel.TopAnchor.ConstraintEqualTo(_replyView.TopAnchor, 10),
             _replySenderTextLabel.LeadingAnchor.ConstraintEqualTo(_replyView.LeadingAnchor, 10),
@@ -148,26 +149,27 @@ internal class OwnImageMessageCell : UICollectionViewCell
             _replyPreviewTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
             _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
 
-            // Message text inside chat bubble
+            // Message Image inside chat bubble
             _messageImagelTopConstraint = _imageView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
-
             _imageView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
             _imageView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _imageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+            _imageView.WidthAnchor.ConstraintEqualTo(_imageView.HeightAnchor, multiplier: 16.0f / 9.0f), // Aspect ratio constraint for 16:9
 
          
-            // Emoji-Reaktionen
+            // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
             _reactionsStackView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
             _reactionsStackView.TrailingAnchor.ConstraintLessThanOrEqualTo(_bubbleView.TrailingAnchor),
             _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f), // limit width to 50% of the chat bubble width
 
-            // Zeitstempel
+            // Message time stamp
             _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, 4),
             _timeLabel.TrailingAnchor.ConstraintEqualTo(_deliveryStateImageView.LeadingAnchor, -4),
             _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
             _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10),
 
+            // Delivery state icon
             _deliveryStateImageView.CenterYAnchor.ConstraintEqualTo(_timeLabel.CenterYAnchor),
             _deliveryStateImageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
