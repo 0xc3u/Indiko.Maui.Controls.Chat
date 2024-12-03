@@ -1,6 +1,5 @@
 using CoreGraphics;
 using Foundation;
-using Indiko.Maui.Controls.Chat.Models;
 using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
@@ -28,16 +27,42 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
 
 
 
-    public override void ItemSelected(UICollectionView collectionView, NSIndexPath indexPath)
-    {
-        base.ItemSelected(collectionView, indexPath);
-        
-        var message = _virtualView.Messages[indexPath.Row];
-        //_chatView.RaiseMessageTappedEvent(message);
+    //public override void ItemSelected(UICollectionView collectionView, NSIndexPath indexPath)
+    //{
+    //    try
+    //    {
+    //        base.ItemSelected(collectionView, indexPath);
 
-        if (_virtualView.MessageTappedCommand?.CanExecute(message) == true)
+    //        var message = _virtualView.Messages[indexPath.Row];
+
+    //        if (_virtualView.MessageTappedCommand?.CanExecute(message) == true)
+    //        {
+    //            _virtualView.MessageTappedCommand.Execute(message);
+    //        }
+
+    //    }catch(Exception ex)
+    //    {
+    //        Console.WriteLine(ex.Message);
+    //    }
+    //}
+
+    public override void Scrolled(UIScrollView scrollView)
+    {
+        try
         {
-            _virtualView.MessageTappedCommand.Execute(message);
+            base.Scrolled(scrollView);
+
+            if (scrollView.ContentOffset.Y <= 0)
+            {
+                if (_virtualView.LoadMoreMessagesCommand?.CanExecute(null) == true)
+                {
+                    _virtualView.LoadMoreMessagesCommand.Execute(null);
+                }
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
     }
 }

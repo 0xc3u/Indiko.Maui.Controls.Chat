@@ -13,6 +13,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
     public static readonly NSString Key = new(nameof(OtherVideoMessageCell));
 
     private AVPlayerViewController _videoPlayer;
+    private UIView _videoView;
 
     private UIImageView _avatarImageView;
     private UIView _bubbleView;
@@ -74,6 +75,18 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
         // Message Video
         _videoPlayer = new AVPlayerViewController();
 
+        _videoView = new UIView
+        {
+            ClipsToBounds = true,
+            TranslatesAutoresizingMaskIntoConstraints = false
+        };
+
+        if (_videoPlayer != null)
+        {
+            _videoView.AddSubview(_videoPlayer.View);
+            _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
+        }
+
         // Chat reply view setup
         _replyView = new UIView
         {
@@ -109,7 +122,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             TextAlignment = UITextAlignment.Left
         };
 
-        _videoPlayer.View.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
+        _videoView.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
         _timeLabel.SetContentHuggingPriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Horizontal);
 
         // Message reaction stack (horizontal Emoji-List)
@@ -131,7 +144,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
         };
 
         // add child views into hierarchical order
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _videoPlayer.View, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _videoView, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
@@ -164,12 +177,12 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             _replyPreviewTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
             _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
 
-            // Message Video inside chat bubble
-            _messageVideoTopConstraint = _videoPlayer.View.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
+            // Message Image inside chat bubble
+            _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
 
-            _videoPlayer.View.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
-            _videoPlayer.View.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
-            _videoPlayer.View.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+            _videoView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
+            _videoView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _videoView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
 
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
@@ -218,12 +231,15 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
                 _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
                 _videoPlayer.Player.Play();
 
-                // Ensure the video view is visible
-                _videoPlayer.View.Hidden = false;
+                // Ensure the video view is visible and update its frame
+                _videoView.Hidden = false;
+                _videoPlayer.View.Frame = _videoView.Bounds;
+                _videoPlayer.View.SetNeedsLayout();
+                _videoPlayer.View.LayoutIfNeeded();
             }
             else
             {
-                _videoPlayer.View.Hidden = true;
+                _videoView.Hidden = true;
             }
 
             if (message.IsRepliedMessage && message.ReplyToMessage != null)
@@ -244,7 +260,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
 
                 // Update the top constraint of the message label
                 _messageVideoTopConstraint.Active = false;
-                _messageVideoTopConstraint = _videoPlayer.View.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
+                _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
                 _messageVideoTopConstraint.Active = true;
             }
             else
@@ -255,7 +271,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
 
                 // Update the top constraint of the message label
                 _messageVideoTopConstraint.Active = false;
-                _messageVideoTopConstraint = _videoPlayer.View.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
+                _messageVideoTopConstraint = _videoView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
                 _messageVideoTopConstraint.Active = true;
             }
 
