@@ -85,7 +85,24 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
         if (_videoPlayer != null)
         {
             _videoView.AddSubview(_videoPlayer.View);
-            _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
+
+            // Add Auto Layout constraints for _videoPlayer.View
+            _videoPlayer.View.TranslatesAutoresizingMaskIntoConstraints = false;
+
+            NSLayoutConstraint.ActivateConstraints(new[]
+            {
+                _videoPlayer.View.LeadingAnchor.ConstraintEqualTo(_videoView.LeadingAnchor),
+                _videoPlayer.View.TrailingAnchor.ConstraintEqualTo(_videoView.TrailingAnchor),
+                _videoPlayer.View.TopAnchor.ConstraintEqualTo(_videoView.TopAnchor),
+                _videoPlayer.View.BottomAnchor.ConstraintEqualTo(_videoView.BottomAnchor)
+            });
+
+            // Ensure the autoresizing mask is not conflicting with Auto Layout
+            _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.None;
+
+            // Force a layout update for the player
+            _videoPlayer.View.SetNeedsLayout();
+            _videoPlayer.View.LayoutIfNeeded();
         }
 
         // Chat reply view setup
@@ -232,11 +249,15 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
                 _videoPlayer.View.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
                 _videoPlayer.Player.Play();
 
-                // Ensure the video view is visible and update its frame
-                _videoView.Hidden = false;
-                _videoPlayer.View.Frame = _videoView.Bounds;
-                _videoPlayer.View.SetNeedsLayout();
-                _videoPlayer.View.LayoutIfNeeded();
+                InvokeOnMainThread(() =>
+                {
+                    _videoView.Hidden = false;
+                    _videoPlayer.View.Frame = _videoView.Bounds;
+                    _videoView.SetNeedsLayout();
+                    _videoView.LayoutIfNeeded();
+                    _videoPlayer.View.SetNeedsLayout();
+                    _videoPlayer.View.LayoutIfNeeded();
+                });
             }
             else
             {
