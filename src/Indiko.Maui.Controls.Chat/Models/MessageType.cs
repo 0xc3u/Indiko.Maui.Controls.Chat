@@ -6,5 +6,6 @@ public enum MessageType
     Image,
     Video,
     Audio,
-    System
+    System,
+    Seperator
 }

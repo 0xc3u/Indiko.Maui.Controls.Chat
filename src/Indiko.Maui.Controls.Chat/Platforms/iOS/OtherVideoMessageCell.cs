@@ -250,7 +250,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
                 }
 
                 AVAsset asset = AVAsset.FromUrl(NSUrl.FromFilename(tempFile));
-                if (asset != null)
+                if (asset != null && _player!=null)
                 {
                     // set asset to player
                     _player.ReplaceCurrentItemWithPlayerItem(new AVPlayerItem(asset));

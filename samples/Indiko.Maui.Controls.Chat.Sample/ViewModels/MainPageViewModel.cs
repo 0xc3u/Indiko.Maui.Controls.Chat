@@ -282,6 +282,21 @@ public partial class MainPageViewModel : BaseViewModel
 
         messages.Add(videoMessage);
 
+
+        // group messages by date
+        var groupedMessages = messages.GroupBy(m => m.Timestamp.Date).ToList();
+        foreach (var group in groupedMessages)
+        {
+            var dateSeparator = new ChatMessage
+            {
+                IsDateSeperator = true,
+                Timestamp = group.Key,
+                MessageId = Guid.NewGuid().ToString(),
+                MessageType = MessageType.Seperator,
+            };
+            messages.Insert(messages.IndexOf(group.First()), dateSeparator);
+        }
+
         ChatMessages = new ObservableRangeCollection<ChatMessage>(messages);
 
     }
