@@ -1,4 +1,7 @@
-﻿using Indiko.Maui.Controls.Chat.Sample.ViewModels;
+﻿using CommunityToolkit.Maui.Core.Platform;
+using CommunityToolkit.Mvvm.Messaging;
+using Indiko.Maui.Controls.Chat.Sample.Messages;
+using Indiko.Maui.Controls.Chat.Sample.ViewModels;
 
 namespace Indiko.Maui.Controls.Chat.Sample;
 
@@ -11,11 +14,26 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
 		this.mainPageViewModel = mainPageViewModel;
 		BindingContext = mainPageViewModel;
-	}
+
+        WeakReferenceMessenger.Default.Register<HideKeyboardMessage>(this, async (r, m) =>
+        {
+            await App.Current.Dispatcher.DispatchAsync(async () =>
+            {
+				await messageEntry.HideKeyboardAsync();
+            });
+        });
+
+    }
 
 	protected override void OnAppearing()
 	{
 		base.OnAppearing();
 		mainPageViewModel.OnAppearing(null);
-	}
+    }
+
+    protected override void OnDisappearing()
+    {
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+        base.OnDisappearing();
+    }
 }

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net9.0-android;net9.0-ios</TargetFrameworks>
 		<OutputType>Exe</OutputType>
-		<RootNamespace>Indiko.Maui.Controls.Markdown.Sample</RootNamespace>
+		<RootNamespace>Indiko.Maui.Controls.Chat.Sample</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -52,6 +52,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.10" />
 	</ItemGroup>
 

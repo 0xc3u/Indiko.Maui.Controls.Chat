@@ -301,9 +301,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView);
     }
 
-
-
-
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
         if (holder is ChatMessageViewHolder chatHolder)
@@ -587,8 +584,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             constraintSet.ApplyTo((ConstraintLayout)holder.ItemView);
         }
     }
-
-
 
     private void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
     {

@@ -1,11 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Indiko.Maui.Controls.Chat.Models;
+using Indiko.Maui.Controls.Chat.Sample.Messages;
 
 namespace Indiko.Maui.Controls.Chat.Sample.ViewModels;
 public partial class MainPageViewModel : BaseViewModel
 {
     List<User> actors;
+
+    [ObservableProperty]
+    string newMessage;
+
+    [ObservableProperty]
+    byte[] selectedMedia;
 
     [ObservableProperty]
     ObservableRangeCollection<ChatMessage> chatMessages;
@@ -283,19 +291,19 @@ public partial class MainPageViewModel : BaseViewModel
         // messages.Add(videoMessage);
 
 
-        // group messages by date
-        var groupedMessages = messages.GroupBy(m => m.Timestamp.Date).ToList();
-        foreach (var group in groupedMessages)
-        {
-            var dateSeparator = new ChatMessage
-            {
-                IsDateSeperator = true,
-                Timestamp = group.Key,
-                MessageId = Guid.NewGuid().ToString(),
-                MessageType = MessageType.Seperator,
-            };
-            messages.Insert(messages.IndexOf(group.First()), dateSeparator);
-        }
+        //// group messages by date
+        //var groupedMessages = messages.GroupBy(m => m.Timestamp.Date).ToList();
+        //foreach (var group in groupedMessages)
+        //{
+        //    var dateSeparator = new ChatMessage
+        //    {
+        //        IsDateSeperator = true,
+        //        Timestamp = group.Key,
+        //        MessageId = Guid.NewGuid().ToString(),
+        //        MessageType = MessageType.Seperator,
+        //    };
+        //    messages.Insert(messages.IndexOf(group.First()), dateSeparator);
+        //}
 
         ChatMessages = new ObservableRangeCollection<ChatMessage>(messages);
 
@@ -359,21 +367,23 @@ public partial class MainPageViewModel : BaseViewModel
         Console.WriteLine($"Emoji Reaction tapped: {message.MessageId}");
     }
 
-    [ObservableProperty]
-    string newMessage;
+    
 
     [RelayCommand]
     private void SendMessage()
     {
         if (string.IsNullOrWhiteSpace(NewMessage))
             return;
+
+
+
         var newChatMessage = new ChatMessage
         {
             TextContent = NewMessage,
             IsOwnMessage = true,
             Timestamp = DateTime.Now,
             SenderAvatar = null,
-            SenderInitials = "JO",
+            SenderInitials = "JD",
             MessageId = Guid.NewGuid().ToString(),
             MessageType = MessageType.Text,
             ReadState = MessageReadState.New,
@@ -381,6 +391,12 @@ public partial class MainPageViewModel : BaseViewModel
             Reactions = [],
             ReplyToMessage = null
         };
+
+        if (SelectedMedia != null)
+        {
+            newChatMessage.BinaryContent = SelectedMedia;
+            newChatMessage.MessageType = MessageType.Image;
+        }
 
         for (int n = 0; n < ChatMessages.Count; n++)
         {
@@ -391,7 +407,37 @@ public partial class MainPageViewModel : BaseViewModel
         }
         ChatMessages.Add(newChatMessage);
         NewMessage = string.Empty;
+        SelectedMedia = null;
+
+        WeakReferenceMessenger.Default.Send<HideKeyboardMessage>(new HideKeyboardMessage());
     }
+
+
+    [RelayCommand]
+    private void ClearMedia()
+    {
+        SelectedMedia = null;
+    }
+
+    [RelayCommand]
+    private async Task PickMedia()
+    {
+        var mediaPickerOptions = new MediaPickerOptions()
+        {
+            Title = "Please pick a photo"
+        };
+
+        var mediaPickerResult = await MediaPicker.Default.PickPhotoAsync(mediaPickerOptions);
+
+        if (mediaPickerResult != null)
+        {
+            var stream = await mediaPickerResult.OpenReadAsync();
+            byte[] media = new byte[stream.Length];
+            await stream.ReadAsync(media, 0, (int)stream.Length);
+            SelectedMedia = media;
+        }
+    }
+
 }
 
 internal class User

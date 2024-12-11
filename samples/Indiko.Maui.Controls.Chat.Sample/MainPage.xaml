@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 			 xmlns:vm="clr-namespace:Indiko.Maui.Controls.Chat.Sample.ViewModels"
+             xmlns:utils="clr-namespace:Indiko.Maui.Controls.Chat.Sample.Utils"
              xmlns:idk="clr-namespace:Indiko.Maui.Controls.Chat;assembly=Indiko.Maui.Controls.Chat"
              x:Class="Indiko.Maui.Controls.Chat.Sample.MainPage"
 			 x:DataType="vm:MainPageViewModel"
@@ -9,7 +10,7 @@
              Title="ChatView Sample">
 
 
-    <Grid RowDefinitions="*, 80">
+    <Grid RowDefinitions="*, 1, Auto">
 
         <idk:ChatView Grid.Row="0" x:Name="chatView"
     
@@ -41,24 +42,59 @@
 
         </idk:ChatView>
 
-        <Grid Grid.Row="1" BackgroundColor="{StaticResource Gray100}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Editor Grid.Column="0" x:Name="messageEntry" Placeholder="Type a message" Text="{Binding NewMessage}" TextColor="{StaticResource Primary}" />
-            <Button Grid.Column="1" Text="Send" Command="{Binding SendMessageCommand}" />
+        <Rectangle Grid.Row="1" BackgroundColor="{StaticResource Secondary}" MinimumHeightRequest="2"></Rectangle>
+
+        <Grid Grid.Row="2" RowDefinitions="Auto,Auto" ColumnDefinitions="*, 80" Padding="10,10,10,10" BackgroundColor="{StaticResource Tertiary}">
+
+
+            <HorizontalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Spacing="5" IsVisible="{Binding SelectedMedia, Converter={StaticResource IsNotNullConverter}}">
+
+                <Image Aspect="AspectFill"
+                  Source="{Binding SelectedMedia, Converter={StaticResource ByteArrayToImageSourceConverter}}" 
+                  IsVisible="{Binding SelectedMedia, Converter={StaticResource IsNotNullConverter}}"
+                  WidthRequest="48" HeightRequest="48" Margin="5">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ClearMediaCommand}"></TapGestureRecognizer>
+                    </Image.GestureRecognizers>
+                </Image>
+            </HorizontalStackLayout>
+
+
+            <Editor Grid.Row="1" Grid.Column="0" x:Name="messageEntry" 
+                AutoSize="TextChanges"
+                Placeholder="Type a message..." HorizontalOptions="FillAndExpand" Text="{Binding NewMessage}"
+                TextColor="{StaticResource White}"
+                PlaceholderColor="{StaticResource White}" VerticalOptions="Center"/>
+
+            <HorizontalStackLayout Grid.Row="1" Grid.Column="1" Spacing="5" VerticalOptions="Center">
+
+                <ImageButton MinimumHeightRequest="36" MinimumWidthRequest="36" Aspect="Center" CornerRadius="8" BorderWidth="1"
+                    BorderColor="{StaticResource Gray200}"
+                    HorizontalOptions="End" VerticalOptions="Center"
+                    Command="{Binding PickMediaCommand}">
+                    <ImageButton.Source>
+                        <FontImageSource Glyph="{x:Static utils:FontAwesome.Paperclip}" Size="18" 
+                              FontFamily="{x:Static utils:FontAwesome.FONTNAME}" Color="{StaticResource Gray200}"></FontImageSource>
+                    </ImageButton.Source>
+                </ImageButton>
+
+                <ImageButton  MinimumHeightRequest="36" MinimumWidthRequest="36"
+                    Aspect="Center"
+                    CornerRadius="8"
+                    BorderWidth="1"
+                    BorderColor="{StaticResource Gray200}"
+                    HorizontalOptions="End" VerticalOptions="Center"
+                    Command="{Binding SendMessageCommand}">
+                    <ImageButton.Source>
+                        <FontImageSource Glyph="{x:Static utils:FontAwesome.Paperplane}" Size="18" FontFamily="{x:Static utils:FontAwesome.FONTNAME}" Color="{StaticResource Gray200}"></FontImageSource>
+                    </ImageButton.Source>
+                </ImageButton>
+            </HorizontalStackLayout>
+
+          
 
         </Grid>
     </Grid>
-
-
-
-
-
-
-
-
 
 
 </ContentPage>
