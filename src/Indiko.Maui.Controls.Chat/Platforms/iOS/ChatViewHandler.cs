@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using CoreFoundation;
 using CoreGraphics;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
@@ -87,12 +88,17 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         {
             SaveScrollPosition(); // Save current position
 
-            _dataSource.UpdateMessages(VirtualView.Messages);
-            PlatformView.ReloadData();
+            // Ensure UI updates are on the main thread
+            DispatchQueue.MainQueue.DispatchAsync(() =>
+            {
+                _dataSource.UpdateMessages(VirtualView.Messages);
+                PlatformView.ReloadData();
 
-            RestoreScrollPosition(); // Restore position
+                RestoreScrollPosition(); // Restore position
+            });
         }
     }
+
 
     private void ScrollToLastMessage()
     {
@@ -143,6 +149,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         platformView.RegisterClassForCell(typeof(OtherImageMessageCell), OtherImageMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OwnImageMessageCell), OwnImageMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OtherVideoMessageCell), OtherVideoMessageCell.Key);
+        platformView.RegisterClassForCell(typeof(OwnVideoMessageCell), OwnVideoMessageCell.Key);
 
         
         platformView.DataSource = _dataSource;

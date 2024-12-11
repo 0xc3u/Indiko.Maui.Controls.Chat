@@ -7,19 +7,18 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
 public class ChatViewDataSource : UICollectionViewDataSource
 {
-
     private readonly ChatView _virtualView;
     private readonly IMauiContext _mauiContext;
     private IList<ChatMessage> _messages;
 
-    
+
     public ChatViewDataSource(ChatView virtualView, IMauiContext mauiContext)
     {
         _virtualView = virtualView;
         _mauiContext = mauiContext;
         _messages = virtualView.Messages;
     }
-    
+
     public override nint NumberOfSections(UICollectionView collectionView)
         => 1;
 
@@ -29,7 +28,7 @@ public class ChatViewDataSource : UICollectionViewDataSource
     }
 
     public override nint GetItemsCount(UICollectionView collectionView, nint section) => _messages?.Count ?? 0;
-    
+
     public override UICollectionViewCell GetCell(UICollectionView collectionView, NSIndexPath indexPath)
     {
         try
@@ -43,7 +42,8 @@ public class ChatViewDataSource : UICollectionViewDataSource
 
             if (message.IsDateSeperator)
             {
-                var cell = collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;
+                var cell =
+                    collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
@@ -54,45 +54,50 @@ public class ChatViewDataSource : UICollectionViewDataSource
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
-            else if(message.MessageType == MessageType.Text && !message.IsOwnMessage)
+            else if (message.MessageType == MessageType.Text && !message.IsOwnMessage)
             {
-                var cell = collectionView.DequeueReusableCell(OtherTextMessageCell.Key, indexPath) as OtherTextMessageCell;
+                var cell =
+                    collectionView.DequeueReusableCell(OtherTextMessageCell.Key, indexPath) as OtherTextMessageCell;
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
-            else if(message.MessageType == MessageType.Image && !message.IsOwnMessage)
+            else if (message.MessageType == MessageType.Image && !message.IsOwnMessage)
             {
-                var cell = collectionView.DequeueReusableCell(OtherImageMessageCell.Key, indexPath) as OtherImageMessageCell;
+                var cell =
+                    collectionView.DequeueReusableCell(OtherImageMessageCell.Key, indexPath) as OtherImageMessageCell;
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
-            else if(message.MessageType == MessageType.Image && message.IsOwnMessage)
+            else if (message.MessageType == MessageType.Image && message.IsOwnMessage)
             {
-                var cell = collectionView.DequeueReusableCell(OwnImageMessageCell.Key, indexPath) as OwnImageMessageCell;
+                var cell =
+                    collectionView.DequeueReusableCell(OwnImageMessageCell.Key, indexPath) as OwnImageMessageCell;
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
-            else if(message.MessageType == MessageType.Video && !message.IsOwnMessage)
+            else if (message.MessageType == MessageType.Video && !message.IsOwnMessage)
             {
-                var cell = collectionView.DequeueReusableCell(OtherVideoMessageCell.Key, indexPath) as OtherVideoMessageCell;
+                var cell =
+                    collectionView.DequeueReusableCell(OtherVideoMessageCell.Key, indexPath) as OtherVideoMessageCell;
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
-         // else if(message.MessageType == MessageType.Video && message.IsOwnMessage)
-            // {
-            //     var cell = collectionView.DequeueReusableCell(OwnVideoMessageCell.Key, indexPath) as OwnVideoMessageCell;
-            //     cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
-            //     return cell;
-            // }
+            else if (message.MessageType == MessageType.Video && message.IsOwnMessage)
+            {
+                var cell =
+                    collectionView.DequeueReusableCell(OwnVideoMessageCell.Key, indexPath) as OwnVideoMessageCell;
+                cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
+                return cell;
+            }
             else
             {
-                var cell = collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;
+                var cell =
+                    collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
-
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine($"Error in {nameof(ChatViewDataSource)}.{nameof(GetCell)}: {ex.Message}");
             throw;
