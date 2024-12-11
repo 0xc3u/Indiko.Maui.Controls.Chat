@@ -43,11 +43,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Assets\Images\hiker1.png" />
+	  <None Remove="Assets\Images\hiker2.png" />
+	  <None Remove="Assets\Images\hiker3.png" />
+	  <None Remove="Assets\Images\hiker4.png" />
 	  <None Remove="Resources\Images\check.png" />
 	  <None Remove="Resources\Images\dev.png" />
 	  <None Remove="Resources\Images\dotnet_bot.svg" />
 	  <None Remove="Resources\Images\read.png" />
 	  <None Remove="Resources\Images\send.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Assets\Images\hiker1.png" />
+	  <EmbeddedResource Include="Assets\Images\hiker2.png" />
+	  <EmbeddedResource Include="Assets\Images\hiker3.png" />
+	  <EmbeddedResource Include="Assets\Images\hiker4.png" />
 	</ItemGroup>
 
 	<ItemGroup>
