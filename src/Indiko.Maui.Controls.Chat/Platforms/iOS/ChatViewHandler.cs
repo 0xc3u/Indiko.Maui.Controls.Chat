@@ -1,4 +1,5 @@
-﻿using CoreGraphics;
+﻿using System.Collections.Specialized;
+using CoreGraphics;
 using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Controls;
@@ -10,6 +11,12 @@ namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
 public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 {
+    private ChatViewDataSource _dataSource;
+    private ChatViewDelegate _delegate;
+    private ChatViewFlowLayout _flowLayout;
+    private CGPoint _lastContentOffset;
+    private WeakReference<ChatView> _weakChatView;
+    
     public static CommandMapper<ChatView, ChatViewHandler> CommandMapper = new CommandMapper<ChatView, ChatViewHandler>()
     {
         [nameof(ChatView.LoadMoreMessagesCommand)] = MapCommands,
@@ -40,10 +47,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     {
     }
 
-    private ChatViewDataSource _dataSource;
-    private ChatViewDelegate _delegate;
-    private ChatViewFlowLayout _flowLayout;
-    private CGPoint _lastContentOffset;
+   
 
     protected override UICollectionView CreatePlatformView()
     {
@@ -146,6 +150,55 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
         platformView.LayoutIfNeeded();
         platformView.ReloadData();
+        
+        // Create a weak reference to the ChatView
+        _weakChatView = new WeakReference<ChatView>(VirtualView);
+
+        // Listen for changes in the Messages collection using a weak event reference
+        VirtualView.Messages.CollectionChanged += OnMessagesCollectionChanged;
+    }
+
+    private void OnMessagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (_weakChatView.TryGetTarget(out var chatView))
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    foreach (var item in e.NewItems)
+                    {
+                        var index = chatView.Messages.IndexOf((ChatMessage)item);
+                        //.NotifyItemInserted(index);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    foreach (var item in e.OldItems)
+                    {
+                        var index = e.OldStartingIndex;
+                        //.NotifyItemRemoved(index);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Replace:
+                    foreach (var item in e.NewItems)
+                    {
+                        var index = chatView.Messages.IndexOf((ChatMessage)item);
+                        //NotifyItemChanged(index);
+                    }
+                    break;
+                case NotifyCollectionChangedAction.Move:
+                    //NotifyItemMoved(e.OldStartingIndex, e.NewStartingIndex);
+                    break;
+                case NotifyCollectionChangedAction.Reset:
+                    // NotifyDataSetChanged();
+                    break;
+            }
+
+            // Scroll to the bottom when a new message is added
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+               
+            }
+        }
     }
 
     protected override void DisconnectHandler(UICollectionView nativeView)
@@ -158,6 +211,11 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         _dataSource.Dispose();
         _flowLayout.Dispose();
 
+        if (_weakChatView.TryGetTarget(out var chatView))
+        {
+            chatView.Messages.CollectionChanged -= OnMessagesCollectionChanged;
+        }
+        
         base.DisconnectHandler(nativeView);
     }
     

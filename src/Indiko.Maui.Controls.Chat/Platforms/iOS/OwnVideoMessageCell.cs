@@ -9,16 +9,16 @@ using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
 
-internal sealed class OtherVideoMessageCell : UICollectionViewCell
+
+internal class OwnVideoMessageCell : UICollectionViewCell
 {
-    public static readonly NSString Key = new(nameof(OtherVideoMessageCell));
+    public static readonly NSString Key = new(nameof(OwnVideoMessageCell));
     private ChatView _chatView;
     private ChatMessage _message;
 
     private AVPlayer _player;
     private AVPlayerViewController _playerViewController;
-    
-    private UIImageView _avatarImageView;
+
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
@@ -27,10 +27,10 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
     private UIView _replyView;
     private UILabel _replyPreviewTextLabel;
     private UILabel _replySenderTextLabel;
-
+    
     private NSLayoutConstraint _messageVideoTopConstraint;
 
-    public OtherVideoMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
+    public OwnVideoMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
     }
@@ -54,25 +54,44 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
         return updatedAttributes;
     }
 
+
     private void SetupLayout()
     {
-        // Avatar setup
-        _avatarImageView = new UIImageView
-        {
-            TranslatesAutoresizingMaskIntoConstraints = false,
-            ContentMode = UIViewContentMode.ScaleAspectFill,
-            ClipsToBounds = true
-        };
-        _avatarImageView.Layer.CornerRadius = 20;
-
         // Chat bubble setup
         _bubbleView = new UIView
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            BackgroundColor = UIColor.FromRGBA(113 / 255.0f, 0 / 255.0f, 223 / 255.0f, 1.0f),
+            ClipsToBounds = true
+        };
+        _bubbleView.Layer.CornerRadius = 16;
+
+        // Chat reply view setup
+        _replyView = new UIView
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
             BackgroundColor = UIColor.FromRGBA(230 / 255.0f, 223 / 255.0f, 255 / 255.0f, 1.0f),
             ClipsToBounds = true
         };
-        _bubbleView.Layer.CornerRadius = 16;
+        _replyView.Layer.CornerRadius = 4;
+        _replyPreviewTextLabel = new UILabel
+        {
+            Lines = 0,
+            LineBreakMode = UILineBreakMode.WordWrap,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left,
+            TextColor = UIColor.Black
+        };
+
+        _replySenderTextLabel = new UILabel
+        {
+            Lines = 1,
+            LineBreakMode = UILineBreakMode.TailTruncation,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left,
+            TextColor = UIColor.Black
+        };
+
 
         // Message Video
         _playerViewController = new AVPlayerViewController();
@@ -95,39 +114,13 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             _playerViewController.View.LayoutIfNeeded();
         }
 
-        // Chat reply view setup
-        _replyView = new UIView
-        {
-            TranslatesAutoresizingMaskIntoConstraints = false,
-            BackgroundColor = UIColor.FromRGBA(230 / 255.0f, 223 / 255.0f, 255 / 255.0f, 1.0f),
-            ClipsToBounds = true
-        };
-        _replyView.Layer.CornerRadius = 4;
-        _replyPreviewTextLabel = new UILabel
-        {
-            Lines = 0, // Allows unlimited lines
-            LineBreakMode = UILineBreakMode.WordWrap,
-            TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Left,
-            TextColor = UIColor.Black
-        };
-
-        _replySenderTextLabel = new UILabel
-        {
-            Lines = 1,
-            LineBreakMode = UILineBreakMode.TailTruncation,
-            TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Left,
-            TextColor = UIColor.Black
-        };
-
         // Message timestamp
         _timeLabel = new UILabel
         {
             Font = UIFont.SystemFontOfSize(12),
             TextColor = UIColor.LightGray,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Left
+            TextAlignment = UITextAlignment.Right
         };
 
         _playerViewController.View.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
@@ -140,7 +133,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             Distribution = UIStackViewDistribution.Fill,
             Alignment = UIStackViewAlignment.Center,
             Spacing = 8,
-            TranslatesAutoresizingMaskIntoConstraints = false,
+            TranslatesAutoresizingMaskIntoConstraints = false
         };
 
         // delivery state setup
@@ -151,29 +144,25 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
+      
+        
         // add child views into hierarchical order
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _playerViewController.View, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        ContentView.AddSubviews(_bubbleView, _playerViewController.View, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
         {
-            // Avatar
-            _avatarImageView.LeadingAnchor.ConstraintEqualTo(ContentView.LeadingAnchor, 10),
-            _avatarImageView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
-            _avatarImageView.WidthAnchor.ConstraintEqualTo(40),
-            _avatarImageView.HeightAnchor.ConstraintEqualTo(40),
-
             // Chat bubble
-            _bubbleView.LeadingAnchor.ConstraintEqualTo(_avatarImageView.TrailingAnchor, 10),
-            _bubbleView.TrailingAnchor.ConstraintLessThanOrEqualTo(ContentView.TrailingAnchor, -50),
+            _bubbleView.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor, -10),
+            _bubbleView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(ContentView.LeadingAnchor, 50),
             _bubbleView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
             _bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
 
-            // Message reply view inside chat bubble
+             // Message reply view inside chat bubble
             _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
             _replyView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _replyView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
-
+                        
             // Reply sender text inside reply view
             _replySenderTextLabel.TopAnchor.ConstraintEqualTo(_replyView.TopAnchor, 10),
             _replySenderTextLabel.LeadingAnchor.ConstraintEqualTo(_replyView.LeadingAnchor, 10),
@@ -194,23 +183,27 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
            
             _playerViewController.View.WidthAnchor.ConstraintEqualTo(240),
             _playerViewController.View.HeightAnchor.ConstraintEqualTo(160),
+            //_imageView.WidthAnchor.ConstraintEqualTo(_imageView.HeightAnchor, multiplier: 16.0f / 9.0f), // Aspect ratio constraint for 16:9
 
+         
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
-            _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
-            _reactionsStackView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(_bubbleView.LeadingAnchor),
+            _reactionsStackView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
+            _reactionsStackView.TrailingAnchor.ConstraintLessThanOrEqualTo(_bubbleView.TrailingAnchor),
             _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f), // limit width to 50% of the chat bubble width
 
             // Message time stamp
             _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, 4),
-            _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _timeLabel.TrailingAnchor.ConstraintEqualTo(_deliveryStateImageView.LeadingAnchor, -4),
+            _timeLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor),
             _timeLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -10),
 
             // Delivery state icon
             _deliveryStateImageView.CenterYAnchor.ConstraintEqualTo(_timeLabel.CenterYAnchor),
-            _deliveryStateImageView.LeadingAnchor.ConstraintEqualTo(_timeLabel.TrailingAnchor, 8),
+            _deliveryStateImageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
+
         });
     }
 
@@ -297,24 +290,6 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             _timeLabel.Text = message.Timestamp.ToString("HH:mm");
 
             _reactionsStackView.UpdateReactions(message.Reactions, chatView);
-
-            if (message.SenderAvatar != null)
-            {
-                _avatarImageView.Image = UIImage.LoadFromData(NSData.FromArray(message.SenderAvatar));
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(message.SenderInitials))
-                {
-                    _avatarImageView.Image = UIImageExtensions.CreateInitialsImage(message.SenderId.Trim()[..2].ToUpperInvariant(), 40f, 40f,
-                        chatView.AvatarTextColor.ToPlatform(), chatView.AvatarBackgroundColor.ToCGColor());
-                }
-                else
-                {
-                    _avatarImageView.Image = UIImageExtensions.CreateInitialsImage(message.SenderInitials, 40f, 40f,
-                        chatView.AvatarTextColor.ToPlatform(), chatView.AvatarBackgroundColor.ToCGColor());
-                }
-            }
 
             // Delivery state
             _deliveryStateImageView.Image = null;

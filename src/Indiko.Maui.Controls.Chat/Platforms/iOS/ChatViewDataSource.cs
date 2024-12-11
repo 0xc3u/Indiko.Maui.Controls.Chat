@@ -78,6 +78,12 @@ public class ChatViewDataSource : UICollectionViewDataSource
                 cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
                 return cell;
             }
+         // else if(message.MessageType == MessageType.Video && message.IsOwnMessage)
+            // {
+            //     var cell = collectionView.DequeueReusableCell(OwnVideoMessageCell.Key, indexPath) as OwnVideoMessageCell;
+            //     cell.Update((int)indexPath.Item, message, _virtualView, _mauiContext);
+            //     return cell;
+            // }
             else
             {
                 var cell = collectionView.DequeueReusableCell(DateGroupSeperatorCell.Key, indexPath) as DateGroupSeperatorCell;
