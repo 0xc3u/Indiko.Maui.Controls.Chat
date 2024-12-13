@@ -330,6 +330,20 @@ public partial class MainPageViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    private void ScrolledToLastMessage()
+    {
+        // mark all existing messages as read
+        for (int n = 0; n < ChatMessages.Count; n++)
+        {
+            if (ChatMessages[n].ReadState == MessageReadState.New)
+            {
+                ChatMessages[n].ReadState = MessageReadState.Read;
+            }
+        }
+    }
+
+
+    [RelayCommand]
     private void OnAvatarTapped(ChatMessage message)
     {
         Console.WriteLine($"Avatar tapped for message: {message.MessageId}");

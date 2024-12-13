@@ -63,6 +63,15 @@ public class ChatView : View
     }
 
 
+    public static readonly BindableProperty ScrolledToLastMessageCommandProperty = BindableProperty.Create(nameof(ScrolledToLastMessageCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand ScrolledToLastMessageCommand
+    {
+        get => (ICommand)GetValue(ScrolledToLastMessageCommandProperty);
+        set => SetValue(ScrolledToLastMessageCommandProperty, value);
+    }
+
+
+
     public static readonly BindableProperty MessagesProperty = BindableProperty.Create(nameof(Messages), typeof(ObservableRangeCollection<ChatMessage>), typeof(ChatView), default(ObservableRangeCollection<ChatMessage>),
         propertyChanged: OnMessagesChanged);
 

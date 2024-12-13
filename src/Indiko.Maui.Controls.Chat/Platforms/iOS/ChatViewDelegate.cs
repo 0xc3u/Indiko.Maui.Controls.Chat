@@ -47,6 +47,13 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
                     _virtualView.LoadMoreMessagesCommand.Execute(null);
                 }
             }
+            else if(scrollView.ContentOffset.Y >= scrollView.ContentSize.Height - scrollView.Bounds.Height)
+            {
+                if (_virtualView.ScrolledToLastMessageCommand?.CanExecute(null) == true)
+                {
+                    _virtualView.ScrolledToLastMessageCommand.Execute(null);
+                }
+            }
         }
         catch(Exception ex)
         {

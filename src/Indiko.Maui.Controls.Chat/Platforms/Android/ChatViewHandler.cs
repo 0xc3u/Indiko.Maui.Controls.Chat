@@ -65,13 +65,17 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
         // Add a scroll listener to detect when the user scrolls to the top
         recyclerView.AddOnScrollListener(new OnScrollListener(
-             (args) =>
+           onScrolled: (args) =>
              {
-                 VirtualView?.ScrolledCommand?.Execute(args); // Trigger the command in ChatView
+                VirtualView?.ScrolledCommand?.Execute(args); // Trigger the command in ChatView
              },
-            () =>
+            onScrolledToTop: () =>
             {
                 VirtualView?.LoadMoreMessagesCommand?.Execute(null); // Trigger the command in ChatView
+            },
+            onScrolledToBottom: () =>
+            {
+                VirtualView?.ScrolledToLastMessageCommand?.Execute(null); // Trigger the command in ChatView
             }
             ));
 

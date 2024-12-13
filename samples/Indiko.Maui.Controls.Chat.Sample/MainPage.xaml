@@ -26,7 +26,6 @@
             AvatarTextColor="{StaticResource White}"
             AvatarBackgroundColor="{StaticResource Tertiary}"
             Messages="{Binding ChatMessages}"
-            ScrollToFirstNewMessage="True"
             EmojiReactionFontSize="14"
             EmojiReactionTextColor="{StaticResource Primary}"
             ReplyMessageBackgroundColor="{StaticResource Tertiary}"
@@ -38,7 +37,10 @@
             EmojiReactionTappedCommand="{Binding EmojiReactionTappedCommand}"
             SendIcon="send.png"
             DeliveredIcon="check.png"
-            ReadIcon="read.png">
+            ReadIcon="read.png"
+            ScrollToFirstNewMessage="True"
+            ShowNewMessagesSeperator="True"
+            ScrolledToLastMessageCommand="{Binding ScrolledToLastMessageCommand}">
 
         </idk:ChatView>
 
