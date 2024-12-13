@@ -1,4 +1,3 @@
-using System;
 using AVFoundation;
 using AVKit;
 using CoreGraphics;

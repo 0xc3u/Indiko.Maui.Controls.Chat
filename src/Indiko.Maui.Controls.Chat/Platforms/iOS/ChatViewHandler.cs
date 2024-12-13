@@ -84,14 +84,14 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         _delegate = new ChatViewDelegate(VirtualView, MauiContext, _flowLayout);
 
         platformView.RegisterClassForCell(typeof(DateGroupSeperatorCell), DateGroupSeperatorCell.Key);
+        platformView.RegisterClassForCell(typeof(SystemMessageCell), SystemMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OwnTextMessageCell), OwnTextMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OwnImageMessageCell), OwnImageMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OwnVideoMessageCell), OwnVideoMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OtherTextMessageCell), OtherTextMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OtherImageMessageCell), OtherImageMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OtherVideoMessageCell), OtherVideoMessageCell.Key);
-
-
+        
         platformView.Delegate = _delegate;
         platformView.LayoutIfNeeded();
         _dataSource.UpdateMessages(VirtualView.Messages);

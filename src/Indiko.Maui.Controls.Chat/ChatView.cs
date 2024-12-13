@@ -48,13 +48,34 @@ public class ChatView : View
         set => SetValue(ScrolledToLastMessageCommandProperty, value);
     }
 
-
     public static readonly BindableProperty MessagesProperty = BindableProperty.Create(nameof(Messages), typeof(ObservableRangeCollection<ChatMessage>), typeof(ChatView), default(ObservableRangeCollection<ChatMessage>));
 
     public ObservableRangeCollection<ChatMessage> Messages
     {
         get => (ObservableRangeCollection<ChatMessage>)GetValue(MessagesProperty);
         set => SetValue(MessagesProperty, value);
+    }
+
+
+    public static readonly BindableProperty SystemMessageBackgroundColorProperty = BindableProperty.Create(nameof(SystemMessageBackgroundColor), typeof(Color), typeof(ChatView), Colors.LightYellow);
+    public Color SystemMessageBackgroundColor
+    {
+        get => (Color)GetValue(SystemMessageBackgroundColorProperty);
+        set => SetValue(SystemMessageBackgroundColorProperty, value);
+    }
+
+    public static readonly BindableProperty SystemMessageTextColorProperty = BindableProperty.Create(nameof(SystemMessageTextColor), typeof(Color), typeof(ChatView), Colors.Red);
+    public Color SystemMessageTextColor
+    {
+        get => (Color)GetValue(SystemMessageTextColorProperty);
+        set => SetValue(SystemMessageTextColorProperty, value);
+    }
+
+    public static readonly BindableProperty SystemMessageFontSizeProperty = BindableProperty.Create(nameof(SystemMessageFontSize), typeof(float), typeof(ChatView), 14f);
+    public float SystemMessageFontSize
+    {
+        get => (float)GetValue(SystemMessageFontSizeProperty);
+        set => SetValue(SystemMessageFontSizeProperty, value);
     }
 
 
@@ -85,7 +106,6 @@ public class ChatView : View
         get => (Color)GetValue(OtherMessageTextColorProperty);
         set => SetValue(OtherMessageTextColorProperty, value);
     }
-
 
     public static readonly BindableProperty MessageFontSizeProperty = BindableProperty.Create(nameof(MessageFontSize), typeof(float), typeof(ChatView), 14f);
     public float MessageFontSize
@@ -122,7 +142,6 @@ public class ChatView : View
         set => SetValue(MessageTimeTextColorProperty, value);
     }
 
-
     public static readonly BindableProperty NewMessagesSeperatorTextProperty = BindableProperty.Create(nameof(NewMessagesSeperatorText), typeof(string), typeof(ChatView), "New Messages");
     public string NewMessagesSeperatorText
     {
@@ -137,14 +156,12 @@ public class ChatView : View
         set => SetValue(NewMessagesSeperatorFontSizeProperty, value);
     }
 
-
     public static readonly BindableProperty NewMessagesSeperatorTextColorProperty = BindableProperty.Create(nameof(NewMessagesSeperatorTextColor), typeof(Color), typeof(ChatView), Colors.LightGray);
     public Color NewMessagesSeperatorTextColor
     {
         get => (Color)GetValue(NewMessagesSeperatorTextColorProperty);
         set => SetValue(NewMessagesSeperatorTextColorProperty, value);
     }
-
 
     public static readonly BindableProperty ShowNewMessagesSeperatorProperty = BindableProperty.Create(nameof(ShowNewMessagesSeperator), typeof(bool), typeof(ChatView), false);
     public bool ShowNewMessagesSeperator
@@ -159,7 +176,6 @@ public class ChatView : View
         get => (float)GetValue(EmojiReactionFontSizeProperty);
         set => SetValue(EmojiReactionFontSizeProperty, value);
     }
-
 
     public static readonly BindableProperty EmojiReactionTextColorProperty = BindableProperty.Create(nameof(EmojiReactionTextColor), typeof(Color), typeof(ChatView), Colors.LightGray);
     public Color EmojiReactionTextColor
@@ -203,15 +219,12 @@ public class ChatView : View
         set => SetValue(ScrollToLastMessageProperty, value);
     }
 
-
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {
         get => (int)GetValue(MessageSpacingProperty);
         set => SetValue(MessageSpacingProperty, value);
     }
-
-
 
     public static readonly BindableProperty SendIconProperty = BindableProperty.Create(nameof(SendIcon), typeof(ImageSource), typeof(ChatView));
     public ImageSource SendIcon
@@ -233,7 +246,6 @@ public class ChatView : View
         get => (ImageSource)GetValue(DeliveredIconProperty);
         set => SetValue(DeliveredIconProperty, value);
     }
-
 
     public static readonly BindableProperty ReplyMessageBackgroundColorProperty = BindableProperty.Create(nameof(ReplyMessageBackgroundColor), typeof(Color), typeof(ChatView), Colors.LightYellow);
     public Color ReplyMessageBackgroundColor

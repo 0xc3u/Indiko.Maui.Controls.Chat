@@ -24,6 +24,10 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
             {
                 dateCell.Update((int)indexPath.Item, chatMessage.Message, virtualView, mauiContext);
             }
+            if (cell is SystemMessageCell systemMessageCell)
+            {
+                systemMessageCell.Update((int)indexPath.Item, chatMessage.Message, virtualView, mauiContext);
+            }
             else if (cell is OwnTextMessageCell ownTextCell)
             {
                 ownTextCell.Update((int)indexPath.Item, chatMessage.Message, virtualView, mauiContext);
@@ -93,6 +97,12 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
         {
             return OwnVideoMessageCell.Key;
         }
+
+        if (message.MessageType == MessageType.System)
+        {
+            return SystemMessageCell.Key;
+        }
+
         return DateGroupSeperatorCell.Key;
     }
 }

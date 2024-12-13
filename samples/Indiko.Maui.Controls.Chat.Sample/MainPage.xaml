@@ -40,7 +40,10 @@
             ReadIcon="read.png"
             ScrollToFirstNewMessage="True"
             ShowNewMessagesSeperator="True"
-            ScrolledToLastMessageCommand="{Binding ScrolledToLastMessageCommand}">
+            ScrolledToLastMessageCommand="{Binding ScrolledToLastMessageCommand}"
+            SystemMessageBackgroundColor="{StaticResource Gray100}"
+            SystemMessageTextColor="{StaticResource Black}"
+            SystemMessageFontSize="12">
 
         </idk:ChatView>
 
