@@ -10,7 +10,7 @@
              Title="ChatView Sample">
 
 
-    <Grid RowDefinitions="*, 1, Auto">
+    <Grid RowDefinitions="*, 2, Auto">
 
         <idk:ChatView Grid.Row="0" x:Name="chatView"
     
@@ -44,9 +44,9 @@
 
         </idk:ChatView>
 
-        <Rectangle Grid.Row="1" BackgroundColor="{StaticResource Secondary}" MinimumHeightRequest="2"></Rectangle>
+        <Rectangle Grid.Row="1" BackgroundColor="{StaticResource Primary}" MinimumHeightRequest="2"></Rectangle>
 
-        <Grid Grid.Row="2" RowDefinitions="Auto,Auto" ColumnDefinitions="*, 80" Padding="10,10,10,10" BackgroundColor="{StaticResource Tertiary}">
+        <Grid Grid.Row="2" RowDefinitions="Auto,Auto" ColumnDefinitions="*, 80" Padding="10,10,10,10" BackgroundColor="{StaticResource White}">
 
 
             <HorizontalStackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Spacing="5" IsVisible="{Binding SelectedMedia, Converter={StaticResource IsNotNullConverter}}">
@@ -65,8 +65,8 @@
             <Editor Grid.Row="1" Grid.Column="0" x:Name="messageEntry" 
                 AutoSize="TextChanges"
                 Placeholder="Type a message..." HorizontalOptions="FillAndExpand" Text="{Binding NewMessage}"
-                TextColor="{StaticResource White}"
-                PlaceholderColor="{StaticResource White}" VerticalOptions="Center"/>
+                TextColor="{StaticResource Primary}"
+                PlaceholderColor="{StaticResource Primary}" VerticalOptions="Center"/>
 
             <HorizontalStackLayout Grid.Row="1" Grid.Column="1" Spacing="5" VerticalOptions="Center">
 
