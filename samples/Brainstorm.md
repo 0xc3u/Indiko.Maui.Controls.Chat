@@ -4,22 +4,6 @@
    - Show a small animation or label at the bottom of the chat to indicate when another user is typing.
    - Example: "User is typing…" with a pulsing dots animation.
 
-### 2. **Delivery and Read Receipts** [x] 
-   - Add small icons next to messages to show their delivery/read status:
-     - ✅ Sent
-     - 📬 Delivered
-     - 👀 Read
-   - You can align these icons near the timestamp for a clean look.
-
-### 3. **Message Reactions Interaction**
-   - Allow users to tap and add their own emoji reactions directly to messages.
-   - Show a reaction picker on long-press or tap for more interactivity.
-
-### 4. **Message Editing or Deletion**
-   - Add support for editing or deleting messages. For instance:
-     - An "edit" icon for own messages.
-     - A "delete" icon (with confirmation).
-
 ### 5. **Search Functionality**
    - Include a search bar to find specific messages within the conversation.
    - Highlight matched text in chat bubbles.
@@ -64,9 +48,6 @@
 
 ### 15. **Dynamic Message Bubbles**
    - Support for rich text, markdown, or inline links within messages.
-
-### 16. **Reaction/Interaction Metrics**
-   - Show a small "reaction summary" (e.g., who liked/loved/reacted to a message) when hovering over or tapping the reactions.
 
 ### 17. **Animations**
    - Add smooth animations for sending/receiving messages or reactions.

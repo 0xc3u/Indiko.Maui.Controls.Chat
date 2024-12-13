@@ -44,7 +44,7 @@
 
         </idk:ChatView>
 
-        <Rectangle Grid.Row="1" BackgroundColor="{StaticResource Primary}" MinimumHeightRequest="2"></Rectangle>
+        <Rectangle Grid.Row="1" BackgroundColor="{StaticResource Tertiary}" MinimumHeightRequest="2"></Rectangle>
 
         <Grid Grid.Row="2" RowDefinitions="Auto,Auto" ColumnDefinitions="*, 80" Padding="10,10,10,10" BackgroundColor="{StaticResource White}">
 
@@ -61,22 +61,21 @@
                 </Image>
             </HorizontalStackLayout>
 
-
             <Editor Grid.Row="1" Grid.Column="0" x:Name="messageEntry" 
                 AutoSize="TextChanges"
                 Placeholder="Type a message..." HorizontalOptions="FillAndExpand" Text="{Binding NewMessage}"
-                TextColor="{StaticResource Primary}"
-                PlaceholderColor="{StaticResource Primary}" VerticalOptions="Center"/>
+                TextColor="{StaticResource Tertiary}"
+                PlaceholderColor="{StaticResource Tertiary}" VerticalOptions="Center"/>
 
             <HorizontalStackLayout Grid.Row="1" Grid.Column="1" Spacing="5" VerticalOptions="Center">
 
                 <ImageButton MinimumHeightRequest="36" MinimumWidthRequest="36" Aspect="Center" CornerRadius="8" BorderWidth="1"
-                    BorderColor="{StaticResource Gray200}"
+                    BorderColor="{StaticResource Tertiary}"
                     HorizontalOptions="End" VerticalOptions="Center"
                     Command="{Binding PickMediaCommand}">
                     <ImageButton.Source>
                         <FontImageSource Glyph="{x:Static utils:FontAwesome.Paperclip}" Size="18" 
-                              FontFamily="{x:Static utils:FontAwesome.FONTNAME}" Color="{StaticResource Gray200}"></FontImageSource>
+                              FontFamily="{x:Static utils:FontAwesome.FONTNAME}" Color="{StaticResource Tertiary}"></FontImageSource>
                     </ImageButton.Source>
                 </ImageButton>
 
@@ -84,11 +83,11 @@
                     Aspect="Center"
                     CornerRadius="8"
                     BorderWidth="1"
-                    BorderColor="{StaticResource Gray200}"
+                    BorderColor="{StaticResource Tertiary}"
                     HorizontalOptions="End" VerticalOptions="Center"
                     Command="{Binding SendMessageCommand}">
                     <ImageButton.Source>
-                        <FontImageSource Glyph="{x:Static utils:FontAwesome.Paperplane}" Size="18" FontFamily="{x:Static utils:FontAwesome.FONTNAME}" Color="{StaticResource Gray200}"></FontImageSource>
+                        <FontImageSource Glyph="{x:Static utils:FontAwesome.Paperplane}" Size="18" FontFamily="{x:Static utils:FontAwesome.FONTNAME}" Color="{StaticResource Tertiary}"></FontImageSource>
                     </ImageButton.Source>
                 </ImageButton>
             </HorizontalStackLayout>
