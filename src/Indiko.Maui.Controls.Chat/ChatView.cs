@@ -4,28 +4,6 @@ using Indiko.Maui.Controls.Chat.Models;
 namespace Indiko.Maui.Controls.Chat;
 public class ChatView : View
 {
-    public event EventHandler MessagesUpdatedEvent;
-    public event EventHandler LoadMoreMessagesRequested;
-
-    // add a eventhandler for MessageTappendEvent
-    public event EventHandler<ChatMessage> MessageTappedEvent;
-
-
-    public void LoadMoreMessages()
-    {
-        // Notify that older messages should be loaded
-        LoadMoreMessagesRequested?.Invoke(this, EventArgs.Empty);
-    }
-
-    // Method to add older messages to the collection
-    public void AddOlderMessages(IEnumerable<ChatMessage> olderMessages)
-    {
-        foreach (var message in olderMessages)
-        {
-            Messages.Insert(0, message);
-        }
-    }
-
     public static readonly BindableProperty ScrolledCommandProperty = BindableProperty.Create(nameof(ScrolledCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
     public ICommand ScrolledCommand
     {
@@ -71,9 +49,7 @@ public class ChatView : View
     }
 
 
-
-    public static readonly BindableProperty MessagesProperty = BindableProperty.Create(nameof(Messages), typeof(ObservableRangeCollection<ChatMessage>), typeof(ChatView), default(ObservableRangeCollection<ChatMessage>),
-        propertyChanged: OnMessagesChanged);
+    public static readonly BindableProperty MessagesProperty = BindableProperty.Create(nameof(Messages), typeof(ObservableRangeCollection<ChatMessage>), typeof(ChatView), default(ObservableRangeCollection<ChatMessage>));
 
     public ObservableRangeCollection<ChatMessage> Messages
     {
@@ -279,31 +255,4 @@ public class ChatView : View
         get => (float)GetValue(ReplyMessageFontSizeProperty);
         set => SetValue(ReplyMessageFontSizeProperty, value);
     }
-
-
-    private static void OnMessagesChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        var chatView = (ChatView)bindable;
-
-        if (oldValue is ObservableRangeCollection<ChatMessage> oldMessages && newValue is ObservableRangeCollection<ChatMessage> newMessages)
-        {
-            // compare old and new messages to find new messages
-            var newMessagesList = newMessages.Except(oldMessages).ToList();
-
-        }
-
-        chatView.MessagesUpdated();
-    }
-
-    private void MessagesUpdated()
-    {
-        MessagesUpdatedEvent?.Invoke(this, EventArgs.Empty);
-
-    }
-}
-
-public class ScrolledArgs
-{
-    public int X { get; set; }
-    public int Y { get; set; }
 }

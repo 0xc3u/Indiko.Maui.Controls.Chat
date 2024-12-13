@@ -38,6 +38,18 @@ dotnet add package Indiko.Maui.Controls.Chat
 - **Dynamic Separator**: Displays a "New Messages" separator when needed.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for optimized rendering.
 
+
+### Currently Supported Message types
+
+| Message Type | Description          |
+|--------------|----------------------|
+| Text         | Standard text message|
+| Image        | Image message        |
+| Video        | Video message        |
+
+
+
+
 ---
 
 ## Models
@@ -179,14 +191,6 @@ void OnLoadMoreMessages(object sender)
 
 ---
 
-## Events
-
-- **`MessagesUpdatedEvent`**: Triggered when the `Messages` collection is updated.
-- **`LoadMoreMessagesRequested`**: Invoked when older messages should be loaded.
-- **`MessageTappedEvent`**: Triggered when a message is tapped.
-
----
-
 ## Styling
 
 The control provides extensive styling options:
@@ -211,6 +215,7 @@ The control provides extensive styling options:
 | `AvatarTappedCommand`      | Triggered when an avatar is tapped.                      |
 | `LoadMoreMessagesCommand`  | Invoked when more messages need to be loaded.            |
 | `EmojiReactionTappedCommand` | Triggered when an emoji reaction is tapped.            |
+| `ScrolledToLastMessageCommand` | Triggered when the chat view is scrolled to the last message. |
 
 ---
 

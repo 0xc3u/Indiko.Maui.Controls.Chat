@@ -249,26 +249,26 @@ public partial class MainPageViewModel : BaseViewModel
         messages.Insert(14,imageMessage);
 
 
-        // var videoMessage = new ChatMessage
-        // {
-        //     BinaryContent = Convert.FromBase64String(video1),
-        //     IsOwnMessage = true,
-        //     Timestamp = DateTime.Now,
-        //     SenderAvatar = null,
-        //     SenderInitials = "AS",
-        //     MessageId = Guid.NewGuid().ToString(),
-        //     MessageType = MessageType.Video,
-        //     ReadState = MessageReadState.New,
-        //     DeliveryState = MessageDeliveryState.Delivered,
-        // };
-        // videoMessage.Reactions.Add(new ChatMessageReaction
-        // {
-        //     Emoji = "😊",
-        //     Count = 5,
-        //     ParticipantIds = new List<string> { "user4", "user5" }
-        // });
-        //
-        // messages.Add(videoMessage);
+        var videoMessage = new ChatMessage
+        {
+            BinaryContent = Convert.FromBase64String(video1),
+            IsOwnMessage = true,
+            Timestamp = DateTime.Now,
+            SenderAvatar = null,
+            SenderInitials = "AS",
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.Video,
+            ReadState = MessageReadState.New,
+            DeliveryState = MessageDeliveryState.Delivered,
+        };
+        videoMessage.Reactions.Add(new ChatMessageReaction
+        {
+            Emoji = "😊",
+            Count = 5,
+            ParticipantIds = new List<string> { "user4", "user5" }
+        });
+
+        messages.Add(videoMessage);
 
 
         //// group messages by date
