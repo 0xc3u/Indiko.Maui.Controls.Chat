@@ -41,9 +41,9 @@
             ScrollToFirstNewMessage="True"
             ShowNewMessagesSeperator="True"
             ScrolledToLastMessageCommand="{Binding ScrolledToLastMessageCommand}"
-            SystemMessageBackgroundColor="{StaticResource Gray100}"
-            SystemMessageTextColor="{StaticResource Black}"
-            SystemMessageFontSize="12">
+            SystemMessageBackgroundColor="{StaticResource Yellow300Accent}"
+            SystemMessageTextColor="{StaticResource Red200Accent}"
+            SystemMessageFontSize="14">
 
         </idk:ChatView>
 

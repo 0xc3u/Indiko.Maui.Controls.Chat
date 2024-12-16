@@ -277,15 +277,10 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         {
             Id = AViews.View.GenerateViewId(),
             TextSize = SystemMessageFontSize,
-            Typeface = Typeface.DefaultBold,
             Visibility = ViewStates.Gone // Initially hidden
         };
         systemTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
-
-        var systemMessageBackground = new GradientDrawable();
-        systemMessageBackground.SetCornerRadius(8f);
-        systemMessageBackground.SetColor(SystemMessageBackgroundColor.ToPlatform());
-        systemTextView.Background = systemMessageBackground;
+        systemTextView.SetPadding(32, 16, 32, 16);
 
         constraintLayout.AddView(systemTextView);
 
@@ -510,10 +505,12 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
                 chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
                 chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
+                chatHolder.DateTextView.Visibility = ViewStates.Gone;
 
                 chatHolder.SystemMessageTextView.Text = message.TextContent;
                 chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
-
+                chatHolder.SystemMessageTextView.TextSize = SystemMessageFontSize;
+                
                 var systemMessageBackgroundDrawable = new GradientDrawable();
                 systemMessageBackgroundDrawable.SetShape(ShapeType.Rectangle);
                 systemMessageBackgroundDrawable.SetColor(SystemMessageBackgroundColor.ToPlatform());
