@@ -55,6 +55,12 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public Color ReplyMessageTextColor { get; }
     public float ReplyMessageFontSize { get; }
 
+
+    public Color SystemMessageBackgroundColor { get; }
+    public Color SystemMessageTextColor { get; }
+    public float SystemMessageFontSize { get; }
+
+
     private readonly IMauiContext _mauiContext;
     private readonly ChatView VirtualView; // Add reference to ChatView
 
@@ -90,6 +96,10 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         ReplyMessageTextColor = VirtualView.ReplyMessageTextColor;
         ReplyMessageFontSize = VirtualView.ReplyMessageFontSize;
         ShowNewMessagesSeperator = VirtualView.ShowNewMessagesSeperator;
+
+        SystemMessageBackgroundColor = VirtualView.SystemMessageBackgroundColor;
+        SystemMessageTextColor = VirtualView.SystemMessageTextColor;
+        SystemMessageFontSize = VirtualView.SystemMessageFontSize;
     }
 
     public override int ItemCount => _messages.Count;
@@ -260,6 +270,26 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         };
         constraintLayout.AddView(deliveryStatusIcon);
 
+
+
+        // System TextView
+        var systemTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = SystemMessageFontSize,
+            Typeface = Typeface.DefaultBold,
+            Visibility = ViewStates.Gone // Initially hidden
+        };
+        systemTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
+
+        var systemMessageBackground = new GradientDrawable();
+        systemMessageBackground.SetCornerRadius(8f);
+        systemMessageBackground.SetColor(SystemMessageBackgroundColor.ToPlatform());
+        systemTextView.Background = systemMessageBackground;
+
+        constraintLayout.AddView(systemTextView);
+
+
         // Set up constraints for views
         var constraintSet = new ConstraintSet();
         constraintSet.Clone(constraintLayout);
@@ -282,6 +312,13 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintSet.Connect(dateTextView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
         constraintSet.Connect(dateTextView.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
 
+
+        // Constraints for systemTextView
+        constraintSet.Connect(systemTextView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top, 16);
+        constraintSet.Connect(systemTextView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
+        constraintSet.Connect(systemTextView.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
+
+
         // Constraints for the "New Messages" separator text
         constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.Top, dateTextView.Id, ConstraintSet.Bottom, 8);
         constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start);
@@ -298,7 +335,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintSet.ApplyTo(constraintLayout);
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout,
-            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView);
+            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView);
     }
 
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
@@ -542,50 +579,82 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
             chatHolder.TimestampTextView.Text = message.Timestamp.ToString("HH:mm");
 
+            // set system message
+            bool isSystemMessage =  message.MessageType == MessageType.System;
+            if (isSystemMessage)
+            {
+                chatHolder.SystemMessageTextView.Text = message.TextContent;
+                chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
+
+                var systemMessageBackgroundDrawable = new GradientDrawable();
+                systemMessageBackgroundDrawable.SetColor(SystemMessageBackgroundColor.ToPlatform());
+                systemMessageBackgroundDrawable.SetCornerRadius(8f);
+                chatHolder.SystemMessageTextView.Background = systemMessageBackgroundDrawable;
+
+                chatHolder.SystemMessageTextView.Visibility = ViewStates.Visible;
+                chatHolder.AvatarView.Visibility = ViewStates.Gone;
+                chatHolder.FrameLayout.Visibility = ViewStates.Gone;
+                chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
+                chatHolder.ReactionContainer.RemoveAllViews();
+                chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
+                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
+                chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
+            }
+            else
+            {
+                chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
+            }
+
             // Set alignment based on IsOwnMessage
             var constraintSet = new ConstraintSet();
             constraintSet.Clone((ConstraintLayout)holder.ItemView);
 
-            if (message.IsOwnMessage)
+            if (!isSystemMessage)
             {
-                constraintSet.Clear(chatHolder.AvatarView.Id, ConstraintSet.Start);
-                constraintSet.Clear(chatHolder.FrameLayout.Id, ConstraintSet.Start);
-                constraintSet.Connect(chatHolder.FrameLayout.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
-
-                constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.Start);
-                constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
 
 
-                constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start);
-                constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End, chatHolder.TimestampTextView.Id, ConstraintSet.Start, 16); // Add spacing
-            }
-            else
-            {
-                constraintSet.Connect(chatHolder.AvatarView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
-                constraintSet.Connect(chatHolder.AvatarView.Id, ConstraintSet.Top, chatHolder.FrameLayout.Id, ConstraintSet.Top);
 
-                constraintSet.Clear(chatHolder.FrameLayout.Id, ConstraintSet.End);
-                constraintSet.Connect(chatHolder.FrameLayout.Id, ConstraintSet.Start, chatHolder.AvatarView.Id, ConstraintSet.End, 28);
+                if (message.IsOwnMessage)
+                {
+                    constraintSet.Clear(chatHolder.AvatarView.Id, ConstraintSet.Start);
+                    constraintSet.Clear(chatHolder.FrameLayout.Id, ConstraintSet.Start);
+                    constraintSet.Connect(chatHolder.FrameLayout.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
 
-                constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.End);
-                constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
+                    constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.Start);
+                    constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
 
-                constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End);
-                constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start, chatHolder.TimestampTextView.Id, ConstraintSet.End, 16); // Add spacing
-            }
 
-            // Align the ReactionContainer based on IsOwnMessage
-            if (message.IsOwnMessage)
-            {
-                // Align ReactionContainer to the left of the chat bubble
-                constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.End);
-                constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
-            }
-            else
-            {
-                // Align ReactionContainer to the right of the chat bubble
-                constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.Start);
-                constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
+                    constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start);
+                    constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End, chatHolder.TimestampTextView.Id, ConstraintSet.Start, 16); // Add spacing
+                }
+                else
+                {
+                    constraintSet.Connect(chatHolder.AvatarView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
+                    constraintSet.Connect(chatHolder.AvatarView.Id, ConstraintSet.Top, chatHolder.FrameLayout.Id, ConstraintSet.Top);
+
+                    constraintSet.Clear(chatHolder.FrameLayout.Id, ConstraintSet.End);
+                    constraintSet.Connect(chatHolder.FrameLayout.Id, ConstraintSet.Start, chatHolder.AvatarView.Id, ConstraintSet.End, 28);
+
+                    constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.End);
+                    constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
+
+                    constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End);
+                    constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start, chatHolder.TimestampTextView.Id, ConstraintSet.End, 16); // Add spacing
+                }
+
+                // Align the ReactionContainer based on IsOwnMessage
+                if (message.IsOwnMessage)
+                {
+                    // Align ReactionContainer to the left of the chat bubble
+                    constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.End);
+                    constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
+                }
+                else
+                {
+                    // Align ReactionContainer to the right of the chat bubble
+                    constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.Start);
+                    constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
+                }
             }
 
             constraintSet.ApplyTo((ConstraintLayout)holder.ItemView);

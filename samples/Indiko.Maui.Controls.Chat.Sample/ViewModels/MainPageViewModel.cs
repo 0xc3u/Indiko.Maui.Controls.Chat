@@ -247,21 +247,21 @@ public partial class MainPageViewModel : BaseViewModel
 
         messages.Insert(14,imageMessage);
 
-        //var systemMessage = new ChatMessage
-        //{
-        //    TextContent = "A message from the system",
-        //    IsOwnMessage = false,
-        //    Timestamp = DateTime.Now,
-        //    SenderAvatar = null,
-        //    SenderInitials = null,
-        //    SenderId = Guid.NewGuid().ToString(),
-        //    MessageId = Guid.NewGuid().ToString(),
-        //    MessageType = MessageType.System,
-        //    ReadState = MessageReadState.Read,
-        //    DeliveryState = MessageDeliveryState.Read,
-        //};
+        var systemMessage = new ChatMessage
+        {
+            TextContent = "A message from the system",
+            IsOwnMessage = false,
+            Timestamp = DateTime.Now,
+            SenderAvatar = null,
+            SenderInitials = null,
+            SenderId = Guid.NewGuid().ToString(),
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.System,
+            ReadState = MessageReadState.Read,
+            DeliveryState = MessageDeliveryState.Read,
+        };
 
-        //messages.Insert(15, systemMessage);
+        messages.Insert(15, systemMessage);
 
         var videoMessage = new ChatMessage
         {

@@ -35,6 +35,9 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         [nameof(ChatView.ReplyMessageBackgroundColor)] = MapProperties,
         [nameof(ChatView.ReplyMessageTextColor)] = MapProperties,
         [nameof(ChatView.ReplyMessageFontSize)] = MapProperties,
+        [nameof(ChatView.SystemMessageBackgroundColor)] = MapProperties,
+        [nameof(ChatView.SystemMessageFontSize)] = MapProperties,
+        [nameof(ChatView.SystemMessageTextColor)] = MapProperties,
 
     };
 
