@@ -16,5 +16,4 @@ public class ChatMessage
     public bool IsRepliedMessage => ReplyToMessage != null;
     public RepliedMessage ReplyToMessage { get; set; }
     public List<ChatMessageReaction> Reactions { get; set; } = [];
-    public bool IsDateSeperator { get; set; }
 }

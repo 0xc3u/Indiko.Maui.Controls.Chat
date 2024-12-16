@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui;
+using Indiko.Maui.Controls.Chat.Sample.Services;
 using Indiko.Maui.Controls.Chat.Sample.ViewModels;
 
 namespace Indiko.Maui.Controls.Chat.Sample;
@@ -20,6 +21,7 @@ public static class MauiProgram
             fonts.AddFont("Font-Awesome-6-Free-Solid-900.otf", "FontAwesomeSolid");
         });
 
+        builder.Services.AddSingleton<IMessageService, MessageService>();
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddSingleton<MainPageViewModel>();
         Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));

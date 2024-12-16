@@ -69,10 +69,6 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
 
     private static string GetCellIdentifier(ChatMessage message)
     {
-        if (message.IsDateSeperator)
-        {
-            return DateGroupSeperatorCell.Key;
-        }
         if (message.MessageType == MessageType.Text && message.IsOwnMessage)
         {
             return OwnTextMessageCell.Key;
@@ -101,6 +97,11 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
         if (message.MessageType == MessageType.System)
         {
             return SystemMessageCell.Key;
+        }
+
+        if (message.MessageType == MessageType.Date)
+        {
+            return DateGroupSeperatorCell.Key;
         }
 
         return DateGroupSeperatorCell.Key;

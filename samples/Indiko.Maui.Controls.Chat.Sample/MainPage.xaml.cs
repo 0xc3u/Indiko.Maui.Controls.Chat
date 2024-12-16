@@ -25,10 +25,10 @@ public partial class MainPage : ContentPage
 
     }
 
-	protected override void OnAppearing()
+	protected override async void OnAppearing()
 	{
 		base.OnAppearing();
-		mainPageViewModel.OnAppearing(null);
+		await mainPageViewModel.OnAppearing(null);
     }
 
     protected override void OnDisappearing()

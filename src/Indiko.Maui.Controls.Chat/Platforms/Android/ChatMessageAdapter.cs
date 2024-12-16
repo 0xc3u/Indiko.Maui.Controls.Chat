@@ -494,8 +494,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.VideoView.Visibility = ViewStates.Gone;
                 }
             }
-
-            else if(message.MessageType == MessageType.System)
+            else if (message.MessageType == MessageType.Date)
             {
                 chatHolder.TextView.Visibility = ViewStates.Gone;
                 chatHolder.ImageView.Visibility = ViewStates.Gone;
@@ -505,7 +504,27 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
                 chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
                 chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
+                chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
+                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
+                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
+
+                chatHolder.DateTextView.Visibility = ViewStates.Visible;
+                chatHolder.DateTextView.Text = message.TextContent;
+                isSystemMessage = true;
+            }
+            else if(message.MessageType == MessageType.System)
+            {
+                chatHolder.TextView.Visibility = ViewStates.Gone;
+                chatHolder.ImageView.Visibility = ViewStates.Gone;
+                chatHolder.VideoContainer.Visibility = ViewStates.Gone;
+                chatHolder.VideoView.Visibility = ViewStates.Gone;
+                chatHolder.AvatarView.Visibility = ViewStates.Gone;
+                chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
+                chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
+                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
+                chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
                 chatHolder.DateTextView.Visibility = ViewStates.Gone;
+                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
 
                 chatHolder.SystemMessageTextView.Text = message.TextContent;
                 chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
@@ -573,12 +592,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
                 chatHolder.FrameLayout.LayoutParameters.Width = maxWidth;
 
-
-
-
                 var frameLayoutBackgroundDrawable = new GradientDrawable();
                 frameLayoutBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-                frameLayoutBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
+                frameLayoutBackgroundDrawable.SetCornerRadius(24f);
                 chatHolder.FrameLayout.Background = frameLayoutBackgroundDrawable;
 
                 if (message.IsRepliedMessage && message.ReplyToMessage != null)
@@ -602,18 +618,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
                 }
 
-                // Set date and time
-                bool isFirstMessageOfDate = position == 0 || _messages[position - 1].Timestamp.Date != message.Timestamp.Date;
-                chatHolder.DateTextView.Visibility = isFirstMessageOfDate ? ViewStates.Visible : ViewStates.Gone;
-                if (isFirstMessageOfDate)
-                {
-                    chatHolder.DateTextView.Text = message.Timestamp.ToString("dddd MMM dd");
-                }
-
                 chatHolder.TimestampTextView.Text = message.Timestamp.ToString("HH:mm");
-
             }
-                // Set alignment based on IsOwnMessage
+
             var constraintSet = new ConstraintSet();
             constraintSet.Clone((ConstraintLayout)holder.ItemView);
 
