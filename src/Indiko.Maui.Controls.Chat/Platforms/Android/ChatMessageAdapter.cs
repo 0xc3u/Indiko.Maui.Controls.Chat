@@ -338,6 +338,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView);
     }
 
+
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
         if (holder is ChatMessageViewHolder chatHolder)
@@ -401,12 +402,15 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.AvatarView.Visibility = ViewStates.Gone;
             }
 
+            bool isSystemMessage = false;
+
             // Set message type handling
             if (message.MessageType == MessageType.Text)
             {
                 chatHolder.ImageView.Visibility = ViewStates.Gone;
                 chatHolder.VideoContainer.Visibility = ViewStates.Gone;
                 chatHolder.VideoView.Visibility = ViewStates.Gone;
+                chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
                 chatHolder.TextView.Visibility = ViewStates.Visible;
                 chatHolder.TextView.Text = message.TextContent;
                 chatHolder.TextView.SetTextColor(message.IsOwnMessage ? OwnMessageTextColor.ToPlatform() : OtherMessageTextColor.ToPlatform());
@@ -419,12 +423,13 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.ImageView.Visibility = ViewStates.Visible;
                     chatHolder.VideoContainer.Visibility = ViewStates.Gone;
                     chatHolder.VideoView.Visibility = ViewStates.Gone;
+                    chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
 
                     // Decode the bitmap and get its dimensions
                     var bitmap = BitmapFactory.DecodeByteArray(message.BinaryContent, 0, message.BinaryContent.Length);
                     chatHolder.ImageView.SetImageBitmap(bitmap);
 
-                   // Calculate the dimensions for the image bubble
+                    // Calculate the dimensions for the image bubble
                     var imageDisplayMetrics = _context.Resources.DisplayMetrics;
                     int imagemaxWidth = (int)(imageDisplayMetrics.WidthPixels * 0.65); // Limit width to 65% of screen
                     float aspectRatio = (float)bitmap.Height / bitmap.Width;
@@ -441,6 +446,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.ImageView.Visibility = ViewStates.Gone;
                     chatHolder.VideoContainer.Visibility = ViewStates.Gone;
                     chatHolder.VideoView.Visibility = ViewStates.Gone;
+                    chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
                 }
             }
             else if (message.MessageType == MessageType.Video)
@@ -451,6 +457,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.ImageView.Visibility = ViewStates.Gone;
                     chatHolder.VideoContainer.Visibility = ViewStates.Visible;
                     chatHolder.VideoView.Visibility = ViewStates.Visible;
+                    chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
 
                     // Define the file path based on MessageId
                     var tempFile = new aIO.File(_context.CacheDir, $"{message.MessageId}.mp4");
@@ -469,7 +476,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.VideoView.SetVideoURI(videoUri);
                     chatHolder.VideoView.RequestFocus();
 
-                     // Calculate dimensions for the video bubble
+                    // Calculate dimensions for the video bubble
                     var videodisplayMetrics = _context.Resources.DisplayMetrics;
                     int videomaxWidth = (int)(videodisplayMetrics.WidthPixels * 0.65);
                     float aspectRatio = 9f / 16f;
@@ -493,127 +500,128 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 }
             }
 
-            if (chatHolder.ReactionContainer.ChildCount > 0)
+            else if(message.MessageType == MessageType.System)
             {
-                chatHolder.ReactionContainer.RemoveAllViews(); // Clear existing reactions
-            }
+                chatHolder.TextView.Visibility = ViewStates.Gone;
+                chatHolder.ImageView.Visibility = ViewStates.Gone;
+                chatHolder.VideoContainer.Visibility = ViewStates.Gone;
+                chatHolder.VideoView.Visibility = ViewStates.Gone;
+                chatHolder.AvatarView.Visibility = ViewStates.Gone;
+                chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
+                chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
+                chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
 
-            if (message.Reactions != null && message.Reactions.Any())
-            {
-                foreach (var reaction in message.Reactions)
-                {
-                    // Create a TextView for each reaction
-                    var reactionTextView = new TextView(_context)
-                    {
-                        Text = $"{reaction.Emoji} {reaction.Count}",
-                        TextSize = EmojiReactionFontSize
-                    };
-                    reactionTextView.SetTextColor(EmojiReactionTextColor.ToPlatform());
-
-                    // Optional: Add padding or margins
-                    var layoutParams = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WrapContent,
-                        ViewGroup.LayoutParams.WrapContent)
-                    {
-                        LeftMargin = 8 // Add spacing between reactions
-                    };
-
-                    reactionTextView.LayoutParameters = layoutParams;
-
-                    chatHolder.ReactionContainer.AddView(reactionTextView);
-                }
-            }
-
-            if (message.DeliveryState == MessageDeliveryState.Sent && SendIcon != null)
-            {
-                SetImageSourceToImageView(SendIcon, chatHolder.DeliveryStatusIcon);
-            }
-            else if (message.DeliveryState == MessageDeliveryState.Delivered && DeliveredIcon != null)
-            {
-                SetImageSourceToImageView(DeliveredIcon, chatHolder.DeliveryStatusIcon);
-            }
-            else if (message.DeliveryState == MessageDeliveryState.Read && ReadIcon != null)
-            {
-                SetImageSourceToImageView(ReadIcon, chatHolder.DeliveryStatusIcon);
-            }
-
-            // Set dynamic width for the message bubble (65% of screen width)
-            var displayMetrics = _context.Resources.DisplayMetrics;
-            int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
-            chatHolder.FrameLayout.LayoutParameters.Width = maxWidth;
-
-
-            var frameLayoutBackgroundDrawable = new GradientDrawable();
-            frameLayoutBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-            frameLayoutBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
-            chatHolder.FrameLayout.Background = frameLayoutBackgroundDrawable;
-
-            if (message.IsRepliedMessage && message.ReplyToMessage != null)
-            {
-                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Visible;
-
-                // Set sender name and preview
-                chatHolder.ReplySenderTextView.Text = message.ReplyToMessage.SenderId;
-                chatHolder.ReplySenderTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
-
-                chatHolder.ReplyPreviewTextView.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
-                chatHolder.ReplyPreviewTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
-
-                var replyBackground = new GradientDrawable();
-                replyBackground.SetColor(ReplyMessageBackgroundColor.ToPlatform());
-                replyBackground.SetCornerRadius(24f);
-                chatHolder.ReplySummaryFrame.Background = replyBackground;
-            }
-            else
-            {
-                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
-            }
-
-            // Set date and time
-            bool isFirstMessageOfDate = position == 0 || _messages[position - 1].Timestamp.Date != message.Timestamp.Date;
-            chatHolder.DateTextView.Visibility = isFirstMessageOfDate ? ViewStates.Visible : ViewStates.Gone;
-            if (isFirstMessageOfDate)
-            {
-                chatHolder.DateTextView.Text = message.Timestamp.ToString("dddd MMM dd");
-            }
-
-            chatHolder.TimestampTextView.Text = message.Timestamp.ToString("HH:mm");
-
-            // set system message
-            bool isSystemMessage =  message.MessageType == MessageType.System;
-            if (isSystemMessage)
-            {
                 chatHolder.SystemMessageTextView.Text = message.TextContent;
                 chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
 
                 var systemMessageBackgroundDrawable = new GradientDrawable();
+                systemMessageBackgroundDrawable.SetShape(ShapeType.Rectangle);
                 systemMessageBackgroundDrawable.SetColor(SystemMessageBackgroundColor.ToPlatform());
-                systemMessageBackgroundDrawable.SetCornerRadius(8f);
+                systemMessageBackgroundDrawable.SetCornerRadius(24f); // Larger radius for a rounded rectangle
                 chatHolder.SystemMessageTextView.Background = systemMessageBackgroundDrawable;
 
                 chatHolder.SystemMessageTextView.Visibility = ViewStates.Visible;
-                chatHolder.AvatarView.Visibility = ViewStates.Gone;
-                chatHolder.FrameLayout.Visibility = ViewStates.Gone;
-                chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
-                chatHolder.ReactionContainer.RemoveAllViews();
-                chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
-                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
-                chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
-            }
-            else
-            {
-                chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
+                isSystemMessage = true;
             }
 
-            // Set alignment based on IsOwnMessage
+            if (!isSystemMessage)
+            {
+
+                if (chatHolder.ReactionContainer.ChildCount > 0)
+                {
+                    chatHolder.ReactionContainer.RemoveAllViews(); // Clear existing reactions
+                }
+
+                if (message.Reactions != null && message.Reactions.Any())
+                {
+                    foreach (var reaction in message.Reactions)
+                    {
+                        // Create a TextView for each reaction
+                        var reactionTextView = new TextView(_context)
+                        {
+                            Text = $"{reaction.Emoji} {reaction.Count}",
+                            TextSize = EmojiReactionFontSize
+                        };
+                        reactionTextView.SetTextColor(EmojiReactionTextColor.ToPlatform());
+
+                        // Optional: Add padding or margins
+                        var layoutParams = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WrapContent,
+                            ViewGroup.LayoutParams.WrapContent)
+                        {
+                            LeftMargin = 8 // Add spacing between reactions
+                        };
+
+                        reactionTextView.LayoutParameters = layoutParams;
+
+                        chatHolder.ReactionContainer.AddView(reactionTextView);
+                    }
+                }
+
+                if (message.DeliveryState == MessageDeliveryState.Sent && SendIcon != null)
+                {
+                    SetImageSourceToImageView(SendIcon, chatHolder.DeliveryStatusIcon);
+                }
+                else if (message.DeliveryState == MessageDeliveryState.Delivered && DeliveredIcon != null)
+                {
+                    SetImageSourceToImageView(DeliveredIcon, chatHolder.DeliveryStatusIcon);
+                }
+                else if (message.DeliveryState == MessageDeliveryState.Read && ReadIcon != null)
+                {
+                    SetImageSourceToImageView(ReadIcon, chatHolder.DeliveryStatusIcon);
+                }
+
+                // Set dynamic width for the message bubble (65% of screen width)
+                var displayMetrics = _context.Resources.DisplayMetrics;
+                int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
+                chatHolder.FrameLayout.LayoutParameters.Width = maxWidth;
+
+
+
+
+                var frameLayoutBackgroundDrawable = new GradientDrawable();
+                frameLayoutBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
+                frameLayoutBackgroundDrawable.SetCornerRadius(24f); // Same corner radius as text message
+                chatHolder.FrameLayout.Background = frameLayoutBackgroundDrawable;
+
+                if (message.IsRepliedMessage && message.ReplyToMessage != null)
+                {
+                    chatHolder.ReplySummaryFrame.Visibility = ViewStates.Visible;
+
+                    // Set sender name and preview
+                    chatHolder.ReplySenderTextView.Text = message.ReplyToMessage.SenderId;
+                    chatHolder.ReplySenderTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
+
+                    chatHolder.ReplyPreviewTextView.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
+                    chatHolder.ReplyPreviewTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
+
+                    var replyBackground = new GradientDrawable();
+                    replyBackground.SetColor(ReplyMessageBackgroundColor.ToPlatform());
+                    replyBackground.SetCornerRadius(24f);
+                    chatHolder.ReplySummaryFrame.Background = replyBackground;
+                }
+                else
+                {
+                    chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
+                }
+
+                // Set date and time
+                bool isFirstMessageOfDate = position == 0 || _messages[position - 1].Timestamp.Date != message.Timestamp.Date;
+                chatHolder.DateTextView.Visibility = isFirstMessageOfDate ? ViewStates.Visible : ViewStates.Gone;
+                if (isFirstMessageOfDate)
+                {
+                    chatHolder.DateTextView.Text = message.Timestamp.ToString("dddd MMM dd");
+                }
+
+                chatHolder.TimestampTextView.Text = message.Timestamp.ToString("HH:mm");
+
+            }
+                // Set alignment based on IsOwnMessage
             var constraintSet = new ConstraintSet();
             constraintSet.Clone((ConstraintLayout)holder.ItemView);
 
             if (!isSystemMessage)
             {
-
-
-
                 if (message.IsOwnMessage)
                 {
                     constraintSet.Clear(chatHolder.AvatarView.Id, ConstraintSet.Start);
