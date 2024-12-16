@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Indiko.Maui.Controls.Chat.Models;
 using Indiko.Maui.Controls.Chat.Sample.Messages;
+using Indiko.Maui.Controls.Chat.Sample.Models;
 using Indiko.Maui.Controls.Chat.Sample.Utils;
 
 namespace Indiko.Maui.Controls.Chat.Sample.ViewModels;
@@ -65,8 +66,6 @@ public partial class MainPageViewModel : BaseViewModel
         List<ChatMessage> messages = new List<ChatMessage>();
         DateTime timestamp = DateTime.Now.AddDays(-3);
 
-
-       
 
         // Conversation messages
         var messageTemplates = new[]
@@ -248,21 +247,21 @@ public partial class MainPageViewModel : BaseViewModel
 
         messages.Insert(14,imageMessage);
 
-        var systemMessage = new ChatMessage
-        {
-            TextContent = "A message from the system",
-            IsOwnMessage = false,
-            Timestamp = DateTime.Now,
-            SenderAvatar = null,
-            SenderInitials = null,
-            SenderId = Guid.NewGuid().ToString(),
-            MessageId = Guid.NewGuid().ToString(),
-            MessageType = MessageType.System,
-            ReadState = MessageReadState.Read,
-            DeliveryState = MessageDeliveryState.Read,
-        };
+        //var systemMessage = new ChatMessage
+        //{
+        //    TextContent = "A message from the system",
+        //    IsOwnMessage = false,
+        //    Timestamp = DateTime.Now,
+        //    SenderAvatar = null,
+        //    SenderInitials = null,
+        //    SenderId = Guid.NewGuid().ToString(),
+        //    MessageId = Guid.NewGuid().ToString(),
+        //    MessageType = MessageType.System,
+        //    ReadState = MessageReadState.Read,
+        //    DeliveryState = MessageDeliveryState.Read,
+        //};
 
-        messages.Insert(15, systemMessage);
+        //messages.Insert(15, systemMessage);
 
         var videoMessage = new ChatMessage
         {
@@ -285,8 +284,7 @@ public partial class MainPageViewModel : BaseViewModel
 
         messages.Add(videoMessage);
 
-
-        //// group messages by date
+        ////// group messages by date
         //var groupedMessages = messages.GroupBy(m => m.Timestamp.Date).ToList();
         //foreach (var group in groupedMessages)
         //{
@@ -296,6 +294,8 @@ public partial class MainPageViewModel : BaseViewModel
         //        Timestamp = group.Key,
         //        MessageId = Guid.NewGuid().ToString(),
         //        MessageType = MessageType.Seperator,
+        //        ReadState = MessageReadState.Read,
+        //        DeliveryState = MessageDeliveryState.Delivered
         //    };
         //    messages.Insert(messages.IndexOf(group.First()), dateSeparator);
         //}
@@ -308,31 +308,6 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private void LoadOlderMessages()
     {
-
-        //// create 10 older messages
-        //DateTime timestamp = DateTime.Now.AddDays(-5);
-        //var olderMessages = new List<ChatMessage>();
-        //for (int i = 0; i < 10; i++)
-        //{
-        //    var actor = actors[i % 3];
-        //    olderMessages.Add(new ChatMessage
-        //    {
-        //        TextContent = "Older message " + i,
-        //        IsOwnMessage = actor.IsOwnMessage,
-        //        Timestamp = timestamp.AddHours(i * 5),
-        //        SenderAvatar = actor.Avatar,
-        //        SenderInitials = actor.Initials,
-        //        MessageId = Guid.NewGuid().ToString(),
-        //        MessageType = MessageType.Text,
-        //        ReadState = MessageReadState.Read
-        //    });
-        //}
-
-        //// insert older messages at the beginning of the list
-        //foreach (var message in olderMessages)
-        //{
-        //    ChatMessages.Insert(0, message);
-        //}
 
 
     }
@@ -447,12 +422,4 @@ public partial class MainPageViewModel : BaseViewModel
         }
     }
 
-}
-
-internal class User
-{
-    public string Name { get; set; }
-    public string Initials { get; set; }
-    public byte[] Avatar { get; set; }
-    public bool IsOwnMessage { get; set; }
 }

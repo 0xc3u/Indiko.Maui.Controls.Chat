@@ -266,7 +266,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         // Constraints for DeliveryStatusIcon
         constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Top, timestampTextView.Id, ConstraintSet.Top);
-        constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Start, timestampTextView.Id, ConstraintSet.End, 8); // Add spacing
+        constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Start, timestampTextView.Id, ConstraintSet.End, 16); // Add spacing
 
         // Constraints for the reaction container (below the message bubble)
         constraintSet.Connect(reactionContainer.Id, ConstraintSet.Top, frameLayout.Id, ConstraintSet.Bottom, 4);
@@ -554,6 +554,10 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
                 constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.Start);
                 constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
+
+
+                constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start);
+                constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End, chatHolder.TimestampTextView.Id, ConstraintSet.Start, 16); // Add spacing
             }
             else
             {
@@ -565,6 +569,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
                 constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.End);
                 constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
+
+                constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End);
+                constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start, chatHolder.TimestampTextView.Id, ConstraintSet.End, 16); // Add spacing
             }
 
             // Align the ReactionContainer based on IsOwnMessage

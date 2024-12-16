@@ -67,15 +67,15 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         recyclerView.AddOnScrollListener(new OnScrollListener(
            onScrolled: (args) =>
              {
-                VirtualView?.ScrolledCommand?.Execute(args); // Trigger the command in ChatView
+                VirtualView?.ScrolledCommand?.Execute(args); 
              },
             onScrolledToTop: () =>
             {
-                VirtualView?.LoadMoreMessagesCommand?.Execute(null); // Trigger the command in ChatView
+                VirtualView?.LoadMoreMessagesCommand?.Execute(null); 
             },
             onScrolledToBottom: () =>
             {
-                VirtualView?.ScrolledToLastMessageCommand?.Execute(null); // Trigger the command in ChatView
+                VirtualView?.ScrolledToLastMessageCommand?.Execute(null);
             }
             ));
 
@@ -131,6 +131,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             switch (args.Action)
             {
                 case NotifyCollectionChangedAction.Add:
+
                     foreach (var item in args.NewItems)
                     {
                         var index = chatView.Messages.IndexOf((ChatMessage)item);
