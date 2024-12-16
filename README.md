@@ -1,8 +1,8 @@
+﻿# ChatView Control for MAUI.NET
+
+The `ChatView` control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, managing replies, emoji reactions, avatars, and system messages. The control is optimized for native performance using platform-specific components like `RecyclerView` on Android and `UICollectionView` on iOS.
+
 ![Indiko.Maui.Controls.Chat](nuget.png)
-
-# ChatView Control for MAUI.NET
-
-The `ChatView` control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, loading more messages, and rendering replies, emojis, and avatars. The control leverages native performance using `RecyclerView` on Android and `UICollectionView` on iOS.
 
 ## Build Status
 ![ci](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/actions/workflows/symanticrelease.yml/badge.svg)
@@ -25,30 +25,42 @@ dotnet add package Indiko.Maui.Controls.Chat
 
 ---
 
+### Adding to Your Project
+To use the ChatView in your project, add the control to your app builder:
+
+```csharp
+using Microsoft.Maui.Hosting;
+using Indiko.Maui.Controls.Chat;
+
+var builder = MauiApp.CreateBuilder();
+builder.UseChatView();
+```
+
+---
+
 ## Features
 
-- **Message Display**: Supports rendering of messages with customizable appearance.
-- **Reply Support**: Includes reply-to-message functionality with a preview of the replied message.
-- **Emoji Reactions**: Enables users to react to messages with emojis.
-- **Avatar Integration**: Displays sender avatars with customizable size and color.
-- **Scrollable Chat**: Supports scroll commands and dynamic loading of older messages.
-- **Customizable Styling**: Offers extensive styling options for message backgrounds, text colors, font sizes, and more.
-- **Event Handling**: Triggers events for message taps, emoji reactions, and load requests.
-- **Commands**: Supports binding to commands for key interactions like scrolling, message taps, and loading more messages.
-- **Dynamic Separator**: Displays a "New Messages" separator when needed.
-- **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for optimized rendering.
+- **Message Display**: Renders text, image, video, and system messages.
+- **Reply Support**: Reply-to-message functionality with previews of the original message.
+- **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
+- **Avatars**: Displays sender avatars with customizable appearance.
+- **Dynamic Separator**: Shows a customizable "New Messages" separator.
+- **Customizable Styling**: Flexible styling for message backgrounds, text colors, fonts, and more.
+- **Commands and Events**: Handles user interactions like taps, emoji reactions, and scrolls.
+- **Scrollable Chat**: Supports smooth scrolling, including scroll-to-last-message and scroll-to-first-new-message.
+- **Load More Messages**: Supports dynamic loading of older messages via a bound command.
+- **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
 
+---
 
-### Currently Supported Message types
+## Supported Message Types
 
-| Message Type | Description          |
-|--------------|----------------------|
-| Text         | Standard text message|
-| Image        | Image message        |
-| Video        | Video message        |
-
-
-
+| Message Type | Description                |
+|--------------|----------------------------|
+| Text         | Standard text messages.    |
+| Image        | Image-based messages.      |
+| Video        | Video messages.            |
+| System       | System-generated messages. |
 
 ---
 
@@ -74,11 +86,12 @@ public class ChatMessage
     public bool IsRepliedMessage => ReplyToMessage != null;
     public RepliedMessage ReplyToMessage { get; set; }
     public List<ChatMessageReaction> Reactions { get; set; } = [];
+    public bool IsDateSeperator { get; set; }
 }
 ```
 
 ### `ChatMessageReaction`
-Handles emoji reactions for messages.
+Represents reactions (emojis) on a message.
 
 ```csharp
 public class ChatMessageReaction
@@ -90,7 +103,7 @@ public class ChatMessageReaction
 ```
 
 ### `RepliedMessage`
-Represents a replied message with a text preview.
+Represents a replied message with a preview.
 
 ```csharp
 public class RepliedMessage
@@ -108,6 +121,7 @@ public class RepliedMessage
 ```
 
 ### Enums
+
 #### `MessageDeliveryState`
 - `Sent`
 - `Delivered`
@@ -122,40 +136,122 @@ public class RepliedMessage
 - `Text`
 - `Image`
 - `Video`
-- `Audio`
 - `System`
 
 ---
 
-## Installation
+## Commands
 
-Add the ChatView to your MAUI.NET app using the `BuilderExtension`:
+| Command                          | Description                                                    |
+|----------------------------------|----------------------------------------------------------------|
+| `ScrolledCommand`                | Triggered when the chat view is scrolled. See example below.   |
+|----------------------------------|----------------------------------------------------------------|
+| `ScrolledCommand`                | Triggered when the chat view is scrolled.                     |
+| `MessageTappedCommand`           | Triggered when a message is tapped.                           |
+| `AvatarTappedCommand`            | Triggered when an avatar is tapped.                           |
+| `EmojiReactionTappedCommand`     | Triggered when an emoji reaction is tapped.                   |
+| `LoadMoreMessagesCommand`        | Invoked when more messages need to be loaded.                 |
+| `ScrolledToLastMessageCommand`   | Triggered when scrolled to the last message.                  |
 
-```csharp
-using Microsoft.Maui.Hosting;
-using Indiko.Maui.Controls.Chat;
+---
 
-var builder = MauiApp.CreateBuilder();
-builder.UseChatView();
-```
+## Styling
+
+| Property                         | Default Value       | Description                                       |
+|----------------------------------|---------------------|---------------------------------------------------|
+| `SystemMessageBackgroundColor`   | LightYellow         | Background color for system messages.            |
+| `SystemMessageTextColor`         | Red                | Text color for system messages.                 |
+| `SystemMessageFontSize`          | 14                 | Font size for system messages.                  |
+| `DateTextFontSize`               | 14                 | Font size for date separator text.              |
+| `DateTextColor`                  | LightGray           | Color for date separator text.                   |
+| `AvatarBackgroundColor`          | LightBlue           | Background color for avatars.                   |
+| `AvatarTextColor`                | White              | Text color for avatar initials.                 |
+| `OwnMessageBackgroundColor`      | LightBlue           | Background color for the user's messages.         |
+| `OwnMessageTextColor`            | Black              | Text color for the user's messages.              |
+| `OwnMessageFontSize`             | 14                 | Font size for the user's messages.               |
+| `OtherMessageBackgroundColor`    | LightGray           | Background color for other users' messages.       |
+| `OtherMessageTextColor`          | Black              | Text color for other users' messages.            |
+| `OtherMessageFontSize`           | 14                 | Font size for other users' messages.             |
+| `MessageFontSize`                | 14                 | Font size for messages.                          |
+| `DateTextColor`                  | LightGray           | Color for date separator text.                   |
+| `AvatarSize`                     | 36                 | Size of avatars.                                 |
+| `ScrollToLastMessage`            | true               | Auto-scrolls to the last message.                |
+| `ShowNewMessagesSeperator`       | false              | Enables or disables the new message separator.   |
+| `EmojiReactionFontSize`          | 10                 | Font size for emoji reactions.                   |
+| `ReplyMessageBackgroundColor`    | LightYellow         | Background color for replied message previews.   |
+| `ReplyMessageFontSize`           | 10                 | Font size for replied message previews.          |
+| `ReplyMessageTextColor`          | Black              | Text color for replied message previews.         |
 
 ---
 
 ## Usage
 
+> **Platform-Specific Note:** The platform-specific code for iOS and Android uses a caching mechanism for images and video-based messages. The binary content of such messages is stored in the device's cache folder for optimized performance and memory management.
+
+> **Note:** The `ChatView` control is solely responsible for rendering different message types. It does not include features like a text input box or a send button. These components need to be implemented by the user in the MAUI.NET app, as demonstrated in the `Indiko.Maui.Controls.Chat.Sample` project.
+
+### Emoji Reaction Tapped Event Handling Example
+
+To handle the `EmojiReactionTappedCommand` properly, you can define a method in your ViewModel as follows:
+
+```csharp
+[RelayCommand]
+private void OnEmojiReactionTapped(ChatMessage message)
+{
+    Console.WriteLine($"Emoji Reaction tapped: {message.MessageId}");
+}
+```
+
+### Message Clicked Event Handling Example
+
+To handle the `MessageTappedCommand` properly, you can define a method in your ViewModel as follows:
+
+```csharp
+[RelayCommand]
+private void OnMessageTapped(ChatMessage message)
+{
+    Console.WriteLine($"Message tapped for message: {message.MessageId}");
+}
+```
+
+### Avatar Clicked Event Handling Example
+
+To handle the `AvatarTappedCommand` properly, you can define a method in your ViewModel as follows:
+
+```csharp
+[RelayCommand]
+private void OnAvatarTapped(ChatMessage message)
+{
+    Console.WriteLine($"Avatar tapped for message: {message.MessageId}");
+}
+```
+
+### Scrolled Event Handling Example
+
+To handle the `ScrolledCommand` properly, you can define a method in your ViewModel as follows:
+
+```csharp
+[RelayCommand]
+private void Scrolled(ScrolledArgs scrolledArgs)
+{
+    // Handle scroll event logic
+    Console.WriteLine($"Scrolled to position: X={scrolledArgs.X}, Y={scrolledArgs.Y}");
+}
+```
+
 ### XAML Example
 
 ```xml
-<local:ChatView 
-    Messages="{Binding Messages}" 
-    MessageTappedCommand="{Binding OnMessageTappedCommand}" 
-    AvatarTappedCommand="{Binding OnAvatarTappedCommand}" 
-    LoadMoreMessagesCommand="{Binding OnLoadMoreMessagesCommand}" 
-    OwnMessageBackgroundColor="LightBlue" 
-    OtherMessageBackgroundColor="LightGray" 
+<local:ChatView
+    Messages="{Binding Messages}"
+    MessageTappedCommand="{Binding OnMessageTappedCommand}"
+    AvatarTappedCommand="{Binding OnAvatarTappedCommand}"
+    LoadMoreMessagesCommand="{Binding OnLoadMoreMessagesCommand}"
+    OwnMessageBackgroundColor="LightBlue"
+    OtherMessageBackgroundColor="LightGray"
     MessageFontSize="14"
     ShowNewMessagesSeperator="True"
-    NewMessagesSeperatorText="New Messages"/>
+    NewMessagesSeperatorText="New Messages" />
 ```
 
 ### Code-Behind Example
@@ -178,50 +274,26 @@ void OnMessageTapped(ChatMessage message)
     // Handle message tap
 }
 
-void OnAvatarTapped(object sender)
+void OnAvatarTapped()
 {
     // Handle avatar tap
 }
 
-void OnLoadMoreMessages(object sender)
+void OnLoadMoreMessages()
 {
-    // Handle loading older messages
+    // Load older messages
 }
 ```
 
 ---
 
-## Styling
-
-The control provides extensive styling options:
-
-| Property                      | Default Value       | Description                                   |
-|-------------------------------|---------------------|-----------------------------------------------|
-| `OwnMessageBackgroundColor`   | LightBlue           | Background color for the user's messages.     |
-| `OtherMessageBackgroundColor` | LightGray           | Background color for other users' messages.   |
-| `MessageFontSize`             | 14                 | Font size for message text.                  |
-| `DateTextColor`               | LightGray           | Color for date separator text.               |
-| `AvatarSize`                  | 36                 | Size of avatars.                             |
-| `ScrollToLastMessage`         | true               | Auto-scrolls to the last message.            |
-
----
-
-## Commands
-
-| Command                    | Description                                              |
-|----------------------------|----------------------------------------------------------|
-| `ScrolledCommand`          | Invoked when the user scrolls through messages.          |
-| `MessageTappedCommand`     | Triggered when a message is tapped.                      |
-| `AvatarTappedCommand`      | Triggered when an avatar is tapped.                      |
-| `LoadMoreMessagesCommand`  | Invoked when more messages need to be loaded.            |
-| `EmojiReactionTappedCommand` | Triggered when an emoji reaction is tapped.            |
-| `ScrolledToLastMessageCommand` | Triggered when the chat view is scrolled to the last message. |
-
----
-
 ## Contributing
 
-Contributions to the `ChatView` project are very welcome! Whether you want to add new features, improve existing ones, fix bugs, or enhance documentation, your help is highly appreciated.
+We encourage you to contribute to the development of the `ChatView` control! Whether you're fixing bugs, adding new features, or enhancing the documentation, your contributions make a difference.
+
+If you find the `ChatView` control helpful, please consider leaving a ⭐ on the repository. It helps others discover this project and shows your support!
+
+Contributions are welcome! Please follow the guidelines for creating feature branches, writing commit messages, and submitting pull requests.
 
 ---
 
@@ -266,7 +338,7 @@ The commit contains the following structural elements to communicate intent to t
   - **perf:** A code change that improves performance
   - **test:** Adding missing tests or correcting existing tests
 
-Footers other than BREAKING CHANGE: <description> may be provided and follow a convention similar to git trailer format. Additional types are not mandated by the Conventional Commits specification and have no implicit effect in Semantic Versioning (unless they include a BREAKING CHANGE). A scope may be provided to a commit�s type, to provide additional contextual information and is contained within parenthesis, e.g., feat(parser): add ability to parse arrays.
+Footers other than BREAKING CHANGE: <description> may be provided and follow a convention similar to git trailer format. Additional types are not mandated by the Conventional Commits specification and have no implicit effect in Semantic Versioning (unless they include a BREAKING CHANGE). A scope may be provided to a commit’s type, to provide additional contextual information and is contained within parenthesis, e.g., feat(parser): add ability to parse arrays.
 
 Example commit messages:
 
@@ -299,3 +371,4 @@ Happy coding!
 ## License
 
 This project is licensed under the MIT License.
+
