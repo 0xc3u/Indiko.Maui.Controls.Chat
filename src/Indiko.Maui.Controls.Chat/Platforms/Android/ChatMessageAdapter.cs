@@ -502,11 +502,16 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.VideoView.Visibility = ViewStates.Gone;
                 chatHolder.AvatarView.Visibility = ViewStates.Gone;
                 chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
+
+                chatHolder.FrameLayout.Visibility = ViewStates.Gone;
+                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
+
                 chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
                 chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
                 chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
                 chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
-                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
+                chatHolder.ReplySenderTextView.Visibility = ViewStates.Gone;
+                chatHolder.ReplyPreviewTextView.Visibility = ViewStates.Gone;
 
                 chatHolder.DateTextView.Visibility = ViewStates.Visible;
                 chatHolder.DateTextView.Text = message.TextContent;
@@ -524,6 +529,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
                 chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
                 chatHolder.DateTextView.Visibility = ViewStates.Gone;
+                chatHolder.FrameLayout.Visibility = ViewStates.Gone;
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
 
                 chatHolder.SystemMessageTextView.Text = message.TextContent;
