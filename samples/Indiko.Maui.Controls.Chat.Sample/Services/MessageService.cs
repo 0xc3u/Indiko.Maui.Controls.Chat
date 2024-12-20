@@ -267,8 +267,21 @@ public class MessageService : IMessageService
 
         messages.Add(videoMessage);
 
-        // insert date separators
-        for (int i = 0; i < messages.OrderBy(e=>e.Timestamp).ToList().Count; i++)
+
+        //var systemMessage = new ChatMessage()
+        //{
+        //    DeliveryState = MessageDeliveryState.Delivered,
+        //    IsOwnMessage = false,
+        //    MessageId = Guid.NewGuid().ToString("N"),
+        //    MessageType = MessageType.System,
+        //    Reactions = [],
+        //    TextContent = "This is a message from the system."
+        //};
+
+        //messages.Insert(15,systemMessage);
+
+        //// insert date separators
+        for (int i = 0; i < messages.OrderBy(e => e.Timestamp).ToList().Count; i++)
         {
             var message = messages[i];
             if (lastDateAdded == null || message.Timestamp.Date != lastDateAdded)
