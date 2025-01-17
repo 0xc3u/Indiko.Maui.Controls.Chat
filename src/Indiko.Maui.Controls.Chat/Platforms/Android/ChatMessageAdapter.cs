@@ -128,8 +128,17 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         avatarBackground.SetColor(AvatarBackgroundColor.ToPlatform());
         avatarView.Background = avatarBackground;
 
-
-
+        // Date TextView
+        var dateTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = DateTextFontSize,
+            Typeface = Typeface.DefaultBold,
+            Visibility = ViewStates.Gone // Initially hidden
+        };
+        dateTextView.SetTextColor(DateTextColor.ToPlatform());
+        dateTextView.SetPadding(32, 16, 32, 16);
+        constraintLayout.AddView(dateTextView);
 
         //New Messages Separator TextView
         var newMessagesSeparatorTextView = new TextView(_context)
@@ -262,8 +271,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintLayout.AddView(deliveryStatusIcon);
 
 
-      
-
         // System TextView
         var systemTextView = new TextView(_context)
         {
@@ -276,17 +283,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         constraintLayout.AddView(systemTextView);
 
-        // Date TextView
-        var dateTextView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = DateTextFontSize,
-            Typeface = Typeface.DefaultBold,
-            Visibility = ViewStates.Gone // Initially hidden
-        };
-        dateTextView.SetTextColor(DateTextColor.ToPlatform());
-        dateTextView.SetPadding(32, 16, 32, 16);
-        constraintLayout.AddView(dateTextView);
 
         // Set up constraints for views
         var constraintSet = new ConstraintSet();
@@ -401,7 +397,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             }
 
             bool isSystemMessage = false;
-            chatHolder.DateTextView.Visibility = ViewStates.Gone;
+            chatHolder.DateTextView.Visibility = ViewStates.Gone; // group by date set Visibility Gone at first place
 
             // Set message type handling
             if (message.MessageType == MessageType.Text)
