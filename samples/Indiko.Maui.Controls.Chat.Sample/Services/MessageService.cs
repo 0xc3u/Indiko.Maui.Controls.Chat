@@ -268,17 +268,17 @@ public class MessageService : IMessageService
         messages.Add(videoMessage);
 
 
-        //var systemMessage = new ChatMessage()
-        //{
-        //    DeliveryState = MessageDeliveryState.Delivered,
-        //    IsOwnMessage = false,
-        //    MessageId = Guid.NewGuid().ToString("N"),
-        //    MessageType = MessageType.System,
-        //    Reactions = [],
-        //    TextContent = "This is a message from the system."
-        //};
+        var systemMessage = new ChatMessage()
+        {
+            DeliveryState = MessageDeliveryState.Delivered,
+            IsOwnMessage = false,
+            MessageId = Guid.NewGuid().ToString("N"),
+            MessageType = MessageType.System,
+            Reactions = [],
+            TextContent = "This is a message from the system."
+        };
 
-        //messages.Insert(15,systemMessage);
+        messages.Insert(15, systemMessage);
 
         //// insert date separators
         for (int i = 0; i < messages.OrderBy(e => e.Timestamp).ToList().Count; i++)
@@ -288,10 +288,13 @@ public class MessageService : IMessageService
             {
                 messages.Insert(i, new ChatMessage
                 {
-                    TextContent = message.Timestamp.ToString("dddd, MMMM d, yyyy"),
+                    DeliveryState = MessageDeliveryState.Delivered,
+                    IsOwnMessage = false,
+                    MessageId = Guid.NewGuid().ToString(),
                     MessageType = MessageType.Date,
+                    Reactions = [],
+                    TextContent = message.Timestamp.ToString("dddd, MMMM d, yyyy"),
                     Timestamp = message.Timestamp.Date,
-                    MessageId = Guid.NewGuid().ToString()
                 });
                 lastDateAdded = message.Timestamp.Date;
                 i++;
