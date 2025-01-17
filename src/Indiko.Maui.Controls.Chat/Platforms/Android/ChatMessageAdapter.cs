@@ -129,18 +129,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         avatarView.Background = avatarBackground;
 
 
-        // Date TextView
-        var dateTextView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = DateTextFontSize,
-            Typeface = Typeface.DefaultBold,
-            Visibility = ViewStates.Gone // Initially hidden
-        };
-        dateTextView.SetTextColor(DateTextColor.ToPlatform());
-        constraintLayout.AddView(dateTextView);
 
-        // New Messages Separator TextView
+
+        //New Messages Separator TextView
         var newMessagesSeparatorTextView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
@@ -271,6 +262,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintLayout.AddView(deliveryStatusIcon);
 
 
+      
 
         // System TextView
         var systemTextView = new TextView(_context)
@@ -284,6 +276,17 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         constraintLayout.AddView(systemTextView);
 
+        // Date TextView
+        var dateTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = DateTextFontSize,
+            Typeface = Typeface.DefaultBold,
+            Visibility = ViewStates.Gone // Initially hidden
+        };
+        dateTextView.SetTextColor(DateTextColor.ToPlatform());
+        dateTextView.SetPadding(32, 16, 32, 16);
+        constraintLayout.AddView(dateTextView);
 
         // Set up constraints for views
         var constraintSet = new ConstraintSet();
@@ -398,6 +401,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             }
 
             bool isSystemMessage = false;
+            chatHolder.DateTextView.Visibility = ViewStates.Gone;
 
             // Set message type handling
             if (message.MessageType == MessageType.Text)
@@ -503,7 +507,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.AvatarView.Visibility = ViewStates.Gone;
                 chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
 
-                chatHolder.FrameLayout.Visibility = ViewStates.Gone;
+                //chatHolder.FrameLayout.Visibility = ViewStates.Gone;
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
 
                 chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
@@ -515,9 +519,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
                 chatHolder.DateTextView.Visibility = ViewStates.Visible;
                 chatHolder.DateTextView.Text = message.TextContent;
-                isSystemMessage = true;
+                //isSystemMessage = true;
             }
-            else if(message.MessageType == MessageType.System)
+            else if (message.MessageType == MessageType.System)
             {
                 chatHolder.TextView.Visibility = ViewStates.Gone;
                 chatHolder.ImageView.Visibility = ViewStates.Gone;
@@ -529,13 +533,13 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
                 chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
                 chatHolder.DateTextView.Visibility = ViewStates.Gone;
-                chatHolder.FrameLayout.Visibility = ViewStates.Gone;
+                //chatHolder.FrameLayout.Visibility = ViewStates.Gone;
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
 
                 chatHolder.SystemMessageTextView.Text = message.TextContent;
                 chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
                 chatHolder.SystemMessageTextView.TextSize = SystemMessageFontSize;
-                
+
                 var systemMessageBackgroundDrawable = new GradientDrawable();
                 systemMessageBackgroundDrawable.SetShape(ShapeType.Rectangle);
                 systemMessageBackgroundDrawable.SetColor(SystemMessageBackgroundColor.ToPlatform());
