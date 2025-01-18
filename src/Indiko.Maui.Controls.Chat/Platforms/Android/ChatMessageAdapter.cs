@@ -116,20 +116,20 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public override RecyclerView.ViewHolder OnCreateViewHolder(aViews.ViewGroup parent, int viewType)
     {
         aViews.View itemView;
-        int messageTextViewId, timeTextViewId, messageImageViewId, messageVideoViewId, systemMessageTextViewId, dateTextViewId;
+        int messageTextViewId, timeTextViewId, messageImageViewId, messageVideoViewId, systemMessageTextViewId, dateTextViewId, avatarViewId;
         bool isOwnMessage = false; // Default value, will be set in OnBindViewHolder
 
         switch (viewType)
         {
             case (int)MessageType.Text:
-                itemView = CreateTextMessageView(parent, out messageTextViewId, out timeTextViewId, isOwnMessage);
-                return new TextMessageViewHolder(itemView, messageTextViewId, timeTextViewId);
+                itemView = CreateTextMessageView(parent, out messageTextViewId, out timeTextViewId, out avatarViewId, isOwnMessage);
+                return new TextMessageViewHolder(itemView, messageTextViewId, timeTextViewId, avatarViewId);
             case (int)MessageType.Image:
-                itemView = CreateImageMessageView(parent, out messageImageViewId, out timeTextViewId, isOwnMessage);
-                return new ImageMessageViewHolder(itemView, messageImageViewId, timeTextViewId);
+                itemView = CreateImageMessageView(parent, out messageImageViewId, out timeTextViewId, out avatarViewId, isOwnMessage);
+                return new ImageMessageViewHolder(itemView, messageImageViewId, timeTextViewId, avatarViewId);
             case (int)MessageType.Video:
-                itemView = CreateVideoMessageView(parent, out messageVideoViewId, out timeTextViewId, isOwnMessage);
-                return new VideoMessageViewHolder(itemView, messageVideoViewId, timeTextViewId);
+                itemView = CreateVideoMessageView(parent, out messageVideoViewId, out timeTextViewId, out avatarViewId, isOwnMessage);
+                return new VideoMessageViewHolder(itemView, messageVideoViewId, timeTextViewId, avatarViewId);
             case (int)MessageType.System:
                 itemView = CreateSystemMessageView(parent, out systemMessageTextViewId);
                 return new SystemMessageViewHolder(itemView, systemMessageTextViewId);
@@ -142,7 +142,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     }
 
 
-    private aViews.View CreateTextMessageView(ViewGroup parent, out int messageTextViewId, out int timeTextViewId, bool isOwnMessage)
+    private aViews.View CreateTextMessageView(ViewGroup parent, out int messageTextViewId, out int timeTextViewId, out int avatarViewId, bool isOwnMessage)
     {
         var constraintLayout = new ConstraintLayout(parent.Context)
         {
@@ -150,6 +150,20 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.WrapContent)
         };
+
+        var avatarView = new ImageView(_context)
+        {
+            Id = aViews.View.GenerateViewId(),
+            LayoutParameters = new ConstraintLayout.LayoutParams(96, 96) // Fixed size
+        };
+        avatarView.SetScaleType(ImageView.ScaleType.CenterCrop); // Center and crop image
+        
+        // Add a circular shape drawable
+        var avatarBackground = new GradientDrawable();
+        avatarBackground.SetShape(ShapeType.Oval);
+        avatarBackground.SetColor(AvatarBackgroundColor.ToPlatform());
+        avatarView.Background = avatarBackground;
+
 
         var messageTextView = new TextView(parent.Context)
         {
@@ -169,17 +183,24 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         messageTextViewId = messageTextView.Id;
         timeTextViewId = timeTextView.Id;
+        avatarViewId = avatarView.Id;
 
         messageTextView.SetPadding(16, 16, 16, 16);
         timeTextView.SetPadding(16, 8, 16, 8);
 
+        constraintLayout.AddView(avatarView);
         constraintLayout.AddView(messageTextView);
         constraintLayout.AddView(timeTextView);
 
         var constraintSet = new ConstraintSet();
         constraintSet.Clone(constraintLayout);
+              
 
         // Set constraints for messageTextView
+        constraintSet.Connect(avatarView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top, 0);
+        constraintSet.Connect(avatarView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 32);
+
+
         constraintSet.Connect(messageTextViewId, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top);
         constraintSet.Connect(messageTextViewId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
         constraintSet.ConstrainPercentWidth(messageTextViewId, 0.65f);
@@ -193,7 +214,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         return constraintLayout;
     }
 
-    private aViews.View CreateImageMessageView(ViewGroup parent, out int messageImageViewId, out int timeTextViewId, bool isOwnMessage)
+    private aViews.View CreateImageMessageView(ViewGroup parent, out int messageImageViewId, out int timeTextViewId, out int avatarViewId, bool isOwnMessage)
     {
         var constraintLayout = new ConstraintLayout(parent.Context)
         {
@@ -218,6 +239,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         messageImageViewId = aViews.View.GenerateViewId();
         timeTextViewId = aViews.View.GenerateViewId();
+        avatarViewId = aViews.View.GenerateViewId();
 
         messageImageView.Id = messageImageViewId;
         timeTextView.Id = timeTextViewId;
@@ -245,7 +267,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         return constraintLayout;
     }
 
-    private aViews.View CreateVideoMessageView(ViewGroup parent, out int messageVideoViewId, out int timeTextViewId, bool isOwnMessage)
+    private aViews.View CreateVideoMessageView(ViewGroup parent, out int messageVideoViewId, out int timeTextViewId, out int avatarViewId, bool isOwnMessage)
     {
         var constraintLayout = new ConstraintLayout(parent.Context)
         {
@@ -270,6 +292,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         messageVideoViewId = aViews.View.GenerateViewId();
         timeTextViewId = aViews.View.GenerateViewId();
+        avatarViewId = aViews.View.GenerateViewId();
 
         messageVideoView.Id = messageVideoViewId;
         timeTextView.Id = timeTextViewId;
@@ -464,38 +487,44 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
 public class TextMessageViewHolder : RecyclerView.ViewHolder
 {
+    public ImageView AvatarView { get; private set; }
     public TextView MessageTextView { get; private set; }
     public TextView TimeTextView { get; private set; }
 
-    public TextMessageViewHolder(aViews.View itemView, int messageTextViewId, int timeTextViewId) : base(itemView)
+    public TextMessageViewHolder(aViews.View itemView, int messageTextViewId, int timeTextViewId, int avatarViewId) : base(itemView)
     {
         MessageTextView = itemView.FindViewById<TextView>(messageTextViewId);
         TimeTextView = itemView.FindViewById<TextView>(timeTextViewId);
+        AvatarView = itemView.FindViewById<ImageView>(avatarViewId);
     }
 }
 
 
 public class ImageMessageViewHolder : RecyclerView.ViewHolder
 {
+    public ImageView AvatarView { get; private set; }
     public ImageView MessageImageView { get; private set; }
     public TextView TimeTextView { get; private set; }
 
-    public ImageMessageViewHolder(aViews.View itemView, int messageImageViewId, int timeTextViewId) : base(itemView)
+    public ImageMessageViewHolder(aViews.View itemView, int messageImageViewId, int timeTextViewId, int avatarViewId) : base(itemView)
     {
         MessageImageView = itemView.FindViewById<ImageView>(messageImageViewId);
         TimeTextView = itemView.FindViewById<TextView>(timeTextViewId);
+        AvatarView = itemView.FindViewById<ImageView>(avatarViewId);
     }
 }
 
 public class VideoMessageViewHolder : RecyclerView.ViewHolder
 {
+    public ImageView AvatarView { get; private set; }
     public VideoView MessageVideoView { get; private set; }
     public TextView TimeTextView { get; private set; }
 
-    public VideoMessageViewHolder(aViews.View itemView, int messageVideoViewId, int timeTextViewId) : base(itemView)
+    public VideoMessageViewHolder(aViews.View itemView, int messageVideoViewId, int timeTextViewId, int avatarViewId) : base(itemView)
     {
         MessageVideoView = itemView.FindViewById<VideoView>(messageVideoViewId);
         TimeTextView = itemView.FindViewById<TextView>(timeTextViewId);
+        AvatarView = itemView.FindViewById<ImageView>(avatarViewId);
     }
 }
 
