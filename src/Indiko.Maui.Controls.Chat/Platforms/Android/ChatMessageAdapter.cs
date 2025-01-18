@@ -20,6 +20,7 @@ using Color = Microsoft.Maui.Graphics.Color;
 using Paint = Android.Graphics.Paint;
 using Rect = Android.Graphics.Rect;
 using RectF = Android.Graphics.RectF;
+using Android.Graphics;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 public class ChatMessageAdapter : RecyclerView.Adapter
@@ -410,6 +411,44 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     constraintSet.Connect(textHolder.TimeTextView.Id, ConstraintSet.Top, textHolder.MessageTextView.Id, ConstraintSet.Bottom, 8);
                     constraintSet.Connect(textHolder.TimeTextView.Id, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
                     constraintSet.ApplyTo((ConstraintLayout)textHolder.ItemView);
+
+                    // Set the avatar image
+                    if (!message.IsOwnMessage && message.SenderAvatar != null)
+                    {
+                        textHolder.AvatarView.Visibility = ViewStates.Visible;
+                        // Load avatar as bitmap
+                        var originalBitmap = BitmapFactory.DecodeByteArray(message.SenderAvatar, 0, message.SenderAvatar.Length);
+
+                        // Crop the bitmap into a circular shape
+                        var circularBitmap = CreateCircularBitmap(originalBitmap);
+
+                        // Set the circular bitmap to the avatar
+                        textHolder.AvatarView.SetImageBitmap(circularBitmap);
+                    }
+                    else if (!message.IsOwnMessage)
+                    {
+                        textHolder.AvatarView.Visibility = ViewStates.Visible;
+
+                        if (!string.IsNullOrWhiteSpace(message.SenderInitials))
+                        {
+                            // Draw initials in a circular bitmap
+                            var initialsBitmap = CreateInitialsBitmap(message.SenderInitials, 96, 96); // 96x96 size
+                            textHolder.AvatarView.SetImageBitmap(initialsBitmap);
+                        }
+                        else
+                        {
+                            // Default placeholder if initials are not available
+                            var avatarPlaceholder = new GradientDrawable();
+                            avatarPlaceholder.SetShape(ShapeType.Oval);
+                            avatarPlaceholder.SetColor(AvatarBackgroundColor.ToPlatform()); // Placeholder color
+                            textHolder.AvatarView.Background = avatarPlaceholder;
+                            textHolder.AvatarView.SetImageBitmap(null);
+                        }
+                    }
+                    else
+                    {
+                        textHolder.AvatarView.Visibility = ViewStates.Gone;
+                    }
                 }
                 break;
             case MessageType.Image:
@@ -480,6 +519,65 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             default:
                 throw new NotSupportedException($"Message type {message.MessageType} is not supported");
         }
+    }
+
+    private static Bitmap CreateCircularBitmap(Bitmap bitmap)
+    {
+        int size = Math.Min(bitmap.Width, bitmap.Height);
+        Bitmap output = Bitmap.CreateBitmap(size, size, Bitmap.Config.Argb8888);
+
+        Canvas canvas = new Canvas(output);
+        Paint paint = new Paint
+        {
+            AntiAlias = true,
+            FilterBitmap = true
+        };
+
+        Rect srcRect = new Rect(0, 0, bitmap.Width, bitmap.Height);
+        RectF destRect = new RectF(0, 0, size, size);
+        canvas.DrawARGB(0, 0, 0, 0); // Transparent background
+        canvas.DrawCircle(size / 2f, size / 2f, size / 2f, paint);
+
+        paint.SetXfermode(new PorterDuffXfermode(PorterDuff.Mode.SrcIn));
+        canvas.DrawBitmap(bitmap, srcRect, destRect, paint);
+
+        return output;
+    }
+
+    private Bitmap CreateInitialsBitmap(string initials, int width, int height)
+    {
+        Bitmap output = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888);
+
+        using (Canvas canvas = new Canvas(output))
+        {
+            // Draw the circular background
+            Paint backgroundPaint = new Paint
+            {
+                AntiAlias = true,
+                Color = AvatarBackgroundColor.ToPlatform() // Background color
+            };
+            canvas.DrawCircle(width / 2f, height / 2f, width / 2f, backgroundPaint);
+
+            // Draw the initials
+            Paint textPaint = new Paint
+            {
+                AntiAlias = true,
+                Color = AvatarTextColor.ToPlatform(), // Text color
+                TextAlign = Paint.Align.Center,
+                TextSize = width / 3f // Adjust text size based on avatar size
+            };
+
+            // Calculate text position
+            Rect textBounds = new Rect();
+            textPaint.GetTextBounds(initials, 0, initials.Length, textBounds);
+            float x = width / 2f;
+            float y = (height / 2f) - textBounds.ExactCenterY();
+
+            // Draw the text
+            canvas.DrawText(initials, x, y, textPaint);
+        }
+
+        return output;
     }
 
 
