@@ -1,22 +1,27 @@
-﻿using Android.Content;
-using Android.Graphics;
-using Android.Graphics.Drawables;
-using Android.Views;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Android.Content;
+using aViews = Android.Views;
 using Android.Widget;
 using AndroidX.ConstraintLayout.Widget;
 using AndroidX.RecyclerView.Widget;
 using Indiko.Maui.Controls.Chat.Models;
+using Android.Views;
+using Android.Util;
 using Microsoft.Maui.Platform;
+using Android.Graphics.Drawables;
+using Microsoft.Maui.Controls.Platform;
 using aIO = Java.IO;
 using ANet = Android.Net;
-using AViews = Android.Views;
 using Color = Microsoft.Maui.Graphics.Color;
 using Paint = Android.Graphics.Paint;
 using Rect = Android.Graphics.Rect;
 using RectF = Android.Graphics.RectF;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
-
 public class ChatMessageAdapter : RecyclerView.Adapter
 {
     private readonly Context _context;
@@ -101,662 +106,415 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         SystemMessageTextColor = VirtualView.SystemMessageTextColor;
         SystemMessageFontSize = VirtualView.SystemMessageFontSize;
     }
-
     public override int ItemCount => _messages.Count;
 
-    public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
+    public override int GetItemViewType(int position)
     {
-        var constraintLayout = new ConstraintLayout(_context)
+        return (int)_messages[position].MessageType;
+    }
+
+    public override RecyclerView.ViewHolder OnCreateViewHolder(aViews.ViewGroup parent, int viewType)
+    {
+        aViews.View itemView;
+        int messageTextViewId, timeTextViewId, messageImageViewId, messageVideoViewId, systemMessageTextViewId, dateTextViewId;
+        bool isOwnMessage = false; // Default value, will be set in OnBindViewHolder
+
+        switch (viewType)
+        {
+            case (int)MessageType.Text:
+                itemView = CreateTextMessageView(parent, out messageTextViewId, out timeTextViewId, isOwnMessage);
+                return new TextMessageViewHolder(itemView, messageTextViewId, timeTextViewId);
+            case (int)MessageType.Image:
+                itemView = CreateImageMessageView(parent, out messageImageViewId, out timeTextViewId, isOwnMessage);
+                return new ImageMessageViewHolder(itemView, messageImageViewId, timeTextViewId);
+            case (int)MessageType.Video:
+                itemView = CreateVideoMessageView(parent, out messageVideoViewId, out timeTextViewId, isOwnMessage);
+                return new VideoMessageViewHolder(itemView, messageVideoViewId, timeTextViewId);
+            case (int)MessageType.System:
+                itemView = CreateSystemMessageView(parent, out systemMessageTextViewId);
+                return new SystemMessageViewHolder(itemView, systemMessageTextViewId);
+            case (int)MessageType.Date:
+                itemView = CreateDateMessageView(parent, out dateTextViewId);
+                return new DateMessageViewHolder(itemView, dateTextViewId);
+            default:
+                throw new NotSupportedException($"Message type {viewType} is not supported");
+        }
+    }
+
+
+    private aViews.View CreateTextMessageView(ViewGroup parent, out int messageTextViewId, out int timeTextViewId, bool isOwnMessage)
+    {
+        var constraintLayout = new ConstraintLayout(parent.Context)
         {
             LayoutParameters = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.WrapContent)
         };
 
-        // Avatar ImageView
-        var avatarView = new ImageView(_context)
+        var messageTextView = new TextView(parent.Context)
         {
-            Id = AViews.View.GenerateViewId(),
-            LayoutParameters = new ConstraintLayout.LayoutParams(96, 96) // Fixed size
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent),
+            Id = aViews.View.GenerateViewId()
         };
-        avatarView.SetScaleType(ImageView.ScaleType.CenterCrop); // Center and crop image
-        constraintLayout.AddView(avatarView);
 
-        // Add a circular shape drawable
-        var avatarBackground = new GradientDrawable();
-        avatarBackground.SetShape(ShapeType.Oval);
-        avatarBackground.SetColor(AvatarBackgroundColor.ToPlatform());
-        avatarView.Background = avatarBackground;
-
-        // Date TextView
-        var dateTextView = new TextView(_context)
+        var timeTextView = new TextView(parent.Context)
         {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = DateTextFontSize,
-            Typeface = Typeface.DefaultBold,
-            Visibility = ViewStates.Gone // Initially hidden
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent),
+            Id = aViews.View.GenerateViewId()
         };
-        dateTextView.SetTextColor(DateTextColor.ToPlatform());
-        dateTextView.SetPadding(32, 16, 32, 16);
-        constraintLayout.AddView(dateTextView);
 
-        //New Messages Separator TextView
-        var newMessagesSeparatorTextView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            Text = NewMessagesSeperatorText,
-            TextSize = NewMessagesSeperatorFontSize,
-            TextAlignment = AViews.TextAlignment.Center,
-            Visibility = ViewStates.Gone // Initially hidden
-        };
-        newMessagesSeparatorTextView.SetTextColor(NewMessagesSeperatorTextColor.ToPlatform());
-        constraintLayout.AddView(newMessagesSeparatorTextView);
+        messageTextViewId = messageTextView.Id;
+        timeTextViewId = timeTextView.Id;
 
-        // FrameLayout for message content (Text or Image)
-        var frameLayout = new FrameLayout(_context)
-        {
-            Id = AViews.View.GenerateViewId()
-        };
-        constraintLayout.AddView(frameLayout);
+        messageTextView.SetPadding(16, 16, 16, 16);
+        timeTextView.SetPadding(16, 8, 16, 8);
 
-        // LinearLayout for two rows inside FrameLayout
-        var linearLayout = new LinearLayout(_context)
+        constraintLayout.AddView(messageTextView);
+        constraintLayout.AddView(timeTextView);
+
+        var constraintSet = new ConstraintSet();
+        constraintSet.Clone(constraintLayout);
+
+        // Set constraints for messageTextView
+        constraintSet.Connect(messageTextViewId, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top);
+        constraintSet.Connect(messageTextViewId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+        constraintSet.ConstrainPercentWidth(messageTextViewId, 0.65f);
+
+        // Set constraints for timeTextView
+        constraintSet.Connect(timeTextViewId, ConstraintSet.Top, messageTextViewId, ConstraintSet.Bottom, 8);
+        constraintSet.Connect(timeTextViewId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+
+        constraintSet.ApplyTo(constraintLayout);
+
+        return constraintLayout;
+    }
+
+    private aViews.View CreateImageMessageView(ViewGroup parent, out int messageImageViewId, out int timeTextViewId, bool isOwnMessage)
+    {
+        var constraintLayout = new ConstraintLayout(parent.Context)
         {
-            Orientation = Orientation.Vertical,
-            LayoutParameters = new FrameLayout.LayoutParams(
+            LayoutParameters = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MatchParent,
                 ViewGroup.LayoutParams.WrapContent)
         };
-        frameLayout.AddView(linearLayout);
 
-        // Reply summary container
-        var replySummaryFrame = new LinearLayout(_context)
+        var messageImageView = new ImageView(parent.Context)
         {
-            Id = AViews.View.GenerateViewId(),
-            Orientation = Orientation.Vertical,
-            Visibility = ViewStates.Gone // Initially hidden
-        };
-        replySummaryFrame.SetPadding(32, 16, 32, 16); // Padding for the reply summary
-        linearLayout.AddView(replySummaryFrame, new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.WrapContent));
-
-        // Row 1: Sender name
-        var replySenderTextView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = ReplyMessageFontSize, // Smaller font size for the sender name
-            Typeface = Typeface.DefaultBold,
-        };
-        replySummaryFrame.AddView(replySenderTextView);
-
-        // Row 2: Message preview
-        var replyPreviewTextView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = ReplyMessageFontSize, // Smaller font size for the preview
-        };
-        replySummaryFrame.AddView(replyPreviewTextView);
-
-        // Message TextView (chat bubble)
-        var textView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = MessageFontSize,
-            Visibility = ViewStates.Gone
-        };
-        textView.SetPadding(32, 16, 32, 16); // Padding inside the bubble
-        linearLayout.AddView(textView, new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.WrapContent));
-
-        // Message ImageView (for image messages)
-        var imageView = new ImageView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            Visibility = ViewStates.Gone // Initially hidden
-        };
-        linearLayout.AddView(imageView, new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.WrapContent));
-
-        // Inside OnCreateViewHolder, add the VideoView wrapper
-        var videoContainer = new FrameLayout(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            Visibility = ViewStates.Gone
-        };
-
-        // Create the VideoView
-        var videoView = new VideoView(_context)
-        {
-            Id = AViews.View.GenerateViewId()
-        };
-
-        // Add the VideoView to the container
-        videoContainer.AddView(videoView);
-        linearLayout.AddView(videoContainer, new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.WrapContent));
-
-        // Timestamp TextView (displayed below the message bubble)
-        var timestampTextView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = MessageTimeFontSize
-        };
-        timestampTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
-        constraintLayout.AddView(timestampTextView);
-
-        // Add the reaction container (LinearLayout)
-        var reactionContainer = new LinearLayout(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            Orientation = Orientation.Horizontal,
-            LayoutParameters = new ConstraintLayout.LayoutParams(
+            LayoutParameters = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WrapContent,
                 ViewGroup.LayoutParams.WrapContent)
         };
 
-        // Set margin or padding for the reaction container if needed
-        reactionContainer.SetPadding(16, 8, 16, 8);
-        constraintLayout.AddView(reactionContainer);
-
-        // Delivery status icon
-        var deliveryStatusIcon = new ImageView(_context)
+        var timeTextView = new TextView(parent.Context)
         {
-            Id = AViews.View.GenerateViewId(),
-            LayoutParameters = new ConstraintLayout.LayoutParams(32, 32) // Set the size of the icon
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent)
         };
-        constraintLayout.AddView(deliveryStatusIcon);
 
+        messageImageViewId = aViews.View.GenerateViewId();
+        timeTextViewId = aViews.View.GenerateViewId();
 
-        // System TextView
-        var systemTextView = new TextView(_context)
-        {
-            Id = AViews.View.GenerateViewId(),
-            TextSize = SystemMessageFontSize,
-            Visibility = ViewStates.Gone // Initially hidden
-        };
-        systemTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
-        systemTextView.SetPadding(32, 16, 32, 16);
+        messageImageView.Id = messageImageViewId;
+        timeTextView.Id = timeTextViewId;
 
-        constraintLayout.AddView(systemTextView);
+        messageImageView.SetPadding(10, 10, 10, 10);
+        timeTextView.SetPadding(10, 10, 10, 10);
 
+        constraintLayout.AddView(messageImageView);
+        constraintLayout.AddView(timeTextView);
 
-        // Set up constraints for views
         var constraintSet = new ConstraintSet();
         constraintSet.Clone(constraintLayout);
 
-        // Constraints for DeliveryStatusIcon
-        constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Top, timestampTextView.Id, ConstraintSet.Top);
-        constraintSet.Connect(deliveryStatusIcon.Id, ConstraintSet.Start, timestampTextView.Id, ConstraintSet.End, 16); // Add spacing
+        // Set constraints for messageImageView
+        constraintSet.Connect(messageImageViewId, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top);
+        constraintSet.Connect(messageImageViewId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+        constraintSet.ConstrainPercentWidth(messageImageViewId, 0.65f);
 
-        // Constraints for the reaction container (below the message bubble)
-        constraintSet.Connect(reactionContainer.Id, ConstraintSet.Top, frameLayout.Id, ConstraintSet.Bottom, 4);
-        constraintSet.Connect(reactionContainer.Id, ConstraintSet.Start, frameLayout.Id, ConstraintSet.Start);
-        constraintSet.Connect(reactionContainer.Id, ConstraintSet.End, frameLayout.Id, ConstraintSet.End);
-
-        // Constraints for avatarView
-        constraintSet.Connect(avatarView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top, 0);
-        constraintSet.Connect(avatarView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 32);
-
-        // Constraints for dateTextView
-        constraintSet.Connect(dateTextView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top, 16);
-        constraintSet.Connect(dateTextView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
-        constraintSet.Connect(dateTextView.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
-
-
-        // Constraints for systemTextView
-        constraintSet.Connect(systemTextView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top, 16);
-        constraintSet.Connect(systemTextView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
-        constraintSet.Connect(systemTextView.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
-
-
-        // Constraints for the "New Messages" separator text
-        constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.Top, dateTextView.Id, ConstraintSet.Bottom, 8);
-        constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start);
-        constraintSet.Connect(newMessagesSeparatorTextView.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End);
-
-        // Constraints for frameLayout (container for textView and imageView)
-        constraintSet.Connect(frameLayout.Id, ConstraintSet.Top, newMessagesSeparatorTextView.Id, ConstraintSet.Bottom, 8);
-        constraintSet.ConstrainPercentWidth(frameLayout.Id, 0.65f);
-
-        // Constraints for timestampTextView below frameLayout
-        constraintSet.Connect(timestampTextView.Id, ConstraintSet.Top, frameLayout.Id, ConstraintSet.Bottom, 4);
-        constraintSet.Connect(timestampTextView.Id, ConstraintSet.Start, frameLayout.Id, ConstraintSet.Start);
+        // Set constraints for timeTextView
+        constraintSet.Connect(timeTextViewId, ConstraintSet.Top, messageImageViewId, ConstraintSet.Bottom, 8);
+        constraintSet.Connect(timeTextViewId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
 
         constraintSet.ApplyTo(constraintLayout);
 
-        return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout,
-            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView);
+        return constraintLayout;
     }
 
+    private aViews.View CreateVideoMessageView(ViewGroup parent, out int messageVideoViewId, out int timeTextViewId, bool isOwnMessage)
+    {
+        var constraintLayout = new ConstraintLayout(parent.Context)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        var messageVideoView = new VideoView(parent.Context)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        var timeTextView = new TextView(parent.Context)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        messageVideoViewId = aViews.View.GenerateViewId();
+        timeTextViewId = aViews.View.GenerateViewId();
+
+        messageVideoView.Id = messageVideoViewId;
+        timeTextView.Id = timeTextViewId;
+
+        messageVideoView.SetPadding(10, 10, 10, 10);
+        timeTextView.SetPadding(10, 10, 10, 10);
+
+        constraintLayout.AddView(messageVideoView);
+        constraintLayout.AddView(timeTextView);
+
+        var constraintSet = new ConstraintSet();
+        constraintSet.Clone(constraintLayout);
+
+        // Set constraints for messageVideoView
+        constraintSet.Connect(messageVideoViewId, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top);
+        constraintSet.Connect(messageVideoViewId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+        constraintSet.ConstrainPercentWidth(messageVideoViewId, 0.65f);
+
+        // Set constraints for timeTextView
+        constraintSet.Connect(timeTextViewId, ConstraintSet.Top, messageVideoViewId, ConstraintSet.Bottom, 8);
+        constraintSet.Connect(timeTextViewId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+
+        constraintSet.ApplyTo(constraintLayout);
+
+        return constraintLayout;
+    }
+
+
+    private aViews.View CreateSystemMessageView(ViewGroup parent, out int systemMessageTextViewId)
+    {
+        var layout = new LinearLayout(parent.Context)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        var systemMessageTextView = new TextView(parent.Context)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        systemMessageTextViewId = aViews.View.GenerateViewId();
+        systemMessageTextView.Id = systemMessageTextViewId;
+
+        layout.AddView(systemMessageTextView);
+
+        return layout;
+    }
+
+    private aViews.View CreateDateMessageView(ViewGroup parent, out int dateTextViewId)
+    {
+        var layout = new LinearLayout(parent.Context)
+        {
+            Orientation = Orientation.Vertical,
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        var dateTextView = new TextView(parent.Context)
+        {
+            LayoutParameters = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WrapContent,
+                ViewGroup.LayoutParams.WrapContent)
+        };
+
+        dateTextViewId = aViews.View.GenerateViewId();
+        dateTextView.Id = dateTextViewId;
+
+        layout.AddView(dateTextView);
+
+        return layout;
+    }
+
+    private Drawable CreateChatBubbleDrawable(Color backgroundColor, float cornerRadius)
+    {
+        var gradientDrawable = new GradientDrawable();
+        gradientDrawable.SetColor(backgroundColor.ToPlatform());
+        gradientDrawable.SetCornerRadius(cornerRadius);
+        return gradientDrawable;
+    }
 
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
-        if (holder is ChatMessageViewHolder chatHolder)
+        var message = _messages[position];
+        bool isOwnMessage = message.IsOwnMessage;
+        Color backgroundColor = isOwnMessage ? OwnMessageBackgroundColor : OtherMessageBackgroundColor;
+        float cornerRadius = 16; // Adjust the corner radius as needed
+
+        switch (message.MessageType)
         {
-            var message = _messages[position];
-
-            chatHolder.DetachEventHandlers(); // Ensure no previous handlers are attached
-            chatHolder.AttachEventHandlers(message, VirtualView);
-
-            // Check if this is the first "New" message in the list
-            bool isFirstNewMessage = message.ReadState == MessageReadState.New &&
-                                      (position == 0 || _messages[position - 1].ReadState != MessageReadState.New);
-
-            // Display the New Messages Separator and lines only above the first "New" message
-            if (isFirstNewMessage && ShowNewMessagesSeperator)
-            {
-                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Visible;
-                chatHolder.NewMessagesSeparatorTextView.Text = NewMessagesSeperatorText;
-            }
-            else
-            {
-                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
-            }
-
-            // Avatar handling
-            if (!message.IsOwnMessage && message.SenderAvatar != null)
-            {
-                chatHolder.AvatarView.Visibility = ViewStates.Visible;
-
-                // Load avatar as bitmap
-                var originalBitmap = BitmapFactory.DecodeByteArray(message.SenderAvatar, 0, message.SenderAvatar.Length);
-
-                // Crop the bitmap into a circular shape
-                var circularBitmap = CreateCircularBitmap(originalBitmap);
-
-                // Set the circular bitmap to the avatar
-                chatHolder.AvatarView.SetImageBitmap(circularBitmap);
-            }
-            else if (!message.IsOwnMessage)
-            {
-                chatHolder.AvatarView.Visibility = ViewStates.Visible;
-
-                if (!string.IsNullOrWhiteSpace(message.SenderInitials))
+            case MessageType.Text:
+                if (holder is TextMessageViewHolder textHolder)
                 {
-                    // Draw initials in a circular bitmap
-                    var initialsBitmap = CreateInitialsBitmap(message.SenderInitials, 96, 96); // 96x96 size
-                    chatHolder.AvatarView.SetImageBitmap(initialsBitmap);
+                    textHolder.MessageTextView.Text = message.TextContent;
+                    textHolder.TimeTextView.Text = message.Timestamp.ToString();
+                    textHolder.MessageTextView.SetTextColor(isOwnMessage ? OwnMessageTextColor.ToPlatform() : OtherMessageTextColor.ToPlatform());
+                    textHolder.MessageTextView.SetTextSize(ComplexUnitType.Sp, MessageFontSize);
+                    textHolder.TimeTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
+                    textHolder.TimeTextView.SetTextSize(ComplexUnitType.Sp, MessageTimeFontSize);
+
+                    // Set the background to the chat bubble drawable
+                    textHolder.MessageTextView.SetBackground(CreateChatBubbleDrawable(backgroundColor, cornerRadius));
+
+                    // Update constraints based on message ownership
+                    var constraintSet = new ConstraintSet();
+                    constraintSet.Clone((ConstraintLayout)textHolder.ItemView);
+                    constraintSet.Connect(textHolder.MessageTextView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top);
+                    constraintSet.Connect(textHolder.MessageTextView.Id, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+                    constraintSet.ConstrainPercentWidth(textHolder.MessageTextView.Id, 0.65f);
+                    constraintSet.Connect(textHolder.TimeTextView.Id, ConstraintSet.Top, textHolder.MessageTextView.Id, ConstraintSet.Bottom, 8);
+                    constraintSet.Connect(textHolder.TimeTextView.Id, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+                    constraintSet.ApplyTo((ConstraintLayout)textHolder.ItemView);
                 }
-                else
+                break;
+            case MessageType.Image:
+                if (holder is ImageMessageViewHolder imageHolder)
                 {
-                    // Default placeholder if initials are not available
-                    var avatarPlaceholder = new GradientDrawable();
-                    avatarPlaceholder.SetShape(ShapeType.Oval);
-                    avatarPlaceholder.SetColor(AvatarBackgroundColor.ToPlatform()); // Placeholder color
-                    chatHolder.AvatarView.Background = avatarPlaceholder;
-                    chatHolder.AvatarView.SetImageBitmap(null);
+                    // Load the image into the ImageView
+                    //imageHolder.MessageImageView.SetImageBitmap(message.ImageBitmap);
+                    imageHolder.TimeTextView.Text = message.Timestamp.ToString();
+                    imageHolder.TimeTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
+                    imageHolder.TimeTextView.SetTextSize(ComplexUnitType.Sp, MessageTimeFontSize);
+
+                    // Set the background to the chat bubble drawable
+                    imageHolder.MessageImageView.SetBackground(CreateChatBubbleDrawable(backgroundColor, cornerRadius));
+
+                    // Update constraints based on message ownership
+                    var constraintSet = new ConstraintSet();
+                    constraintSet.Clone((ConstraintLayout)imageHolder.ItemView);
+                    constraintSet.Connect(imageHolder.MessageImageView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top);
+                    constraintSet.Connect(imageHolder.MessageImageView.Id, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+                    constraintSet.ConstrainPercentWidth(imageHolder.MessageImageView.Id, 0.65f);
+                    constraintSet.Connect(imageHolder.TimeTextView.Id, ConstraintSet.Top, imageHolder.MessageImageView.Id, ConstraintSet.Bottom, 8);
+                    constraintSet.Connect(imageHolder.TimeTextView.Id, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+                    constraintSet.ApplyTo((ConstraintLayout)imageHolder.ItemView);
                 }
-            }
-            else
-            {
-                chatHolder.AvatarView.Visibility = ViewStates.Gone;
-            }
-
-            bool isSystemMessage = false;
-            chatHolder.DateTextView.Visibility = ViewStates.Gone; // group by date set Visibility Gone at first place
-
-            // Set message type handling
-            if (message.MessageType == MessageType.Text)
-            {
-                chatHolder.ImageView.Visibility = ViewStates.Gone;
-                chatHolder.VideoContainer.Visibility = ViewStates.Gone;
-                chatHolder.VideoView.Visibility = ViewStates.Gone;
-                chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
-                chatHolder.TextView.Visibility = ViewStates.Visible;
-                chatHolder.TextView.Text = message.TextContent;
-                chatHolder.TextView.SetTextColor(message.IsOwnMessage ? OwnMessageTextColor.ToPlatform() : OtherMessageTextColor.ToPlatform());
-            }
-            else if (message.MessageType == MessageType.Image)
-            {
-                if (message.BinaryContent != null)
+                break;
+            case MessageType.Video:
+                if (holder is VideoMessageViewHolder videoHolder)
                 {
-                    chatHolder.TextView.Visibility = ViewStates.Gone;
-                    chatHolder.ImageView.Visibility = ViewStates.Visible;
-                    chatHolder.VideoContainer.Visibility = ViewStates.Gone;
-                    chatHolder.VideoView.Visibility = ViewStates.Gone;
-                    chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
+                    // Load the video into the VideoView
+                    //videoHolder.MessageVideoView.SetVideoURI(message.VideoUri);
+                    videoHolder.TimeTextView.Text = message.Timestamp.ToString();
+                    videoHolder.TimeTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
+                    videoHolder.TimeTextView.SetTextSize(ComplexUnitType.Sp, MessageTimeFontSize);
 
-                    // Decode the bitmap and get its dimensions
-                    var bitmap = BitmapFactory.DecodeByteArray(message.BinaryContent, 0, message.BinaryContent.Length);
-                    chatHolder.ImageView.SetImageBitmap(bitmap);
+                    // Set the background to the chat bubble drawable
+                    videoHolder.MessageVideoView.SetBackground(CreateChatBubbleDrawable(backgroundColor, cornerRadius));
 
-                    // Calculate the dimensions for the image bubble
-                    var imageDisplayMetrics = _context.Resources.DisplayMetrics;
-                    int imagemaxWidth = (int)(imageDisplayMetrics.WidthPixels * 0.65); // Limit width to 65% of screen
-                    float aspectRatio = (float)bitmap.Height / bitmap.Width;
-                    int adjustedHeight = (int)(imagemaxWidth * aspectRatio);
-
-                    // Set the ImageView's layout parameters to size the bubble to the image
-                    chatHolder.ImageView.LayoutParameters = new LinearLayout.LayoutParams(imagemaxWidth, adjustedHeight);
-
-                    chatHolder.ImageView.SetPadding(32, 16, 32, 16);
+                    // Update constraints based on message ownership
+                    var constraintSet = new ConstraintSet();
+                    constraintSet.Clone((ConstraintLayout)videoHolder.ItemView);
+                    constraintSet.Connect(videoHolder.MessageVideoView.Id, ConstraintSet.Top, ConstraintSet.ParentId, ConstraintSet.Top);
+                    constraintSet.Connect(videoHolder.MessageVideoView.Id, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+                    constraintSet.ConstrainPercentWidth(videoHolder.MessageVideoView.Id, 0.65f);
+                    constraintSet.Connect(videoHolder.TimeTextView.Id, ConstraintSet.Top, videoHolder.MessageVideoView.Id, ConstraintSet.Bottom, 8);
+                    constraintSet.Connect(videoHolder.TimeTextView.Id, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start, ConstraintSet.ParentId, isOwnMessage ? ConstraintSet.End : ConstraintSet.Start);
+                    constraintSet.ApplyTo((ConstraintLayout)videoHolder.ItemView);
                 }
-                else
+                break;
+            case MessageType.System:
+                if (holder is SystemMessageViewHolder systemHolder)
                 {
-                    chatHolder.TextView.Visibility = ViewStates.Gone;
-                    chatHolder.ImageView.Visibility = ViewStates.Gone;
-                    chatHolder.VideoContainer.Visibility = ViewStates.Gone;
-                    chatHolder.VideoView.Visibility = ViewStates.Gone;
-                    chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
+                    systemHolder.SystemMessageTextView.Text = message.TextContent;
+                    systemHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
+                    systemHolder.SystemMessageTextView.SetTextSize(ComplexUnitType.Sp, SystemMessageFontSize);
+
+                    systemHolder.SystemMessageTextView.SetBackground(CreateChatBubbleDrawable(SystemMessageBackgroundColor, cornerRadius));
+
                 }
-            }
-            else if (message.MessageType == MessageType.Video)
-            {
-                if (message.BinaryContent != null)
+                break;
+            case MessageType.Date:
+                if (holder is DateMessageViewHolder dateHolder)
                 {
-                    chatHolder.TextView.Visibility = ViewStates.Gone;
-                    chatHolder.ImageView.Visibility = ViewStates.Gone;
-                    chatHolder.VideoContainer.Visibility = ViewStates.Visible;
-                    chatHolder.VideoView.Visibility = ViewStates.Visible;
-                    chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
-
-                    // Define the file path based on MessageId
-                    var tempFile = new aIO.File(_context.CacheDir, $"{message.MessageId}.mp4");
-
-                    // Check if file exists; if not, create it
-                    if (!tempFile.Exists())
-                    {
-                        using (var fileStream = new FileStream(tempFile.AbsolutePath, FileMode.Create, FileAccess.Write))
-                        {
-                            fileStream.Write(message.BinaryContent, 0, message.BinaryContent.Length);
-                        }
-                    }
-
-                    // Set the VideoView to play the temporary video file
-                    var videoUri = ANet.Uri.FromFile(tempFile);
-                    chatHolder.VideoView.SetVideoURI(videoUri);
-                    chatHolder.VideoView.RequestFocus();
-
-                    // Calculate dimensions for the video bubble
-                    var videodisplayMetrics = _context.Resources.DisplayMetrics;
-                    int videomaxWidth = (int)(videodisplayMetrics.WidthPixels * 0.65);
-                    float aspectRatio = 9f / 16f;
-                    int adjustedHeight = (int)(videomaxWidth * aspectRatio);
-
-                    // Set layout parameters for the container to size the bubble
-                    chatHolder.VideoContainer.LayoutParameters = new LinearLayout.LayoutParams(videomaxWidth, adjustedHeight);
-
-                    // Set padding on the container for consistent styling
-                    chatHolder.VideoContainer.SetPadding(32, 16, 32, 16);
-
-                    // Start playback when the video is ready
-                    chatHolder.VideoView.Start();
+                    dateHolder.DateTextView.Text = message.TextContent.ToString();
+                    dateHolder.DateTextView.SetTextColor(DateTextColor.ToPlatform());
+                    dateHolder.DateTextView.SetTextSize(ComplexUnitType.Sp, DateTextFontSize);
                 }
-                else
-                {
-                    chatHolder.TextView.Visibility = ViewStates.Gone;
-                    chatHolder.ImageView.Visibility = ViewStates.Gone;
-                    chatHolder.VideoContainer.Visibility = ViewStates.Gone;
-                    chatHolder.VideoView.Visibility = ViewStates.Gone;
-                }
-            }
-            else if (message.MessageType == MessageType.Date)
-            {
-                chatHolder.TextView.Visibility = ViewStates.Gone;
-                chatHolder.ImageView.Visibility = ViewStates.Gone;
-                chatHolder.VideoContainer.Visibility = ViewStates.Gone;
-                chatHolder.VideoView.Visibility = ViewStates.Gone;
-                chatHolder.AvatarView.Visibility = ViewStates.Gone;
-                chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
-
-                //chatHolder.FrameLayout.Visibility = ViewStates.Gone;
-                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
-
-                chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
-                chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
-                chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
-                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
-                chatHolder.ReplySenderTextView.Visibility = ViewStates.Gone;
-                chatHolder.ReplyPreviewTextView.Visibility = ViewStates.Gone;
-
-                chatHolder.DateTextView.Visibility = ViewStates.Visible;
-                chatHolder.DateTextView.Text = message.TextContent;
-                //isSystemMessage = true;
-            }
-            else if (message.MessageType == MessageType.System)
-            {
-                chatHolder.TextView.Visibility = ViewStates.Gone;
-                chatHolder.ImageView.Visibility = ViewStates.Gone;
-                chatHolder.VideoContainer.Visibility = ViewStates.Gone;
-                chatHolder.VideoView.Visibility = ViewStates.Gone;
-                chatHolder.AvatarView.Visibility = ViewStates.Gone;
-                chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
-                chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
-                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
-                chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
-                chatHolder.DateTextView.Visibility = ViewStates.Gone;
-                //chatHolder.FrameLayout.Visibility = ViewStates.Gone;
-                chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
-
-                chatHolder.SystemMessageTextView.Text = message.TextContent;
-                chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
-                chatHolder.SystemMessageTextView.TextSize = SystemMessageFontSize;
-
-                var systemMessageBackgroundDrawable = new GradientDrawable();
-                systemMessageBackgroundDrawable.SetShape(ShapeType.Rectangle);
-                systemMessageBackgroundDrawable.SetColor(SystemMessageBackgroundColor.ToPlatform());
-                systemMessageBackgroundDrawable.SetCornerRadius(24f); // Larger radius for a rounded rectangle
-                chatHolder.SystemMessageTextView.Background = systemMessageBackgroundDrawable;
-
-                chatHolder.SystemMessageTextView.Visibility = ViewStates.Visible;
-                isSystemMessage = true;
-            }
-
-            if (!isSystemMessage)
-            {
-
-                if (chatHolder.ReactionContainer.ChildCount > 0)
-                {
-                    chatHolder.ReactionContainer.RemoveAllViews(); // Clear existing reactions
-                }
-
-                if (message.Reactions != null && message.Reactions.Any())
-                {
-                    foreach (var reaction in message.Reactions)
-                    {
-                        // Create a TextView for each reaction
-                        var reactionTextView = new TextView(_context)
-                        {
-                            Text = $"{reaction.Emoji} {reaction.Count}",
-                            TextSize = EmojiReactionFontSize
-                        };
-                        reactionTextView.SetTextColor(EmojiReactionTextColor.ToPlatform());
-
-                        // Optional: Add padding or margins
-                        var layoutParams = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.WrapContent,
-                            ViewGroup.LayoutParams.WrapContent)
-                        {
-                            LeftMargin = 8 // Add spacing between reactions
-                        };
-
-                        reactionTextView.LayoutParameters = layoutParams;
-
-                        chatHolder.ReactionContainer.AddView(reactionTextView);
-                    }
-                }
-
-                if (message.DeliveryState == MessageDeliveryState.Sent && SendIcon != null)
-                {
-                    SetImageSourceToImageView(SendIcon, chatHolder.DeliveryStatusIcon);
-                }
-                else if (message.DeliveryState == MessageDeliveryState.Delivered && DeliveredIcon != null)
-                {
-                    SetImageSourceToImageView(DeliveredIcon, chatHolder.DeliveryStatusIcon);
-                }
-                else if (message.DeliveryState == MessageDeliveryState.Read && ReadIcon != null)
-                {
-                    SetImageSourceToImageView(ReadIcon, chatHolder.DeliveryStatusIcon);
-                }
-
-                // Set dynamic width for the message bubble (65% of screen width)
-                var displayMetrics = _context.Resources.DisplayMetrics;
-                int maxWidth = (int)(displayMetrics.WidthPixels * 0.65);
-                chatHolder.FrameLayout.LayoutParameters.Width = maxWidth;
-
-                var frameLayoutBackgroundDrawable = new GradientDrawable();
-                frameLayoutBackgroundDrawable.SetColor(message.IsOwnMessage ? OwnMessageBackgroundColor.ToPlatform() : OtherMessageBackgroundColor.ToPlatform());
-                frameLayoutBackgroundDrawable.SetCornerRadius(24f);
-                chatHolder.FrameLayout.Background = frameLayoutBackgroundDrawable;
-
-                if (message.IsRepliedMessage && message.ReplyToMessage != null)
-                {
-                    chatHolder.ReplySummaryFrame.Visibility = ViewStates.Visible;
-
-                    // Set sender name and preview
-                    chatHolder.ReplySenderTextView.Text = message.ReplyToMessage.SenderId;
-                    chatHolder.ReplySenderTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
-
-                    chatHolder.ReplyPreviewTextView.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
-                    chatHolder.ReplyPreviewTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
-
-                    var replyBackground = new GradientDrawable();
-                    replyBackground.SetColor(ReplyMessageBackgroundColor.ToPlatform());
-                    replyBackground.SetCornerRadius(24f);
-                    chatHolder.ReplySummaryFrame.Background = replyBackground;
-                }
-                else
-                {
-                    chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
-                }
-
-                chatHolder.TimestampTextView.Text = message.Timestamp.ToString("HH:mm");
-            }
-
-            var constraintSet = new ConstraintSet();
-            constraintSet.Clone((ConstraintLayout)holder.ItemView);
-
-            if (!isSystemMessage)
-            {
-                if (message.IsOwnMessage)
-                {
-                    constraintSet.Clear(chatHolder.AvatarView.Id, ConstraintSet.Start);
-                    constraintSet.Clear(chatHolder.FrameLayout.Id, ConstraintSet.Start);
-                    constraintSet.Connect(chatHolder.FrameLayout.Id, ConstraintSet.End, ConstraintSet.ParentId, ConstraintSet.End, 16);
-
-                    constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.Start);
-                    constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
-
-
-                    constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start);
-                    constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End, chatHolder.TimestampTextView.Id, ConstraintSet.Start, 16); // Add spacing
-                }
-                else
-                {
-                    constraintSet.Connect(chatHolder.AvatarView.Id, ConstraintSet.Start, ConstraintSet.ParentId, ConstraintSet.Start, 16);
-                    constraintSet.Connect(chatHolder.AvatarView.Id, ConstraintSet.Top, chatHolder.FrameLayout.Id, ConstraintSet.Top);
-
-                    constraintSet.Clear(chatHolder.FrameLayout.Id, ConstraintSet.End);
-                    constraintSet.Connect(chatHolder.FrameLayout.Id, ConstraintSet.Start, chatHolder.AvatarView.Id, ConstraintSet.End, 28);
-
-                    constraintSet.Clear(chatHolder.TimestampTextView.Id, ConstraintSet.End);
-                    constraintSet.Connect(chatHolder.TimestampTextView.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
-
-                    constraintSet.Clear(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.End);
-                    constraintSet.Connect(chatHolder.DeliveryStatusIcon.Id, ConstraintSet.Start, chatHolder.TimestampTextView.Id, ConstraintSet.End, 16); // Add spacing
-                }
-
-                // Align the ReactionContainer based on IsOwnMessage
-                if (message.IsOwnMessage)
-                {
-                    // Align ReactionContainer to the left of the chat bubble
-                    constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.End);
-                    constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.Start, chatHolder.FrameLayout.Id, ConstraintSet.Start);
-                }
-                else
-                {
-                    // Align ReactionContainer to the right of the chat bubble
-                    constraintSet.Clear(chatHolder.ReactionContainer.Id, ConstraintSet.Start);
-                    constraintSet.Connect(chatHolder.ReactionContainer.Id, ConstraintSet.End, chatHolder.FrameLayout.Id, ConstraintSet.End);
-                }
-            }
-
-            constraintSet.ApplyTo((ConstraintLayout)holder.ItemView);
+                break;
+            default:
+                throw new NotSupportedException($"Message type {message.MessageType} is not supported");
         }
     }
 
-    private void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
-    {
-        if (imageSource == null || imageView == null || _mauiContext == null)
-            return;
 
-        try
-        {
-            ImageSourceExtensions.LoadImage(imageSource, _mauiContext, (img) =>
-            {
-                if (img.Value != null)
-                {
-                    imageView.SetImageDrawable(img.Value);
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            // Handle exceptions, e.g., invalid image sources
-            Console.WriteLine($"Error resolving ImageSource: {ex.Message}");
-        }
+}
+
+public class TextMessageViewHolder : RecyclerView.ViewHolder
+{
+    public TextView MessageTextView { get; private set; }
+    public TextView TimeTextView { get; private set; }
+
+    public TextMessageViewHolder(aViews.View itemView, int messageTextViewId, int timeTextViewId) : base(itemView)
+    {
+        MessageTextView = itemView.FindViewById<TextView>(messageTextViewId);
+        TimeTextView = itemView.FindViewById<TextView>(timeTextViewId);
     }
+}
 
-    private static Bitmap CreateCircularBitmap(Bitmap bitmap)
+
+public class ImageMessageViewHolder : RecyclerView.ViewHolder
+{
+    public ImageView MessageImageView { get; private set; }
+    public TextView TimeTextView { get; private set; }
+
+    public ImageMessageViewHolder(aViews.View itemView, int messageImageViewId, int timeTextViewId) : base(itemView)
     {
-        int size = Math.Min(bitmap.Width, bitmap.Height);
-        Bitmap output = Bitmap.CreateBitmap(size, size, Bitmap.Config.Argb8888);
-
-        Canvas canvas = new Canvas(output);
-        Paint paint = new Paint
-        {
-            AntiAlias = true,
-            FilterBitmap = true
-        };
-
-        Rect srcRect = new Rect(0, 0, bitmap.Width, bitmap.Height);
-        RectF destRect = new RectF(0, 0, size, size);
-        canvas.DrawARGB(0, 0, 0, 0); // Transparent background
-        canvas.DrawCircle(size / 2f, size / 2f, size / 2f, paint);
-
-        paint.SetXfermode(new PorterDuffXfermode(PorterDuff.Mode.SrcIn));
-        canvas.DrawBitmap(bitmap, srcRect, destRect, paint);
-
-        return output;
+        MessageImageView = itemView.FindViewById<ImageView>(messageImageViewId);
+        TimeTextView = itemView.FindViewById<TextView>(timeTextViewId);
     }
+}
 
-    private Bitmap CreateInitialsBitmap(string initials, int width, int height)
+public class VideoMessageViewHolder : RecyclerView.ViewHolder
+{
+    public VideoView MessageVideoView { get; private set; }
+    public TextView TimeTextView { get; private set; }
+
+    public VideoMessageViewHolder(aViews.View itemView, int messageVideoViewId, int timeTextViewId) : base(itemView)
     {
-        Bitmap output = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888);
+        MessageVideoView = itemView.FindViewById<VideoView>(messageVideoViewId);
+        TimeTextView = itemView.FindViewById<TextView>(timeTextViewId);
+    }
+}
 
-        using (Canvas canvas = new Canvas(output))
-        {
-            // Draw the circular background
-            Paint backgroundPaint = new Paint
-            {
-                AntiAlias = true,
-                Color = AvatarBackgroundColor.ToPlatform() // Background color
-            };
-            canvas.DrawCircle(width / 2f, height / 2f, width / 2f, backgroundPaint);
+public class SystemMessageViewHolder : RecyclerView.ViewHolder
+{
+    public TextView SystemMessageTextView { get; private set; }
 
-            // Draw the initials
-            Paint textPaint = new Paint
-            {
-                AntiAlias = true,
-                Color = AvatarTextColor.ToPlatform(), // Text color
-                TextAlign = Paint.Align.Center,
-                TextSize = width / 3f // Adjust text size based on avatar size
-            };
+    public SystemMessageViewHolder(aViews.View itemView, int systemMessageTextViewId) : base(itemView)
+    {
+        SystemMessageTextView = itemView.FindViewById<TextView>(systemMessageTextViewId);
+    }
+}
 
-            // Calculate text position
-            Rect textBounds = new Rect();
-            textPaint.GetTextBounds(initials, 0, initials.Length, textBounds);
-            float x = width / 2f;
-            float y = (height / 2f) - textBounds.ExactCenterY();
+public class DateMessageViewHolder : RecyclerView.ViewHolder
+{
+    public TextView DateTextView { get; private set; }
 
-            // Draw the text
-            canvas.DrawText(initials, x, y, textPaint);
-        }
-
-        return output;
+    public DateMessageViewHolder(aViews.View itemView, int dateTextViewId) : base(itemView)
+    {
+        DateTextView = itemView.FindViewById<TextView>(dateTextViewId);
     }
 }

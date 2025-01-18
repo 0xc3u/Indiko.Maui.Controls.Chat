@@ -5,7 +5,7 @@ using aViews = Android.Views;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 
-public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
+public class OldChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
 {
     public TextView DateTextView { get; }
     public TextView TextView { get; }
@@ -30,7 +30,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     private EventHandler _videoBubbleClickHandler;
     private EventHandler _emojiReactionClickHandler;
 
-    public ChatMessageViewHolder(
+    public OldChatMessageViewHolder(
         aViews.View itemView,
         TextView dateTextView,
         TextView textView,
