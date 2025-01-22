@@ -19,6 +19,7 @@
             OtherMessageBackgroundColor="{StaticResource Secondary}"
             OtherMessageTextColor="{StaticResource Black}"
             DateTextColor="{StaticResource Gray500}"
+            DateTextFontSize="14"
             MessageTimeTextColor="{StaticResource Gray200}"
             NewMessagesSeperatorTextColor="{StaticResource Primary}"
             NewMessagesSeperatorFontSize="16"
