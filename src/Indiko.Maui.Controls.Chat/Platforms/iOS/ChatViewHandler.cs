@@ -91,6 +91,8 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         platformView.RegisterClassForCell(typeof(OtherTextMessageCell), OtherTextMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OtherImageMessageCell), OtherImageMessageCell.Key);
         platformView.RegisterClassForCell(typeof(OtherVideoMessageCell), OtherVideoMessageCell.Key);
+        platformView.RegisterClassForCell(typeof(OtherAudioMessageCell), OtherAudioMessageCell.Key);
+        platformView.RegisterClassForCell(typeof(OwnAudioMessageCell), OwnAudioMessageCell.Key);
         
         platformView.Delegate = _delegate;
         platformView.LayoutIfNeeded();

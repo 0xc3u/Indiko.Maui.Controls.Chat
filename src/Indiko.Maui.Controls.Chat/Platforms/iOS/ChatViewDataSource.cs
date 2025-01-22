@@ -52,6 +52,14 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
             {
                 ownVideoCell.Update((int)indexPath.Item, chatMessage.Message, virtualView, mauiContext);
             }
+            else if (cell is OtherAudioMessageCell otherAudioCell)
+            {
+                otherAudioCell.Update((int)indexPath.Item, chatMessage.Message, virtualView, mauiContext);
+            }
+            else if (cell is OwnAudioMessageCell ownAudioCell)
+            {
+                ownAudioCell.Update((int)indexPath.Item, chatMessage.Message, virtualView, mauiContext);
+            }
             return cell;
         })
     {
@@ -89,9 +97,17 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
         {
             return OtherVideoMessageCell.Key;
         }
+        if (message.MessageType == MessageType.Audio && !message.IsOwnMessage)
+        {
+            return OtherAudioMessageCell.Key;
+        }
         if (message.MessageType == MessageType.Video && message.IsOwnMessage)
         {
             return OwnVideoMessageCell.Key;
+        }
+        if (message.MessageType == MessageType.Audio && message.IsOwnMessage)
+        {
+            return OwnAudioMessageCell.Key;
         }
 
         if (message.MessageType == MessageType.System)
