@@ -5,7 +5,7 @@ using aViews = Android.Views;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 
-public class OldChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
+public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
 {
     public TextView DateTextView { get; }
     public TextView TextView { get; }
@@ -18,7 +18,6 @@ public class OldChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     public ImageView AvatarView { get; }
     public LinearLayout ReactionContainer { get; }
     public ImageView DeliveryStatusIcon { get; }
-
     public LinearLayout ReplySummaryFrame { get; }
     public TextView ReplySenderTextView { get; }
     public TextView ReplyPreviewTextView { get; }
@@ -30,7 +29,7 @@ public class OldChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     private EventHandler _videoBubbleClickHandler;
     private EventHandler _emojiReactionClickHandler;
 
-    public OldChatMessageViewHolder(
+    public ChatMessageViewHolder(
         aViews.View itemView,
         TextView dateTextView,
         TextView textView,
@@ -161,12 +160,8 @@ public class OldChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     {
         if (FrameLayout != null)
         {
-            // Fade out to 70% opacity
             FrameLayout.Alpha = 0.7f;
-
             await Task.Delay(100);
-
-            // Restore to full opacity
             FrameLayout.Alpha = 1f;
         }
     }
@@ -175,12 +170,8 @@ public class OldChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     {
         if (ReactionContainer != null)
         {
-            // Fade out to 70% opacity
             ReactionContainer.Alpha = 0.7f;
-
             await Task.Delay(100);
-
-            // Restore to full opacity
             ReactionContainer.Alpha = 1f;
         }
     }
@@ -189,12 +180,8 @@ public class OldChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     {
         if (AvatarView != null)
         {
-            // Fade out to 70% opacity
             AvatarView.Alpha = 0.7f;
-
             await Task.Delay(100);
-
-            // Restore to full opacity
             AvatarView.Alpha = 1f;
         }
     }
