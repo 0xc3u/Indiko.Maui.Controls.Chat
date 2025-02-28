@@ -145,7 +145,6 @@ public class RepliedMessage
 | Command                          | Description                                                    |
 |----------------------------------|----------------------------------------------------------------|
 | `ScrolledCommand`                | Triggered when the chat view is scrolled. See example below.   |
-|----------------------------------|----------------------------------------------------------------|
 | `ScrolledCommand`                | Triggered when the chat view is scrolled.                     |
 | `MessageTappedCommand`           | Triggered when a message is tapped.                           |
 | `AvatarTappedCommand`            | Triggered when an avatar is tapped.                           |
