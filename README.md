@@ -241,16 +241,44 @@ private void Scrolled(ScrolledArgs scrolledArgs)
 ### XAML Example
 
 ```xml
-<local:ChatView
-    Messages="{Binding Messages}"
-    MessageTappedCommand="{Binding OnMessageTappedCommand}"
-    AvatarTappedCommand="{Binding OnAvatarTappedCommand}"
-    LoadMoreMessagesCommand="{Binding OnLoadMoreMessagesCommand}"
-    OwnMessageBackgroundColor="LightBlue"
-    OtherMessageBackgroundColor="LightGray"
-    MessageFontSize="14"
+xmlns:idk="clr-namespace:Indiko.Maui.Controls.Chat;assembly=Indiko.Maui.Controls.Chat"
+...
+
+<idk:ChatView Grid.Row="0" x:Name="chatView"
+    
+    OwnMessageBackgroundColor="{StaticResource Primary}" 
+    OwnMessageTextColor="{StaticResource White}"
+    OtherMessageBackgroundColor="{StaticResource Secondary}"
+    OtherMessageTextColor="{StaticResource Black}"
+    DateTextColor="{StaticResource Gray500}"
+    DateTextFontSize="14"
+    MessageTimeTextColor="{StaticResource Gray200}"
+    NewMessagesSeperatorTextColor="{StaticResource Primary}"
+    NewMessagesSeperatorFontSize="16"
+    NewMessagesSeperatorText="New Messages"
+    AvatarTextColor="{StaticResource White}"
+    AvatarBackgroundColor="{StaticResource Tertiary}"
+    Messages="{Binding ChatMessages}"
+    EmojiReactionFontSize="14"
+    EmojiReactionTextColor="{StaticResource Primary}"
+    ReplyMessageBackgroundColor="{StaticResource Tertiary}"
+    ReplyMessageTextColor="{StaticResource White}"
+    LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
+    ScrolledCommand="{Binding ScrolledCommand}"
+    AvatarTappedCommand="{Binding AvatarTappedCommand}"
+    MessageTappedCommand="{Binding MessageTappedCommand}"
+    EmojiReactionTappedCommand="{Binding EmojiReactionTappedCommand}"
+    SendIcon="send.png"
+    DeliveredIcon="check.png"
+    ReadIcon="read.png"
+    ScrollToFirstNewMessage="True"
     ShowNewMessagesSeperator="True"
-    NewMessagesSeperatorText="New Messages" />
+    ScrolledToLastMessageCommand="{Binding ScrolledToLastMessageCommand}"
+    SystemMessageBackgroundColor="{StaticResource Yellow300Accent}"
+    SystemMessageTextColor="{StaticResource Tertiary}"
+    SystemMessageFontSize="14">
+
+</idk:ChatView>
 ```
 
 ### Code-Behind Example
