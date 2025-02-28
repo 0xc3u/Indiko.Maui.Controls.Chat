@@ -26,43 +26,33 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public Color OtherMessageBackgroundColor { get; }
     public Color OwnMessageTextColor { get; }
     public Color OtherMessageTextColor { get; }
-
     public float MessageFontSize { get; }
-
     public Color MessageTimeTextColor { get; }
     public float MessageTimeFontSize { get; }
-
     public Color DateTextColor { get; }
     public float DateTextFontSize { get; }
-
     public Color NewMessagesSeperatorTextColor { get; }
     public float NewMessagesSeperatorFontSize { get; }
     public string NewMessagesSeperatorText { get; }
     public bool ShowNewMessagesSeperator { get; }
-
     public float AvatarSize { get; }
     public Color AvatarBackgroundColor { get; }
     public Color AvatarTextColor { get; }
     public bool ScrollToFirstNewMessage { get; }
     public Color EmojiReactionTextColor { get; }
     public float EmojiReactionFontSize { get; }
-
     public ImageSource SendIcon { get; }
     public ImageSource DeliveredIcon { get; }
     public ImageSource ReadIcon { get; }
-
     public Color ReplyMessageBackgroundColor { get; }
     public Color ReplyMessageTextColor { get; }
     public float ReplyMessageFontSize { get; }
-
-
     public Color SystemMessageBackgroundColor { get; }
     public Color SystemMessageTextColor { get; }
     public float SystemMessageFontSize { get; }
 
-
     private readonly IMauiContext _mauiContext;
-    private readonly ChatView VirtualView; // Add reference to ChatView
+    private readonly ChatView VirtualView;
 
     public ChatMessageAdapter(Context context, IMauiContext mauiContext, ChatView virtualView)
     {
@@ -96,7 +86,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         ReplyMessageTextColor = VirtualView.ReplyMessageTextColor;
         ReplyMessageFontSize = VirtualView.ReplyMessageFontSize;
         ShowNewMessagesSeperator = VirtualView.ShowNewMessagesSeperator;
-
         SystemMessageBackgroundColor = VirtualView.SystemMessageBackgroundColor;
         SystemMessageTextColor = VirtualView.SystemMessageTextColor;
         SystemMessageFontSize = VirtualView.SystemMessageFontSize;
@@ -114,10 +103,13 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         };
 
         // Avatar ImageView
+
+        var avatarSize = PixelExtensions.DpToPx((int)AvatarSize, _context);
+
         var avatarView = new ImageView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            LayoutParameters = new ConstraintLayout.LayoutParams(96, 96) // Fixed size
+            LayoutParameters = new ConstraintLayout.LayoutParams(avatarSize, avatarSize) // Fixed size
         };
         avatarView.SetScaleType(ImageView.ScaleType.CenterCrop); // Center and crop image
         constraintLayout.AddView(avatarView);
@@ -366,7 +358,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 var originalBitmap = BitmapFactory.DecodeByteArray(message.SenderAvatar, 0, message.SenderAvatar.Length);
 
                 // Crop the bitmap into a circular shape
-                var circularBitmap = CreateCircularBitmap(originalBitmap);
+                var circularBitmap = BitmapUtils.CreateCircularBitmap(originalBitmap);
 
                 // Set the circular bitmap to the avatar
                 chatHolder.AvatarView.SetImageBitmap(circularBitmap);
@@ -377,8 +369,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
                 if (!string.IsNullOrWhiteSpace(message.SenderInitials))
                 {
+                    var avatarSize = PixelExtensions.DpToPx((int)AvatarSize, _context);
                     // Draw initials in a circular bitmap
-                    var initialsBitmap = CreateInitialsBitmap(message.SenderInitials, 96, 96); // 96x96 size
+                    var initialsBitmap = CreateInitialsBitmap(message.SenderInitials, avatarSize, avatarSize);
                     chatHolder.AvatarView.SetImageBitmap(initialsBitmap);
                 }
                 else
@@ -502,8 +495,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.VideoView.Visibility = ViewStates.Gone;
                 chatHolder.AvatarView.Visibility = ViewStates.Gone;
                 chatHolder.TimestampTextView.Visibility = ViewStates.Gone;
-
-                //chatHolder.FrameLayout.Visibility = ViewStates.Gone;
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
 
                 chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
@@ -513,9 +504,16 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.ReplySenderTextView.Visibility = ViewStates.Gone;
                 chatHolder.ReplyPreviewTextView.Visibility = ViewStates.Gone;
 
-                chatHolder.DateTextView.Visibility = ViewStates.Visible;
-                chatHolder.DateTextView.Text = message.TextContent;
-                //isSystemMessage = true;
+                if (message.Timestamp.Year == 1)
+                {
+                    chatHolder.DateTextView.Visibility = ViewStates.Gone;
+                    chatHolder.DateTextView.Text = string.Empty;
+                }
+                else
+                {
+                    chatHolder.DateTextView.Visibility = ViewStates.Visible;
+                    chatHolder.DateTextView.Text = message.TextContent;
+                }
             }
             else if (message.MessageType == MessageType.System)
             {
@@ -528,9 +526,10 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.ReactionContainer.Visibility = ViewStates.Gone;
                 chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
                 chatHolder.DeliveryStatusIcon.Visibility = ViewStates.Gone;
-                chatHolder.DateTextView.Visibility = ViewStates.Gone;
-                //chatHolder.FrameLayout.Visibility = ViewStates.Gone;
                 chatHolder.NewMessagesSeparatorTextView.Visibility = ViewStates.Gone;
+
+                chatHolder.DateTextView.Visibility = ViewStates.Gone;
+                chatHolder.DateTextView.Text = string.Empty;
 
                 chatHolder.SystemMessageTextView.Text = message.TextContent;
                 chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
@@ -548,17 +547,13 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
             if (!isSystemMessage)
             {
-
-                if (chatHolder.ReactionContainer.ChildCount > 0)
-                {
-                    chatHolder.ReactionContainer.RemoveAllViews(); // Clear existing reactions
-                }
-
                 if (message.Reactions != null && message.Reactions.Any())
                 {
+                    chatHolder.ReactionContainer.Visibility = ViewStates.Visible;
+                    chatHolder.ReactionContainer.RemoveAllViews(); // Ensure no old reactions persist
+
                     foreach (var reaction in message.Reactions)
                     {
-                        // Create a TextView for each reaction
                         var reactionTextView = new TextView(_context)
                         {
                             Text = $"{reaction.Emoji} {reaction.Count}",
@@ -566,18 +561,20 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                         };
                         reactionTextView.SetTextColor(EmojiReactionTextColor.ToPlatform());
 
-                        // Optional: Add padding or margins
                         var layoutParams = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.WrapContent,
                             ViewGroup.LayoutParams.WrapContent)
                         {
-                            LeftMargin = 8 // Add spacing between reactions
+                            LeftMargin = 8
                         };
 
                         reactionTextView.LayoutParameters = layoutParams;
-
                         chatHolder.ReactionContainer.AddView(reactionTextView);
                     }
+                }
+                else
+                {
+                    chatHolder.ReactionContainer.Visibility = ViewStates.Gone; // Hide if no reactions exist
                 }
 
                 if (message.DeliveryState == MessageDeliveryState.Sent && SendIcon != null)
@@ -603,10 +600,17 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 frameLayoutBackgroundDrawable.SetCornerRadius(24f);
                 chatHolder.FrameLayout.Background = frameLayoutBackgroundDrawable;
 
+                // Reset Reply Summary visibility & text
+                chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
+                chatHolder.ReplySenderTextView.Visibility = ViewStates.Gone;
+                chatHolder.ReplyPreviewTextView.Visibility = ViewStates.Gone;
+
+
+                chatHolder.ReplySenderTextView.Text = string.Empty;
+                chatHolder.ReplyPreviewTextView.Text = string.Empty;
+
                 if (message.IsRepliedMessage && message.ReplyToMessage != null)
                 {
-                    chatHolder.ReplySummaryFrame.Visibility = ViewStates.Visible;
-
                     // Set sender name and preview
                     chatHolder.ReplySenderTextView.Text = message.ReplyToMessage.SenderId;
                     chatHolder.ReplySenderTextView.SetTextColor(ReplyMessageTextColor.ToPlatform());
@@ -618,12 +622,14 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     replyBackground.SetColor(ReplyMessageBackgroundColor.ToPlatform());
                     replyBackground.SetCornerRadius(24f);
                     chatHolder.ReplySummaryFrame.Background = replyBackground;
-                }
-                else
-                {
-                    chatHolder.ReplySummaryFrame.Visibility = ViewStates.Gone;
+
+                    chatHolder.ReplySummaryFrame.Visibility = ViewStates.Visible;
+                    chatHolder.ReplySenderTextView.Visibility = ViewStates.Visible;
+                    chatHolder.ReplyPreviewTextView.Visibility = ViewStates.Visible;
                 }
 
+                chatHolder.DeliveryStatusIcon.Visibility = (message.MessageType == MessageType.Date || message.MessageType == MessageType.System) ? ViewStates.Gone : ViewStates.Visible;
+                chatHolder.TimestampTextView.Visibility = (message.MessageType == MessageType.Date || message.MessageType == MessageType.System) ? ViewStates.Gone : ViewStates.Visible;
                 chatHolder.TimestampTextView.Text = message.Timestamp.ToString("HH:mm");
             }
 
@@ -679,6 +685,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         }
     }
 
+
     private void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
     {
         if (imageSource == null || imageView == null || _mauiContext == null)
@@ -696,35 +703,11 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         }
         catch (Exception ex)
         {
-            // Handle exceptions, e.g., invalid image sources
             Console.WriteLine($"Error resolving ImageSource: {ex.Message}");
         }
     }
 
-    private static Bitmap CreateCircularBitmap(Bitmap bitmap)
-    {
-        int size = Math.Min(bitmap.Width, bitmap.Height);
-        Bitmap output = Bitmap.CreateBitmap(size, size, Bitmap.Config.Argb8888);
-
-        Canvas canvas = new Canvas(output);
-        Paint paint = new Paint
-        {
-            AntiAlias = true,
-            FilterBitmap = true
-        };
-
-        Rect srcRect = new Rect(0, 0, bitmap.Width, bitmap.Height);
-        RectF destRect = new RectF(0, 0, size, size);
-        canvas.DrawARGB(0, 0, 0, 0); // Transparent background
-        canvas.DrawCircle(size / 2f, size / 2f, size / 2f, paint);
-
-        paint.SetXfermode(new PorterDuffXfermode(PorterDuff.Mode.SrcIn));
-        canvas.DrawBitmap(bitmap, srcRect, destRect, paint);
-
-        return output;
-    }
-
-    private Bitmap CreateInitialsBitmap(string initials, int width, int height)
+    public Bitmap CreateInitialsBitmap(string initials, int width, int height)
     {
         Bitmap output = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888);
 

@@ -21,7 +21,7 @@ jobs:
             path: "src/Indiko.Maui.Controls.Chat/Indiko.Maui.Controls.Chat.csproj"
           
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Fetch all tags
         run: |
