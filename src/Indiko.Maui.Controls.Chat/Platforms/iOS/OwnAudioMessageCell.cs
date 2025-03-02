@@ -27,6 +27,8 @@ internal class OwnAudioMessageCell : UICollectionViewCell
     private UILabel _replySenderTextLabel;
 
     private NSLayoutConstraint _messageAudioTopConstraint;
+    private UILongPressGestureRecognizer _longPressGesture;
+
 
     public OwnAudioMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
@@ -186,6 +188,10 @@ internal class OwnAudioMessageCell : UICollectionViewCell
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
         });
+        
+        // Initialize long press gesture
+        _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
+        _bubbleView.AddGestureRecognizer(_longPressGesture);
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)
@@ -305,5 +311,19 @@ internal class OwnAudioMessageCell : UICollectionViewCell
         {
             _audioPlayer.Play();
         }
+    }
+    
+    private void LongPressHandler(UILongPressGestureRecognizer recognizer)
+    {
+        if (recognizer.State == UIGestureRecognizerState.Began)
+        {
+            var contextMenu = new ChatContextMenuView(_chatView, _message, _bubbleView, DismissContextMenu);
+            contextMenu.Show();
+        }
+    }
+
+    private void DismissContextMenu()
+    {
+        Console.WriteLine("Context menu dismissed");
     }
 }

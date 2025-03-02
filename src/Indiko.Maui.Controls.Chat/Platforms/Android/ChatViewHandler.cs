@@ -1,8 +1,13 @@
 ﻿using AViews = Android.Views;
+using AGraphics = Android.Graphics;
 using AndroidX.RecyclerView.Widget;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Handlers;
 using System.Collections.Specialized;
+using Android.Widget;
+using Android.Views;
+using Android.Graphics.Drawables;
+using Microsoft.Maui.Platform;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 
@@ -11,6 +16,11 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
     private ChatMessageAdapter _adapter;
     private WeakReference<ChatView> _weakChatView;
 
+    private BlurOverlayView _blurOverlay;
+    private FrameLayout _messagePopupContainer;
+    private TextView _focusedMessageView;
+    private LinearLayout _emojiPanel;
+    private LinearLayout _contextPanel;
 
     public static IPropertyMapper<ChatView, ChatViewHandler> PropertyMapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
     {
@@ -101,7 +111,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         if (VirtualView.Messages == null)
             return;
 
-        _adapter = new ChatMessageAdapter(Context, mauiContext, VirtualView);
+        _adapter = new ChatMessageAdapter(Context, mauiContext, VirtualView,this);
         recyclerView.SetAdapter(_adapter);
 
         // Check if ScrollToFirstNewMessage is enabled and there are messages
@@ -125,7 +135,6 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         // Listen for changes in the Messages collection using a weak event reference
         VirtualView.Messages.CollectionChanged += OnMessagesCollectionChanged;
     }
-
 
     private void OnMessagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
     {
@@ -171,12 +180,306 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         }
     }
 
+    private void HandleContextAction(ChatMessage message, string action)
+    {
+        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = action, Message = message });
+        DismissContextMenu();
+    }
+
+    private void HandleDestructiveAction(ChatMessage message, string action)
+    {
+        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = action, Message = message });
+        VirtualView?.Messages.Remove(message); // Remove the message from the collection
+        DismissContextMenu();
+    }
+
+    private void HandleEmojiReaction(ChatMessage message, string emoji)
+    {
+        var existingReaction = message.Reactions.FirstOrDefault(r => r.Emoji == emoji);
+        if (existingReaction != null)
+        {
+            existingReaction.Count++;
+        }
+        else
+        {
+            existingReaction = new ChatMessageReaction { Emoji = emoji, Count = 1 };
+            message.Reactions.Add(existingReaction);
+        }
+
+        var index = VirtualView?.Messages.IndexOf(message);
+        if (index >= 0)
+        {
+            _adapter.NotifyItemChanged(index.Value);
+        }
+
+        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = "react", Message = message, AdditionalData = existingReaction });
+
+        DismissContextMenu();
+    }
+
     protected override void DisconnectHandler(RecyclerView platformView)
     {
         base.DisconnectHandler(platformView);
         if (_weakChatView.TryGetTarget(out var chatView))
         {
             chatView.Messages.CollectionChanged -= OnMessagesCollectionChanged;
+        }
+    }
+
+    public void ShowContextMenu(ChatMessage message, AViews.View anchorView)
+    {
+        if(!VirtualView.EnableContextMenu)
+        {
+            return;
+        }
+
+        if (_blurOverlay == null)
+        {
+            _blurOverlay = new BlurOverlayView(Context);
+        }
+
+        var rootView = PlatformView.RootView;
+        (rootView as ViewGroup)?.AddView(_blurOverlay, new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent));
+
+        _blurOverlay.ApplyBlur(rootView);
+
+        if (_messagePopupContainer == null)
+        {
+            _messagePopupContainer = new FrameLayout(Context)
+            {
+                Background = new AGraphics.Drawables.ColorDrawable(AGraphics.Color.Transparent)
+            };
+        }
+
+        AGraphics.Color? bgColor = message.IsOwnMessage ? VirtualView?.OwnMessageBackgroundColor.ToPlatform() : VirtualView?.OtherMessageBackgroundColor.ToPlatform();
+        AGraphics.Color? textColor = message.IsOwnMessage ? VirtualView?.OwnMessageTextColor.ToPlatform() : VirtualView?.OtherMessageTextColor.ToPlatform();
+
+        _focusedMessageView = new TextView(Context)
+        {
+            TextSize = 18f,
+            TextAlignment = AViews.TextAlignment.TextStart,
+            Gravity = GravityFlags.CenterHorizontal
+        };
+        _focusedMessageView.SetPadding(64, 32, 64, 32);
+        _focusedMessageView.Text = message.TextContent;
+        _focusedMessageView.SetTextColor(textColor.Value);
+        _focusedMessageView.TextSize = VirtualView.MessageFontSize;
+
+        var backgroundDrawable = new GradientDrawable();
+        backgroundDrawable.SetShape(ShapeType.Rectangle);
+        backgroundDrawable.SetColor(bgColor.Value);
+        backgroundDrawable.SetCornerRadius(40f);
+        _focusedMessageView.Background = backgroundDrawable;
+
+        _messagePopupContainer.RemoveAllViews();
+        _messagePopupContainer.AddView(_focusedMessageView, new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent));
+
+        var layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+        layoutParams.Gravity = GravityFlags.Center;
+        _messagePopupContainer.LayoutParameters = layoutParams;
+
+        (rootView as ViewGroup)?.AddView(_messagePopupContainer);
+
+        // Show new custom context panel
+        CreateContextPanel(message);
+
+        _blurOverlay.Click += (s, e) => DismissContextMenu();
+    }
+
+    private void CreateEmojiPanel(ChatMessage message, LinearLayout parent)
+    {
+        var scrollView = new HorizontalScrollView(Context)
+        {
+            HorizontalScrollBarEnabled = false
+        };
+
+        var emojiPanel = new LinearLayout(Context)
+        {
+            Orientation = Orientation.Horizontal,
+        };
+
+        WeakReference<ChatViewHandler> weakHandler = new(this);
+
+        foreach (var emoji in VirtualView.EmojiReactions)
+        {
+            var emojiTextView = new TextView(Context)
+            {
+                Text = emoji,
+                TextSize = VirtualView.ContextMenuReactionFontSize,
+                Gravity = GravityFlags.Center
+            };
+
+            emojiTextView.SetPadding(16, 8, 16, 8);
+
+            emojiTextView.Click += (s, e) =>
+            {
+                if (weakHandler.TryGetTarget(out var handler))
+                {
+                    handler.HandleEmojiReaction(message, emoji);
+                }
+            };
+
+            emojiPanel.AddView(emojiTextView);
+        }
+
+        scrollView.AddView(emojiPanel);
+        parent.AddView(scrollView);
+    }
+
+    private void AddDivider(LinearLayout parent)
+    {
+        var divider = new AViews.View(Context)
+        {
+            LayoutParameters = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent, VirtualView.ContextMenuDividerHeight)
+        };
+        divider.SetBackgroundColor(VirtualView.ContextMenuDividerColor.ToPlatform());
+        parent.AddView(divider);
+    }
+
+    private void AddMenuItem(LinearLayout parent, string text, bool isDestructive, Action onClick)
+    {
+        var menuItem = new TextView(Context)
+        {
+            Text = text,
+            TextSize = VirtualView.ContextMenuFontSize,
+            Gravity = GravityFlags.CenterHorizontal
+        };
+
+        menuItem.SetPadding(32, 16, 32, 16);
+        if (isDestructive)
+        {
+            menuItem.SetTextColor(VirtualView.ContextMenuDestructiveTextColor.ToPlatform());
+        }
+        else
+        {
+            menuItem.SetTextColor(VirtualView.ContextMenuTextColor.ToPlatform());
+        }
+
+        WeakReference<ChatViewHandler> weakHandler = new(this);
+
+        menuItem.Click += (s, e) =>
+        {
+            if (weakHandler.TryGetTarget(out var handler))
+            {
+                onClick.Invoke();
+                handler.DismissContextMenu();
+            }
+        };
+
+        parent.AddView(menuItem);
+    }
+
+    private void CreateContextPanel(ChatMessage message)
+    {
+        var rootView = PlatformView.RootView;
+
+        // Remove existing context panel if any
+        if (_contextPanel != null)
+        {
+            (rootView as ViewGroup)?.RemoveView(_contextPanel);
+        }
+
+        // Create main panel
+        _contextPanel = new LinearLayout(Context)
+        {
+            Orientation = Orientation.Vertical,
+        };
+
+        // Apply padding and rounded background
+        _contextPanel.SetPadding(32, 16, 32, 16);
+        var backgroundDrawable = new GradientDrawable();
+        backgroundDrawable.SetShape(ShapeType.Rectangle);
+        backgroundDrawable.SetColor(VirtualView.ContextMenuBackgroundColor.ToPlatform());
+        backgroundDrawable.SetCornerRadius(40f);
+        _contextPanel.Background = backgroundDrawable;
+
+        // Add Emoji Panel
+        CreateEmojiPanel(message, _contextPanel);
+
+        // Add horizontal divider
+        AddDivider(_contextPanel);
+
+
+        if (VirtualView.ContextMenuItems.Count > 0)
+        {
+            int n = 0;
+            foreach(ContextMenuItem item in VirtualView.ContextMenuItems)
+            {
+                if (item.IsDestructive)
+                {
+                    AddMenuItem(_contextPanel, item.Name, item.IsDestructive, () => HandleDestructiveAction(message, item.Tag));
+                }
+                else
+                {
+                    AddMenuItem(_contextPanel, item.Name, item.IsDestructive, () => HandleContextAction(message, item.Tag));
+                }
+                if (n < VirtualView.ContextMenuItems.Count - 1)
+                {
+                    AddDivider(_contextPanel);
+                }
+                n++;
+            }
+        }
+
+        // Positioning: **Below the Highlighted Message**
+        var location = new int[2];
+        _messagePopupContainer.GetLocationOnScreen(location);
+        int messageBottomY = location[1] + _messagePopupContainer.Height;
+
+        var screenHeight = rootView.Height;
+
+        // Ensure the panel does not go out of screen bounds
+        int availableSpaceBelow = screenHeight - messageBottomY;
+        int contextMenuHeight = 250; // Approximate height
+
+        // Check if there is enough space below the message
+        int topMargin;
+        if (availableSpaceBelow > contextMenuHeight)
+        {
+            // Enough space below the message
+            topMargin = messageBottomY + 20; // Add some spacing
+        }
+        else
+        {
+            // Not enough space, position it **above the message** instead
+            topMargin = location[1] - contextMenuHeight - 20;
+        }
+
+        // Set layout params
+        var contextPanelLayoutParams = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WrapContent, ViewGroup.LayoutParams.WrapContent);
+        contextPanelLayoutParams.TopMargin = topMargin;
+        contextPanelLayoutParams.Gravity = GravityFlags.Top | GravityFlags.CenterHorizontal;
+        _contextPanel.LayoutParameters = contextPanelLayoutParams;
+
+        // Add context panel to the root view
+        (rootView as ViewGroup)?.AddView(_contextPanel);
+    }
+
+    private void DismissContextMenu()
+    {
+        _blurOverlay?.ClearBlur();
+        (PlatformView.RootView as ViewGroup)?.RemoveView(_blurOverlay);
+        (PlatformView.RootView as ViewGroup)?.RemoveView(_messagePopupContainer);
+        (PlatformView.RootView as ViewGroup)?.RemoveView(_contextPanel);
+
+        _focusedMessageView = null;
+        _contextPanel = null;
+
+        if (_emojiPanel != null)
+        {
+            for (int i = 0; i < _emojiPanel.ChildCount; i++)
+            {
+                var child = _emojiPanel.GetChildAt(i);
+                if (child is TextView textView)
+                {
+                    textView.Click -= (s, e) => { }; // Remove previous handlers
+                }
+            }
+            _emojiPanel = null;
         }
     }
 }

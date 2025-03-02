@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Indiko.Maui.Controls.Chat.Models;
@@ -77,6 +78,26 @@ public partial class MainPageViewModel : BaseViewModel
         Console.WriteLine($"Emoji Reaction tapped: {message.MessageId}");
     }
 
+    [RelayCommand]
+    public void LongPressed(ContextAction contextAction)
+    {
+        switch (contextAction.Name)
+        {
+            case "reply":
+                Console.WriteLine($"Reply to message: {contextAction.Message.MessageId}");
+                break;
+            case "delete":
+                Console.WriteLine($"Delete message: {contextAction.Message.MessageId}");
+                break;
+            case "copy":
+                Console.WriteLine($"Copy message: {contextAction.Message.MessageId}");
+                break;
+            case "react":
+                ChatMessageReaction chatMessageReaction = contextAction.AdditionalData as ChatMessageReaction;
+                Console.WriteLine($"React to message: {contextAction.Message.MessageId}, Additional Data: {chatMessageReaction.Emoji}");
+                break;
+        }
+    }
 
 
     [RelayCommand]

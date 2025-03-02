@@ -267,4 +267,114 @@ public class ChatView : View
         get => (float)GetValue(ReplyMessageFontSizeProperty);
         set => SetValue(ReplyMessageFontSizeProperty, value);
     }
+
+    public static readonly BindableProperty LongPressedCommandProperty =
+    BindableProperty.Create(nameof(LongPressedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+
+    public ICommand LongPressedCommand
+    {
+        get => (ICommand)GetValue(LongPressedCommandProperty);
+        set => SetValue(LongPressedCommandProperty, value);
+    }
+
+    public static readonly BindableProperty EmojiReactionsProperty = BindableProperty.Create(nameof(EmojiReactions), typeof(List<string>), typeof(ChatView), default(List<string>));
+    public List<string> EmojiReactions
+    {
+        get => (List<string>)GetValue(EmojiReactionsProperty);
+        set => SetValue(EmojiReactionsProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuBackgroundColorProperty = BindableProperty.Create(nameof(ContextMenuBackgroundColor), typeof(Color), typeof(ChatView), Colors.White);
+    public Color ContextMenuBackgroundColor
+    {
+        get => (Color)GetValue(ContextMenuBackgroundColorProperty);
+        set => SetValue(ContextMenuBackgroundColorProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuTextColorProperty = BindableProperty.Create(nameof(ContextMenuTextColor), typeof(Color), typeof(ChatView), Colors.Black);
+    public Color ContextMenuTextColor
+    {
+        get => (Color)GetValue(ContextMenuTextColorProperty);
+        set => SetValue(ContextMenuTextColorProperty, value);
+    }
+
+
+    public static readonly BindableProperty ContextMenuDestructiveTextColorProperty = BindableProperty.Create(nameof(ContextMenuDestructiveTextColor), typeof(Color), typeof(ChatView), Colors.Red);
+    public Color ContextMenuDestructiveTextColor
+    {
+        get => (Color)GetValue(ContextMenuDestructiveTextColorProperty);
+        set => SetValue(ContextMenuDestructiveTextColorProperty, value);
+    }
+
+
+    public static readonly BindableProperty ContextMenuDividerColorProperty = BindableProperty.Create(nameof(ContextMenuDividerColor), typeof(Color), typeof(ChatView), Colors.LightGray);
+    public Color ContextMenuDividerColor
+    {
+        get => (Color)GetValue(ContextMenuDividerColorProperty);
+        set => SetValue(ContextMenuDividerColorProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuDividerHeightProperty = BindableProperty.Create(nameof(ContextMenuDividerHeight), typeof(int), typeof(ChatView), 1);
+    public int ContextMenuDividerHeight
+    {
+        get => (int)GetValue(ContextMenuDividerHeightProperty);
+        set => SetValue(ContextMenuDividerHeightProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuFontSizeProperty = BindableProperty.Create(nameof(ContextMenuFontSize), typeof(float), typeof(ChatView), 14f);
+    public float ContextMenuFontSize
+    {
+        get => (float)GetValue(ContextMenuFontSizeProperty);
+        set => SetValue(ContextMenuFontSizeProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuReactionFontSizeProperty = BindableProperty.Create(nameof(ContextMenuReactionFontSize), typeof(float), typeof(ChatView), 18f);
+    public float ContextMenuReactionFontSize
+    {
+        get => (float)GetValue(ContextMenuReactionFontSizeProperty);
+        set => SetValue(ContextMenuReactionFontSizeProperty, value);
+    }
+
+    public static readonly BindableProperty EnableContextMenuProperty = BindableProperty.Create(nameof(EnableContextMenu), typeof(bool), typeof(ChatView), true);
+    public bool EnableContextMenu
+    {
+        get => (bool)GetValue(EnableContextMenuProperty);
+        set => SetValue(EnableContextMenuProperty, value);
+    }
+
+    // bindable properties for list of ContextMenuItem
+    public static readonly BindableProperty ContextMenuItemsProperty = BindableProperty.Create(nameof(ContextMenuItems), typeof(List<ContextMenuItem>), typeof(ChatView), default(List<ContextMenuItem>));
+    public List<ContextMenuItem> ContextMenuItems
+    {
+        get => (List<ContextMenuItem>)GetValue(ContextMenuItemsProperty);
+        set => SetValue(ContextMenuItemsProperty, value);
+    }
+
+    public ChatView()
+    {
+        EmojiReactions =
+        [
+            "😊",
+            "❤️",
+            "👍",
+            "👎",
+            "🔥",
+            "👏",
+            "😂",
+            "😍",
+            "😢",
+            "😡",
+            "🙌",
+            "🤔",
+            "🤣",
+        ];
+
+        ContextMenuItems =
+        [
+            new() { Name = "Copy", Tag = "copy" },
+            new() { Name = "Reply", Tag = "reply" },
+            new() { Name = "Delete", Tag = "delete", IsDestructive = true },
+        ];
+    }
+
 }
