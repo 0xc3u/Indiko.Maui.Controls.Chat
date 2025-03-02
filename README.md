@@ -1,4 +1,4 @@
-﻿# ChatView Control for MAUI.NET
+# ChatView Control for MAUI.NET
 
 The `ChatView` control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, managing replies, emoji reactions, avatars, and system messages. The control is optimized for native performance using platform-specific components like `RecyclerView` on Android and `UICollectionView` on iOS.
 
@@ -57,6 +57,7 @@ builder.UseChatView();
 - **Scrollable Chat**: Supports smooth scrolling, including scroll-to-last-message and scroll-to-first-new-message.
 - **Load More Messages**: Supports dynamic loading of older messages via a bound command.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
+- **Long Press Gesture**: shows Context Menu defined.
 
 ---
 
