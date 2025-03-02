@@ -267,4 +267,42 @@ public class ChatView : View
         get => (float)GetValue(ReplyMessageFontSizeProperty);
         set => SetValue(ReplyMessageFontSizeProperty, value);
     }
+
+    public static readonly BindableProperty LongPressedCommandProperty =
+    BindableProperty.Create(nameof(LongPressedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+
+    public ICommand LongPressedCommand
+    {
+        get => (ICommand)GetValue(LongPressedCommandProperty);
+        set => SetValue(LongPressedCommandProperty, value);
+    }
+
+    public static readonly BindableProperty EmojiReactionsProperty = BindableProperty.Create(nameof(EmojiReactions), typeof(List<string>), typeof(ChatView), default(List<string>));
+    public List<string> EmojiReactions
+    {
+        get => (List<string>)GetValue(EmojiReactionsProperty);
+        set => SetValue(EmojiReactionsProperty, value);
+    }
+
+
+    public ChatView()
+    {
+        EmojiReactions =
+        [
+            "😊",
+            "❤️",
+            "👍",
+            "👎",
+            "🔥",
+            "👏",
+            "😂",
+            "😍",
+            "😢",
+            "😡",
+            "🙌",
+            "🤔",
+            "🤣",
+        ];
+    }
+
 }

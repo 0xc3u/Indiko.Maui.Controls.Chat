@@ -1,6 +1,7 @@
 ﻿using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Indiko.Maui.Controls.Chat.Models;
+using Microsoft.Maui.Handlers;
 using aViews = Android.Views;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
@@ -28,6 +29,9 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     private EventHandler _imageBubbleClickHandler;
     private EventHandler _videoBubbleClickHandler;
     private EventHandler _emojiReactionClickHandler;
+
+    private EventHandler<aViews.View.LongClickEventArgs> _longPressHandler;
+
 
     public ChatMessageViewHolder(
         aViews.View itemView,
@@ -66,7 +70,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         SystemMessageTextView = systemMessageTextView;
     }
 
-    public void AttachEventHandlers(ChatMessage message, ChatView chatView)
+    public void AttachEventHandlers(ChatMessage message, ChatView chatView, ChatViewHandler handler)
     {
         DetachEventHandlers();
 
@@ -81,6 +85,21 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             }
         };
         AvatarView.Click += _avatarClickHandler;
+
+
+        // Long Press Handler
+        _longPressHandler = (object sender, aViews.View.LongClickEventArgs e) =>
+        {
+            if (weakChatView.TryGetTarget(out var target))
+            {
+                handler.ShowContextMenu(message, FrameLayout); // Show menu on long press
+            }
+        };
+
+        TextView.LongClick += _longPressHandler;
+        ImageView.LongClick += _longPressHandler;
+        VideoContainer.LongClick += _longPressHandler;
+        ReactionContainer.LongClick += _longPressHandler;
 
         _textBubbleClickHandler = (s, e) =>
         {
@@ -123,12 +142,22 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         ReactionContainer.Click += _emojiReactionClickHandler;
     }
 
+   
     public void DetachEventHandlers()
     {
         if (_avatarClickHandler != null && AvatarView != null)
         {
             AvatarView.Click -= _avatarClickHandler;
             _avatarClickHandler = null;
+        }
+
+        if (_longPressHandler != null)
+        {
+            TextView.LongClick -= _longPressHandler;
+            ImageView.LongClick -= _longPressHandler;
+            VideoContainer.LongClick -= _longPressHandler;
+            ReactionContainer.LongClick -= _longPressHandler;
+            _longPressHandler = null;
         }
 
         if (_textBubbleClickHandler != null && TextView != null)
@@ -154,6 +183,9 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             ReactionContainer.Click -= _emojiReactionClickHandler;
             _emojiReactionClickHandler = null;
         }
+
+
+
     }
 
     public async void ApplyVisualFeedbackToChatBubble()

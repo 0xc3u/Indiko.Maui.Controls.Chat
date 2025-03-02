@@ -44,7 +44,8 @@
             ScrolledToLastMessageCommand="{Binding ScrolledToLastMessageCommand}"
             SystemMessageBackgroundColor="{StaticResource Yellow300Accent}"
             SystemMessageTextColor="{StaticResource Tertiary}"
-            SystemMessageFontSize="14">
+            SystemMessageFontSize="14"
+            LongPressedCommand="{Binding LongPressedCommand}">
 
         </idk:ChatView>
 
@@ -67,7 +68,7 @@
 
             <Editor Grid.Row="1" Grid.Column="0" x:Name="messageEntry" 
                 AutoSize="TextChanges"
-                Placeholder="Type a message..." HorizontalOptions="FillAndExpand" Text="{Binding NewMessage}"
+                Placeholder="Type a message..." HorizontalOptions="Fill" Text="{Binding NewMessage}"
                 TextColor="{StaticResource Tertiary}"
                 PlaceholderColor="{StaticResource Tertiary}" VerticalOptions="Center"/>
 

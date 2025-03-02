@@ -53,12 +53,14 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
     private readonly IMauiContext _mauiContext;
     private readonly ChatView VirtualView;
+    private readonly ChatViewHandler _handler;
 
-    public ChatMessageAdapter(Context context, IMauiContext mauiContext, ChatView virtualView)
+    public ChatMessageAdapter(Context context, IMauiContext mauiContext, ChatView virtualView, ChatViewHandler handler)
     {
         _context = context;
         _messages = virtualView.Messages;
         _mauiContext = mauiContext;
+        _handler = handler;
         VirtualView = virtualView;
 
         OwnMessageBackgroundColor = VirtualView.OwnMessageBackgroundColor;
@@ -332,7 +334,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             var message = _messages[position];
 
             chatHolder.DetachEventHandlers(); // Ensure no previous handlers are attached
-            chatHolder.AttachEventHandlers(message, VirtualView);
+            chatHolder.AttachEventHandlers(message, VirtualView, _handler);
 
             // Check if this is the first "New" message in the list
             bool isFirstNewMessage = message.ReadState == MessageReadState.New &&
