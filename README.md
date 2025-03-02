@@ -2,6 +2,12 @@
 
 The `ChatView` control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, managing replies, emoji reactions, avatars, and system messages. The control is optimized for native performance using platform-specific components like `RecyclerView` on Android and `UICollectionView` on iOS.
 
+## Screenshots
+
+| Android | iOS                |
+|--------------|----------------------------|
+| ![markdownview_screenshots](https://github.com/user-attachments/assets/a94b773b-9662-4e70-8913-e26c7d1dc1a6) | ![chatview_ios](https://github.com/user-attachments/assets/be809ff0-8429-436d-8571-20454e61e24d) |
+
 ![Indiko.Maui.Controls.Chat](nuget.png)
 
 ## Build Status
