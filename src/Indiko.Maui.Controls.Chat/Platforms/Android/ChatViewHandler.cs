@@ -19,10 +19,8 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
     private BlurOverlayView _blurOverlay;
     private FrameLayout _messagePopupContainer;
     private TextView _focusedMessageView;
-    private PopupMenu _contextMenu;
     private LinearLayout _emojiPanel;
     private LinearLayout _contextPanel;
-    private ChatMessage _selectedMessage;
 
     public static IPropertyMapper<ChatView, ChatViewHandler> PropertyMapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
     {
@@ -182,15 +180,15 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         }
     }
 
-    private void HandleReply(ChatMessage message)
+    private void HandleContextAction(ChatMessage message, string action)
     {
-        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = "Reply", Message = message });
+        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = action, Message = message });
         DismissContextMenu();
     }
 
-    private void HandleDelete(ChatMessage message)
+    private void HandleDestructiveAction(ChatMessage message, string action)
     {
-        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = "Delete", Message = message });
+        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = action, Message = message });
         VirtualView?.Messages.Remove(message); // Remove the message from the collection
         DismissContextMenu();
     }
@@ -214,7 +212,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             _adapter.NotifyItemChanged(index.Value);
         }
 
-        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = "React", Message = message, AdditionalData = existingReaction });
+        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = "react", Message = message, AdditionalData = existingReaction });
 
         DismissContextMenu();
     }
@@ -234,8 +232,6 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         {
             return;
         }
-
-        _selectedMessage = message;
 
         if (_blurOverlay == null)
         {
@@ -343,7 +339,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         parent.AddView(divider);
     }
 
-    private void AddMenuItem(LinearLayout parent, string text, Action onClick)
+    private void AddMenuItem(LinearLayout parent, string text, bool isDestructive, Action onClick)
     {
         var menuItem = new TextView(Context)
         {
@@ -353,7 +349,14 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         };
 
         menuItem.SetPadding(32, 16, 32, 16);
-        menuItem.SetTextColor(VirtualView.ContextMenuTextColor.ToPlatform());
+        if (isDestructive)
+        {
+            menuItem.SetTextColor(VirtualView.ContextMenuDestructiveTextColor.ToPlatform());
+        }
+        else
+        {
+            menuItem.SetTextColor(VirtualView.ContextMenuTextColor.ToPlatform());
+        }
 
         WeakReference<ChatViewHandler> weakHandler = new(this);
 
@@ -368,7 +371,6 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
         parent.AddView(menuItem);
     }
-
 
     private void CreateContextPanel(ChatMessage message)
     {
@@ -400,10 +402,27 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         // Add horizontal divider
         AddDivider(_contextPanel);
 
-        // Add menu items
-        AddMenuItem(_contextPanel, "Reply", () => HandleReply(message));
-        AddDivider(_contextPanel);
-        AddMenuItem(_contextPanel, "Delete", () => HandleDelete(message));
+
+        if (VirtualView.ContextMenuItems.Count > 0)
+        {
+            int n = 0;
+            foreach(ContextMenuItem item in VirtualView.ContextMenuItems)
+            {
+                if (item.IsDestructive)
+                {
+                    AddMenuItem(_contextPanel, item.Name, item.IsDestructive, () => HandleDestructiveAction(message, item.Tag));
+                }
+                else
+                {
+                    AddMenuItem(_contextPanel, item.Name, item.IsDestructive, () => HandleContextAction(message, item.Tag));
+                }
+                if (n < VirtualView.ContextMenuItems.Count - 1)
+                {
+                    AddDivider(_contextPanel);
+                }
+                n++;
+            }
+        }
 
         // Positioning: **Below the Highlighted Message**
         var location = new int[2];
@@ -447,7 +466,6 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         (PlatformView.RootView as ViewGroup)?.RemoveView(_messagePopupContainer);
         (PlatformView.RootView as ViewGroup)?.RemoveView(_contextPanel);
 
-        _selectedMessage = null;
         _focusedMessageView = null;
         _contextPanel = null;
 
@@ -464,5 +482,4 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             _emojiPanel = null;
         }
     }
-
 }

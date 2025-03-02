@@ -83,14 +83,16 @@ public partial class MainPageViewModel : BaseViewModel
     {
         switch (contextAction.Name)
         {
-            case "Reply":
+            case "reply":
                 Console.WriteLine($"Reply to message: {contextAction.Message.MessageId}");
                 break;
-            case "Delete":
+            case "delete":
                 Console.WriteLine($"Delete message: {contextAction.Message.MessageId}");
                 break;
-            case "React":
-
+            case "copy":
+                Console.WriteLine($"Copy message: {contextAction.Message.MessageId}");
+                break;
+            case "react":
                 ChatMessageReaction chatMessageReaction = contextAction.AdditionalData as ChatMessageReaction;
                 Console.WriteLine($"React to message: {contextAction.Message.MessageId}, Additional Data: {chatMessageReaction.Emoji}");
                 break;

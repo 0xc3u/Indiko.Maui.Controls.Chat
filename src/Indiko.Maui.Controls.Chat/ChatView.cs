@@ -298,6 +298,15 @@ public class ChatView : View
         set => SetValue(ContextMenuTextColorProperty, value);
     }
 
+
+    public static readonly BindableProperty ContextMenuDestructiveTextColorProperty = BindableProperty.Create(nameof(ContextMenuDestructiveTextColor), typeof(Color), typeof(ChatView), Colors.Red);
+    public Color ContextMenuDestructiveTextColor
+    {
+        get => (Color)GetValue(ContextMenuDestructiveTextColorProperty);
+        set => SetValue(ContextMenuDestructiveTextColorProperty, value);
+    }
+
+
     public static readonly BindableProperty ContextMenuDividerColorProperty = BindableProperty.Create(nameof(ContextMenuDividerColor), typeof(Color), typeof(ChatView), Colors.LightGray);
     public Color ContextMenuDividerColor
     {
@@ -333,6 +342,14 @@ public class ChatView : View
         set => SetValue(EnableContextMenuProperty, value);
     }
 
+    // bindable properties for list of ContextMenuItem
+    public static readonly BindableProperty ContextMenuItemsProperty = BindableProperty.Create(nameof(ContextMenuItems), typeof(List<ContextMenuItem>), typeof(ChatView), default(List<ContextMenuItem>));
+    public List<ContextMenuItem> ContextMenuItems
+    {
+        get => (List<ContextMenuItem>)GetValue(ContextMenuItemsProperty);
+        set => SetValue(ContextMenuItemsProperty, value);
+    }
+
     public ChatView()
     {
         EmojiReactions =
@@ -350,6 +367,13 @@ public class ChatView : View
             "🙌",
             "🤔",
             "🤣",
+        ];
+
+        ContextMenuItems =
+        [
+            new() { Name = "Copy", Tag = "copy" },
+            new() { Name = "Reply", Tag = "reply" },
+            new() { Name = "Delete", Tag = "delete", IsDestructive = true },
         ];
     }
 

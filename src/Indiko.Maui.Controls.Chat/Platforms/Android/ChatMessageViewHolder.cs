@@ -183,9 +183,6 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             ReactionContainer.Click -= _emojiReactionClickHandler;
             _emojiReactionClickHandler = null;
         }
-
-
-
     }
 
     public async void ApplyVisualFeedbackToChatBubble()
