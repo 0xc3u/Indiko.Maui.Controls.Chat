@@ -6,7 +6,8 @@ The `ChatView` control is a highly customizable chat interface for MAUI.NET appl
 
 | Android | iOS                |
 |--------------|----------------------------|
-| ![markdownview_screenshots](https://github.com/user-attachments/assets/a94b773b-9662-4e70-8913-e26c7d1dc1a6) | ![chatview_ios](https://github.com/user-attachments/assets/be809ff0-8429-436d-8571-20454e61e24d) |
+| ![chatview_android](https://github.com/user-attachments/assets/51b05be2-3d31-48e3-921e-28119da3a8fb)
+ | ![chatview_ios](https://github.com/user-attachments/assets/be809ff0-8429-436d-8571-20454e61e24d) |
 
 ![Indiko.Maui.Controls.Chat](nuget.png)
 
