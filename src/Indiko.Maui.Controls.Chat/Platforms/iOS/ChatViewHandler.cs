@@ -130,4 +130,27 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         }
         base.DisconnectHandler(nativeView);
     }
+
+    private void ApplyBlurEffect()
+    {
+        var blurEffect = UIBlurEffect.FromStyle(UIBlurEffectStyle.Dark);
+        var blurView = new UIVisualEffectView(blurEffect)
+        {
+            Frame = PlatformView.Bounds,
+            AutoresizingMask = UIViewAutoresizing.FlexibleDimensions
+        };
+
+        PlatformView.InsertSubview(blurView, 0);
+    }
+
+    private void RemoveBlurEffect()
+    {
+        foreach (var subview in PlatformView.Subviews)
+        {
+            if (subview is UIVisualEffectView)
+            {
+                subview.RemoveFromSuperview();
+            }
+        }
+    }
 }

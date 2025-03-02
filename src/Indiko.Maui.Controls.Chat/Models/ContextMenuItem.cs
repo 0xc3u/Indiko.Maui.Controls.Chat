@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Indiko.Maui.Controls.Chat.Models;
+﻿namespace Indiko.Maui.Controls.Chat.Models;
 
 public class ContextMenuItem
 {
