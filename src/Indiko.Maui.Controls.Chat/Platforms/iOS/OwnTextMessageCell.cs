@@ -294,7 +294,7 @@ internal class OwnTextMessageCell : UICollectionViewCell
     {
         if (recognizer.State == UIGestureRecognizerState.Began)
         {
-            var contextMenu = new ChatContextMenuView(_chatView, _message, DismissContextMenu);
+            var contextMenu = new ChatContextMenuView(_chatView, _message, _bubbleView, DismissContextMenu);
             contextMenu.Show();
         }
     }
