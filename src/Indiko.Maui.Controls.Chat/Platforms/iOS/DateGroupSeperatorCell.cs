@@ -34,7 +34,7 @@ public class DateGroupSeperatorCell : UICollectionViewCell
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)
     {
-        if (chatView == null || message == null || mauiContext == null)
+        if (chatView == null || message == null || mauiContext == null || message.Timestamp.Year==1)
         {
             return;
         }

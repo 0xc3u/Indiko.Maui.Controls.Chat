@@ -26,6 +26,11 @@ public class ChatContextMenuView : UIView
         _messageView = messageView;
         _onDismiss = onDismiss;
 
+        if(_message == null || _messageView == null)
+        {
+            return;
+        }
+        
         BackgroundColor = UIColor.Clear;
         Frame = UIScreen.MainScreen.Bounds;
 

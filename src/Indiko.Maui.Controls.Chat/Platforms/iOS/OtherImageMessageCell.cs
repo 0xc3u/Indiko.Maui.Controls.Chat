@@ -25,6 +25,7 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
     private UILabel _replySenderTextLabel;
 
     private NSLayoutConstraint _messageImageTopConstraint;
+    private UILongPressGestureRecognizer _longPressGesture;
 
     public OtherImageMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
@@ -193,6 +194,10 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
         });
+        
+        // Initialize long press gesture
+        _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
+        _bubbleView.AddGestureRecognizer(_longPressGesture);
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)
@@ -333,5 +338,19 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
         {
             Console.WriteLine($"Error in {nameof(OtherImageMessageCell)}.{nameof(Update)}: {ex.Message}");
         }
+    }
+    
+    private void LongPressHandler(UILongPressGestureRecognizer recognizer)
+    {
+        if (recognizer.State == UIGestureRecognizerState.Began)
+        {
+            var contextMenu = new ChatContextMenuView(_chatView, _message, _bubbleView, DismissContextMenu);
+            contextMenu.Show();
+        }
+    }
+
+    private void DismissContextMenu()
+    {
+        Console.WriteLine("Context menu dismissed");
     }
 }
