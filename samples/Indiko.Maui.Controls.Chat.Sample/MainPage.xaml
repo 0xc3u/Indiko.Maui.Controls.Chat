@@ -45,7 +45,10 @@
             SystemMessageBackgroundColor="{StaticResource Yellow300Accent}"
             SystemMessageTextColor="{StaticResource Tertiary}"
             SystemMessageFontSize="14"
-            LongPressedCommand="{Binding LongPressedCommand}">
+            LongPressedCommand="{Binding LongPressedCommand}"
+            ContextMenuDividerColor="{StaticResource Gray300}"
+            ContextMenuTextColor="{StaticResource Gray600}"
+            ContextMenuBackgroundColor="{StaticResource White}">
 
         </idk:ChatView>
 

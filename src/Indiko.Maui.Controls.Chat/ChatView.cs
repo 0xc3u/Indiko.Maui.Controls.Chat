@@ -284,6 +284,54 @@ public class ChatView : View
         set => SetValue(EmojiReactionsProperty, value);
     }
 
+    public static readonly BindableProperty ContextMenuBackgroundColorProperty = BindableProperty.Create(nameof(ContextMenuBackgroundColor), typeof(Color), typeof(ChatView), Colors.White);
+    public Color ContextMenuBackgroundColor
+    {
+        get => (Color)GetValue(ContextMenuBackgroundColorProperty);
+        set => SetValue(ContextMenuBackgroundColorProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuTextColorProperty = BindableProperty.Create(nameof(ContextMenuTextColor), typeof(Color), typeof(ChatView), Colors.Black);
+    public Color ContextMenuTextColor
+    {
+        get => (Color)GetValue(ContextMenuTextColorProperty);
+        set => SetValue(ContextMenuTextColorProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuDividerColorProperty = BindableProperty.Create(nameof(ContextMenuDividerColor), typeof(Color), typeof(ChatView), Colors.LightGray);
+    public Color ContextMenuDividerColor
+    {
+        get => (Color)GetValue(ContextMenuDividerColorProperty);
+        set => SetValue(ContextMenuDividerColorProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuDividerHeightProperty = BindableProperty.Create(nameof(ContextMenuDividerHeight), typeof(int), typeof(ChatView), 1);
+    public int ContextMenuDividerHeight
+    {
+        get => (int)GetValue(ContextMenuDividerHeightProperty);
+        set => SetValue(ContextMenuDividerHeightProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuFontSizeProperty = BindableProperty.Create(nameof(ContextMenuFontSize), typeof(float), typeof(ChatView), 14f);
+    public float ContextMenuFontSize
+    {
+        get => (float)GetValue(ContextMenuFontSizeProperty);
+        set => SetValue(ContextMenuFontSizeProperty, value);
+    }
+
+    public static readonly BindableProperty ContextMenuReactionFontSizeProperty = BindableProperty.Create(nameof(ContextMenuReactionFontSize), typeof(float), typeof(ChatView), 18f);
+    public float ContextMenuReactionFontSize
+    {
+        get => (float)GetValue(ContextMenuReactionFontSizeProperty);
+        set => SetValue(ContextMenuReactionFontSizeProperty, value);
+    }
+
+    public static readonly BindableProperty EnableContextMenuProperty = BindableProperty.Create(nameof(EnableContextMenu), typeof(bool), typeof(ChatView), true);
+    public bool EnableContextMenu
+    {
+        get => (bool)GetValue(EnableContextMenuProperty);
+        set => SetValue(EnableContextMenuProperty, value);
+    }
 
     public ChatView()
     {

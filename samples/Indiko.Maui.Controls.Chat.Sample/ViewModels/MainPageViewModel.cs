@@ -90,7 +90,9 @@ public partial class MainPageViewModel : BaseViewModel
                 Console.WriteLine($"Delete message: {contextAction.Message.MessageId}");
                 break;
             case "React":
-                Console.WriteLine($"React to message: {contextAction.Message.MessageId}, Additional Data: {contextAction.AdditionalData}");
+
+                ChatMessageReaction chatMessageReaction = contextAction.AdditionalData as ChatMessageReaction;
+                Console.WriteLine($"React to message: {contextAction.Message.MessageId}, Additional Data: {chatMessageReaction.Emoji}");
                 break;
         }
     }

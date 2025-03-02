@@ -197,7 +197,6 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
     private void HandleEmojiReaction(ChatMessage message, string emoji)
     {
-        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = "React", Message = message, AdditionalData=emoji });
         var existingReaction = message.Reactions.FirstOrDefault(r => r.Emoji == emoji);
         if (existingReaction != null)
         {
@@ -205,7 +204,8 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         }
         else
         {
-            message.Reactions.Add(new ChatMessageReaction { Emoji = emoji, Count = 1 });
+            existingReaction = new ChatMessageReaction { Emoji = emoji, Count = 1 };
+            message.Reactions.Add(existingReaction);
         }
 
         var index = VirtualView?.Messages.IndexOf(message);
@@ -213,6 +213,9 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         {
             _adapter.NotifyItemChanged(index.Value);
         }
+
+        VirtualView?.LongPressedCommand?.Execute(new ContextAction { Name = "React", Message = message, AdditionalData = existingReaction });
+
         DismissContextMenu();
     }
 
@@ -227,6 +230,11 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
     public void ShowContextMenu(ChatMessage message, AViews.View anchorView)
     {
+        if(!VirtualView.EnableContextMenu)
+        {
+            return;
+        }
+
         _selectedMessage = message;
 
         if (_blurOverlay == null)
@@ -286,48 +294,52 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
     private void CreateEmojiPanel(ChatMessage message, LinearLayout parent)
     {
-        // Create a HorizontalScrollView to enable scrolling
         var scrollView = new HorizontalScrollView(Context)
         {
-            HorizontalScrollBarEnabled = false // Hide the scrollbar for cleaner UI
+            HorizontalScrollBarEnabled = false
         };
 
-        // Create a linear layout for emojis inside the scroll view
         var emojiPanel = new LinearLayout(Context)
         {
             Orientation = Orientation.Horizontal,
         };
+
+        WeakReference<ChatViewHandler> weakHandler = new(this);
 
         foreach (var emoji in VirtualView.EmojiReactions)
         {
             var emojiTextView = new TextView(Context)
             {
                 Text = emoji,
-                TextSize = 24f,
+                TextSize = VirtualView.ContextMenuReactionFontSize,
                 Gravity = GravityFlags.Center
             };
 
             emojiTextView.SetPadding(16, 8, 16, 8);
-            emojiTextView.Click += (s, e) => HandleEmojiReaction(message, emoji);
+
+            emojiTextView.Click += (s, e) =>
+            {
+                if (weakHandler.TryGetTarget(out var handler))
+                {
+                    handler.HandleEmojiReaction(message, emoji);
+                }
+            };
+
             emojiPanel.AddView(emojiTextView);
         }
 
-        // Add the emoji panel to the scroll view
         scrollView.AddView(emojiPanel);
-
-        // Add the scroll view to the parent container
         parent.AddView(scrollView);
     }
-
 
     private void AddDivider(LinearLayout parent)
     {
         var divider = new AViews.View(Context)
         {
             LayoutParameters = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MatchParent, 2) // 2px height
+                ViewGroup.LayoutParams.MatchParent, VirtualView.ContextMenuDividerHeight)
         };
-        divider.SetBackgroundColor(AGraphics.Color.LightGray);
+        divider.SetBackgroundColor(VirtualView.ContextMenuDividerColor.ToPlatform());
         parent.AddView(divider);
     }
 
@@ -336,20 +348,27 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         var menuItem = new TextView(Context)
         {
             Text = text,
-            TextSize = 18f,
+            TextSize = VirtualView.ContextMenuFontSize,
             Gravity = GravityFlags.CenterHorizontal
         };
+
         menuItem.SetPadding(32, 16, 32, 16);
-        menuItem.SetTextColor(AGraphics.Color.Black);
+        menuItem.SetTextColor(VirtualView.ContextMenuTextColor.ToPlatform());
+
+        WeakReference<ChatViewHandler> weakHandler = new(this);
 
         menuItem.Click += (s, e) =>
         {
-            onClick.Invoke();
-            DismissContextMenu();
+            if (weakHandler.TryGetTarget(out var handler))
+            {
+                onClick.Invoke();
+                handler.DismissContextMenu();
+            }
         };
 
         parent.AddView(menuItem);
     }
+
 
     private void CreateContextPanel(ChatMessage message)
     {
@@ -371,7 +390,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         _contextPanel.SetPadding(32, 16, 32, 16);
         var backgroundDrawable = new GradientDrawable();
         backgroundDrawable.SetShape(ShapeType.Rectangle);
-        backgroundDrawable.SetColor(AGraphics.Color.White);
+        backgroundDrawable.SetColor(VirtualView.ContextMenuBackgroundColor.ToPlatform());
         backgroundDrawable.SetCornerRadius(40f);
         _contextPanel.Background = backgroundDrawable;
 
@@ -426,11 +445,24 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         _blurOverlay?.ClearBlur();
         (PlatformView.RootView as ViewGroup)?.RemoveView(_blurOverlay);
         (PlatformView.RootView as ViewGroup)?.RemoveView(_messagePopupContainer);
-        (PlatformView.RootView as ViewGroup)?.RemoveView(_contextPanel); // Remove new context panel
+        (PlatformView.RootView as ViewGroup)?.RemoveView(_contextPanel);
+
         _selectedMessage = null;
         _focusedMessageView = null;
         _contextPanel = null;
-        _emojiPanel = null;
+
+        if (_emojiPanel != null)
+        {
+            for (int i = 0; i < _emojiPanel.ChildCount; i++)
+            {
+                var child = _emojiPanel.GetChildAt(i);
+                if (child is TextView textView)
+                {
+                    textView.Click -= (s, e) => { }; // Remove previous handlers
+                }
+            }
+            _emojiPanel = null;
+        }
     }
 
 }
