@@ -376,5 +376,4 @@ public class ChatView : View
             new() { Name = "Delete", Tag = "delete", IsDestructive = true },
         ];
     }
-
 }
