@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.0...v1.1.1) (2025-03-03)
+
+
+### Bug Fixes
+
+* update nuget package description ([e500b16](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/e500b1605a8761e316f8928a3a82d7767c23c9d8))
+
 # [1.1.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.0.0...v1.1.0) (2025-03-03)
 
 
