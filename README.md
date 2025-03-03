@@ -10,7 +10,6 @@ The `ChatView` control is a highly customizable chat interface for MAUI.NET appl
 |--------------|----------------------------|
 | ![chatview_android](https://github.com/user-attachments/assets/5a45c70a-49fa-451a-b044-0c4c9fa8b49b) | ![chatview_ios](https://github.com/user-attachments/assets/e62c0f75-7dfd-41d2-9ffb-4141556187fa) |
 
-
 ## Build Status
 ![ci](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/actions/workflows/symanticrelease.yml/badge.svg)
 
@@ -57,7 +56,7 @@ builder.UseChatView();
 - **Scrollable Chat**: Supports smooth scrolling, including scroll-to-last-message and scroll-to-first-new-message.
 - **Load More Messages**: Supports dynamic loading of older messages via a bound command.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
-- **Long Press Gesture**: shows Context Menu defined.
+- **Long Press Gesture**: Displays a configured context menu for chat message actions.
 
 ---
 
@@ -128,6 +127,30 @@ public class RepliedMessage
 }
 ```
 
+### `ContextMenuItem`
+Represents an item in the context menu.
+
+```csharp
+public class ContextMenuItem
+{
+    public string Name { get; set; }
+    public string Tag { get; set; }
+    public bool IsDestructive { get; set; }
+}
+```
+
+### `ContextAction`
+Represents an action triggered from the context menu.
+
+```csharp
+public class ContextAction
+{
+    public string Name { get; set; }
+    public object AdditionalData { get; set; }
+    public ChatMessage Message { get; set; }
+}
+```
+
 ### Enums
 
 #### `MessageDeliveryState`
@@ -153,12 +176,12 @@ public class RepliedMessage
 | Command                          | Description                                                    |
 |----------------------------------|----------------------------------------------------------------|
 | `ScrolledCommand`                | Triggered when the chat view is scrolled. See example below.   |
-| `ScrolledCommand`                | Triggered when the chat view is scrolled.                     |
 | `MessageTappedCommand`           | Triggered when a message is tapped.                           |
 | `AvatarTappedCommand`            | Triggered when an avatar is tapped.                           |
 | `EmojiReactionTappedCommand`     | Triggered when an emoji reaction is tapped.                   |
 | `LoadMoreMessagesCommand`        | Invoked when more messages need to be loaded.                 |
 | `ScrolledToLastMessageCommand`   | Triggered when scrolled to the last message.                  |
+| `LongPressedCommand`             | Triggered when a message is long-pressed to show the context menu. |
 
 ---
 
@@ -188,6 +211,13 @@ public class RepliedMessage
 | `ReplyMessageBackgroundColor`    | LightYellow         | Background color for replied message previews.   |
 | `ReplyMessageFontSize`           | 10                 | Font size for replied message previews.          |
 | `ReplyMessageTextColor`          | Black              | Text color for replied message previews.         |
+| `ContextMenuBackgroundColor`     | White              | Background color for the context menu.           |
+| `ContextMenuTextColor`           | Black              | Text color for the context menu.                 |
+| `ContextMenuDestructiveTextColor`| Red                | Text color for destructive actions in the context menu. |
+| `ContextMenuDividerColor`        | LightGray           | Color for the context menu divider.              |
+| `ContextMenuDividerHeight`       | 1                  | Height of the context menu divider.              |
+| `ContextMenuFontSize`            | 14                 | Font size for the context menu.                  |
+| `ContextMenuReactionFontSize`    | 18                 | Font size for reaction items in the context menu.|
 
 ---
 
@@ -246,6 +276,33 @@ private void Scrolled(ScrolledArgs scrolledArgs)
 }
 ```
 
+### Long Press Gesture Event Handling Example
+
+To handle the `LongPressedCommand` properly, you can define a method in your ViewModel as follows:
+
+```csharp
+[RelayCommand]
+public void LongPressed(ContextAction contextAction)
+{
+    switch (contextAction.Name)
+    {
+        case "reply":
+            Console.WriteLine($"Reply to message: {contextAction.Message.MessageId}");
+            break;
+        case "delete":
+            Console.WriteLine($"Delete message: {contextAction.Message.MessageId}");
+            break;
+        case "copy":
+            Console.WriteLine($"Copy message: {contextAction.Message.MessageId}");
+            break;
+        case "react":
+            ChatMessageReaction chatMessageReaction = contextAction.AdditionalData as ChatMessageReaction;
+            Console.WriteLine($"React to message: {contextAction.Message.MessageId}, Additional Data: {chatMessageReaction.Emoji}");
+            break;
+    }
+}
+```
+
 ### XAML Example
 
 ```xml
@@ -253,8 +310,8 @@ xmlns:idk="clr-namespace:Indiko.Maui.Controls.Chat;assembly=Indiko.Maui.Controls
 ...
 
 <idk:ChatView Grid.Row="0" x:Name="chatView"
-    
-    OwnMessageBackgroundColor="{StaticResource Primary}" 
+
+    OwnMessageBackgroundColor="{StaticResource Primary}"
     OwnMessageTextColor="{StaticResource White}"
     OtherMessageBackgroundColor="{StaticResource Secondary}"
     OtherMessageTextColor="{StaticResource Black}"
@@ -284,7 +341,16 @@ xmlns:idk="clr-namespace:Indiko.Maui.Controls.Chat;assembly=Indiko.Maui.Controls
     ScrolledToLastMessageCommand="{Binding ScrolledToLastMessageCommand}"
     SystemMessageBackgroundColor="{StaticResource Yellow300Accent}"
     SystemMessageTextColor="{StaticResource Tertiary}"
-    SystemMessageFontSize="14">
+    SystemMessageFontSize="14"
+    ContextMenuBackgroundColor="{StaticResource White}"
+    ContextMenuTextColor="{StaticResource Black}"
+    ContextMenuDestructiveTextColor="{StaticResource Red}"
+    ContextMenuDividerColor="{StaticResource LightGray}"
+    ContextMenuDividerHeight="1"
+    ContextMenuFontSize="14"
+    ContextMenuReactionFontSize="18"
+    EnableContextMenu="True"
+    LongPressedCommand="{Binding LongPressedCommand}">
 
 </idk:ChatView>
 ```
@@ -301,7 +367,14 @@ var chatView = new ChatView
     OwnMessageBackgroundColor = Colors.LightBlue,
     OtherMessageBackgroundColor = Colors.LightGray,
     ShowNewMessagesSeperator = true,
-    NewMessagesSeperatorText = "New Messages"
+    NewMessagesSeperatorText = "New Messages",
+    ContextMenuItems = new List<ContextMenuItem>
+    {
+        new() { Name = "Copy", Tag = "copy" },
+        new() { Name = "Reply", Tag = "reply" },
+        new() { Name = "Delete", Tag = "delete", IsDestructive = true },
+    },
+    LongPressedCommand = new Command<ContextAction>(OnLongPressed)
 };
 
 void OnMessageTapped(ChatMessage message)
@@ -317,6 +390,11 @@ void OnAvatarTapped()
 void OnLoadMoreMessages()
 {
     // Load older messages
+}
+
+void OnLongPressed(ContextAction contextAction)
+{
+    // Handle long press actions
 }
 ```
 
@@ -407,3 +485,6 @@ Happy coding!
 
 This project is licensed under the MIT License.
 
+---
+
+This updated documentation includes the new properties and functionality for the long press gesture feature, ensuring that users understand how to configure and use the context menu for chat message actions.
