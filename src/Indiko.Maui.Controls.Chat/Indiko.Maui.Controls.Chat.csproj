@@ -16,13 +16,13 @@
 		<PackageProjectUrl>https://github.com/0xc3u/Indiko.Maui.Controls.Markdown</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/0xc3u/Indiko.Maui.Controls.Markdown</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
-		<PackageTags>dotnet-maui;maui;ui;chat;control;</PackageTags>
+		<PackageTags>dotnet-maui;maui;ui;chat;control;RecyclerView;UICollectionView</PackageTags>
 		<IncludeSymbols>True</IncludeSymbols>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<Title>INDIKO .NET MAUI Chat View</Title>
-		<Description>The `ChatView` component is a versatile and customizable Markdown renderer designed for MAUI.NET applications. It allows developers to display Markdown-formatted text within their MAUI.NET applications, providing a rich text experience.</Description>
+		<Description>The ChatView control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, managing replies, emoji reactions, avatars, and system messages. The control is optimized for native performance using platform-specific components like RecyclerView on Android and UICollectionView on iOS.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<DebugType>portable</DebugType>
