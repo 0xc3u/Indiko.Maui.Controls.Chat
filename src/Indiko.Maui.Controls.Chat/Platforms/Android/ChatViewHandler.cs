@@ -283,7 +283,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         (rootView as ViewGroup)?.AddView(_messagePopupContainer);
 
         // Show new custom context panel
-        CreateContextPanel(message);
+        CreateContextPanel(message, anchorView);
 
         _blurOverlay.Click += (s, e) => DismissContextMenu();
     }
@@ -372,7 +372,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         parent.AddView(menuItem);
     }
 
-    private void CreateContextPanel(ChatMessage message)
+    private void CreateContextPanel(ChatMessage message, AViews.View anchorView)
     {
         var rootView = PlatformView.RootView;
 
@@ -424,10 +424,10 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             }
         }
 
-        // Positioning: **Below the Highlighted Message**
+        // Positioning: **Below the pressed message**
         var location = new int[2];
-        _messagePopupContainer.GetLocationOnScreen(location);
-        int messageBottomY = location[1] + _messagePopupContainer.Height;
+        anchorView.GetLocationOnScreen(location);
+        int messageBottomY = location[1] + anchorView.Height;
 
         var screenHeight = rootView.Height;
 
