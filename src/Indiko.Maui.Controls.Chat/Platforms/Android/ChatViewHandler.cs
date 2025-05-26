@@ -283,7 +283,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         (rootView as ViewGroup)?.AddView(_messagePopupContainer);
 
         // Show new custom context panel
-        CreateContextPanel(message);
+        CreateContextPanel(message, anchorView);
 
         _blurOverlay.Click += (s, e) => DismissContextMenu();
     }
@@ -372,7 +372,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         parent.AddView(menuItem);
     }
 
-    private void CreateContextPanel(ChatMessage message)
+    private void CreateContextPanel(ChatMessage message, AViews.View anchorView)
     {
         var rootView = PlatformView.RootView;
 
@@ -424,28 +424,26 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             }
         }
 
-        // Positioning: **Below the Highlighted Message**
+        // Positioning: **Below the pressed message**
         var location = new int[2];
-        _messagePopupContainer.GetLocationOnScreen(location);
-        int messageBottomY = location[1] + _messagePopupContainer.Height;
+        anchorView.GetLocationOnScreen(location);
+        int messageBottomY = location[1] + anchorView.Height;
 
         var screenHeight = rootView.Height;
 
-        // Ensure the panel does not go out of screen bounds
-        int availableSpaceBelow = screenHeight - messageBottomY;
-        int contextMenuHeight = 250; // Approximate height
+        // Always position the context menu below the pressed message.
+        // This avoids the previous behaviour where the menu could appear
+        // above the message if there was not enough space below.
+        int topMargin = messageBottomY + 20; // Add some spacing
 
-        // Check if there is enough space below the message
-        int topMargin;
-        if (availableSpaceBelow > contextMenuHeight)
+        // Prevent the menu from going off screen when the message is near the
+        // bottom. If there isn't enough space, clamp the position so that the
+        // menu stays within the visible area while remaining below the message.
+        int contextMenuHeight = 250; // Approximate height
+        int maxTopMargin = screenHeight - contextMenuHeight - 20;
+        if (topMargin > maxTopMargin)
         {
-            // Enough space below the message
-            topMargin = messageBottomY + 20; // Add some spacing
-        }
-        else
-        {
-            // Not enough space, position it **above the message** instead
-            topMargin = location[1] - contextMenuHeight - 20;
+            topMargin = maxTopMargin;
         }
 
         // Set layout params
