@@ -1,3 +1,11 @@
+## [1.1.2](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.1...v1.1.2) (2025-05-26)
+
+
+### Bug Fixes
+
+* **android:** position context menu using anchor view ([2af82da](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/2af82da8be2c1c4506392c416edd50a48bb6198c))
+* Updates repository and project URLs ([de39af2](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/de39af2081793c4bde51d877579dd812e6899812))
+
 ## [1.1.1](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.0...v1.1.1) (2025-03-03)
 
 
