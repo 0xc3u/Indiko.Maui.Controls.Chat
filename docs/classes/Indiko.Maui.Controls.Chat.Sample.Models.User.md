@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `samples/Indiko.Maui.Controls.Chat.Sample/Models/User.cs` |
 | Modifiers | internal |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -19,6 +19,7 @@ internal class User
 **Dependencies:**
 - [bool](bool.md)
 - [byte](byte.md)
+- [object](object.md)
 - [string](string.md)
 - [void](void.md)
 

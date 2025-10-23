@@ -384,20 +384,27 @@ public class CodeAnalyzer
     {
         var dependencies = new HashSet<string>();
 
-        // Base type
-        if (typeSymbol.BaseType != null && typeSymbol.BaseType.ToString() != "object")
+        // Base type  
+        if (typeSymbol.BaseType != null && typeSymbol.BaseType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) != "global::object")
         {
-            var baseTypeName = typeSymbol.BaseType.ToString();
-            if (baseTypeName != null)
+            var baseTypeName = typeSymbol.BaseType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            if (baseTypeName != null && !baseTypeName.StartsWith("global::System."))
+            {
+                // Remove the global:: prefix
+                baseTypeName = baseTypeName.Replace("global::", "");
                 dependencies.Add(baseTypeName);
+            }
         }
 
         // Interfaces
         foreach (var iface in typeSymbol.Interfaces)
         {
-            var ifaceName = iface.ToString();
-            if (ifaceName != null)
+            var ifaceName = iface.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            if (ifaceName != null && !ifaceName.StartsWith("global::System."))
+            {
+                ifaceName = ifaceName.Replace("global::", "");
                 dependencies.Add(ifaceName);
+            }
         }
 
         // Field and property types
@@ -432,16 +439,22 @@ public class CodeAnalyzer
         {
             if (!namedType.IsGenericType)
             {
-                var typeName = namedType.ToString();
-                if (typeName != null)
+                var typeName = namedType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                if (typeName != null && !typeName.StartsWith("global::System.") && !typeName.StartsWith("global::Microsoft."))
+                {
+                    typeName = typeName.Replace("global::", "");
                     dependencies.Add(typeName);
+                }
             }
             else
             {
                 // Add the generic type itself
-                var genericName = namedType.OriginalDefinition.ToString();
-                if (genericName != null)
+                var genericName = namedType.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                if (genericName != null && !genericName.StartsWith("global::System.") && !genericName.StartsWith("global::Microsoft."))
+                {
+                    genericName = genericName.Replace("global::", "");
                     dependencies.Add(genericName);
+                }
 
                 // Add type arguments
                 foreach (var typeArg in namedType.TypeArguments)

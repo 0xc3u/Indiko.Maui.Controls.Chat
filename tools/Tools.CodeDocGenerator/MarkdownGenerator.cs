@@ -322,7 +322,6 @@ public class MarkdownGenerator
     private async Task GenerateClassHierarchyDiagramAsync(List<TypeInfo> types, string diagramsDir)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("```mermaid");
         sb.AppendLine("graph TD");
 
         var processedRelationships = new HashSet<string>();
@@ -354,24 +353,31 @@ public class MarkdownGenerator
             }
         }
 
-        sb.AppendLine("```");
-
         await File.WriteAllTextAsync(Path.Combine(diagramsDir, "class-hierarchy.mmd"), sb.ToString());
     }
 
     private async Task GenerateNamespaceDependencyDiagramAsync(List<TypeInfo> types, string diagramsDir)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("```mermaid");
         sb.AppendLine("graph LR");
 
         var namespaces = types.Select(t => t.Namespace).Distinct().OrderBy(n => n).ToList();
         var dependencies = new HashSet<string>();
 
+        // Extract namespace-to-namespace dependencies
         foreach (var type in types)
         {
             var sourceNs = type.Namespace;
-            foreach (var dep in type.Dependencies)
+            
+            // Check dependencies from base type, interfaces, and members
+            var allDependencies = new HashSet<string>();
+            
+            if (type.BaseType != null)
+                allDependencies.Add(type.BaseType);
+            allDependencies.UnionWith(type.Interfaces);
+            allDependencies.UnionWith(type.Dependencies);
+
+            foreach (var dep in allDependencies)
             {
                 // Extract namespace from dependency
                 var lastDot = dep.LastIndexOf('.');
@@ -380,23 +386,28 @@ public class MarkdownGenerator
                     var targetNs = dep.Substring(0, lastDot);
                     if (sourceNs != targetNs && namespaces.Contains(targetNs))
                     {
-                        dependencies.Add($"{SanitizeId(sourceNs)} --> {SanitizeId(targetNs)}");
+                        var depKey = $"{SanitizeId(sourceNs)}__{SanitizeId(targetNs)}";
+                        dependencies.Add(depKey);
                     }
                 }
             }
         }
 
+        // Define all nodes
         foreach (var ns in namespaces)
         {
             sb.AppendLine($"    {SanitizeId(ns)}[\"{ns}\"]");
         }
 
+        // Add dependencies
         foreach (var dep in dependencies.OrderBy(d => d))
         {
-            sb.AppendLine($"    {dep}");
+            var parts = dep.Split("__");
+            if (parts.Length == 2)
+            {
+                sb.AppendLine($"    {parts[0]} --> {parts[1]}");
+            }
         }
-
-        sb.AppendLine("```");
 
         await File.WriteAllTextAsync(Path.Combine(diagramsDir, "namespace-dependencies.mmd"), sb.ToString());
     }
@@ -430,8 +441,19 @@ public class MarkdownGenerator
         // Diagrams
         sb.AppendLine("## Diagrams");
         sb.AppendLine();
-        sb.AppendLine("- [Class Hierarchy](diagrams/class-hierarchy.mmd)");
-        sb.AppendLine("- [Namespace Dependencies](diagrams/namespace-dependencies.mmd)");
+        sb.AppendLine("### Class Hierarchy");
+        sb.AppendLine();
+        sb.AppendLine("```mermaid");
+        var hierarchyDiagram = await File.ReadAllTextAsync(Path.Combine(_outputPath, "diagrams", "class-hierarchy.mmd"));
+        sb.AppendLine(hierarchyDiagram.Trim());
+        sb.AppendLine("```");
+        sb.AppendLine();
+        sb.AppendLine("### Namespace Dependencies");
+        sb.AppendLine();
+        sb.AppendLine("```mermaid");
+        var namespaceDiagram = await File.ReadAllTextAsync(Path.Combine(_outputPath, "diagrams", "namespace-dependencies.mmd"));
+        sb.AppendLine(namespaceDiagram.Trim());
+        sb.AppendLine("```");
         sb.AppendLine();
 
         // Namespaces

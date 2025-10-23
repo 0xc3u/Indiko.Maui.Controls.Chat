@@ -1,6 +1,6 @@
 # Code Documentation Index
 
-**Generated:** 2025-10-23 05:41:50 UTC
+**Generated:** 2025-10-23 05:48:17 UTC
 
 ## Overview
 
@@ -18,8 +18,66 @@
 
 ## Diagrams
 
-- [Class Hierarchy](diagrams/class-hierarchy.mmd)
-- [Namespace Dependencies](diagrams/namespace-dependencies.mmd)
+### Class Hierarchy
+
+```mermaid
+graph TD
+    ContentPage["ContentPage"] --> Indiko_Maui_Controls_Chat_Sample_MainPage["MainPage"]
+    Shell["Shell"] --> Indiko_Maui_Controls_Chat_Sample_AppShell["AppShell"]
+    Application["Application"] --> Indiko_Maui_Controls_Chat_Sample_App["App"]
+    View["View"] --> Indiko_Maui_Controls_Chat_ChatView["ChatView"]
+    Indiko_Maui_Controls_Chat_Sample_Services_IMessageService["IMessageService"] -.-> Indiko_Maui_Controls_Chat_Sample_Services_MessageService["MessageService"]
+    ValueChangedMessage_System_DateTime_["DateTime>"] --> Indiko_Maui_Controls_Chat_Sample_Messages_HideKeyboardMessage["HideKeyboardMessage"]
+    BaseViewModel["BaseViewModel"] --> Indiko_Maui_Controls_Chat_Sample_ViewModels_MainPageViewModel["MainPageViewModel"]
+    ObservableObject["ObservableObject"] --> Indiko_Maui_Controls_Chat_Sample_ViewModels_BaseViewModel["BaseViewModel"]
+    IViewModel["IViewModel"] -.-> Indiko_Maui_Controls_Chat_Sample_ViewModels_BaseViewModel["BaseViewModel"]
+    ObservableCollection_T_["ObservableCollection<T>"] --> Indiko_Maui_Controls_Chat_Models_ObservableRangeCollection_T_["ObservableRangeCollection"]
+    MauiUIApplicationDelegate["MauiUIApplicationDelegate"] --> Indiko_Maui_Controls_Chat_Sample_AppDelegate["AppDelegate"]
+    MauiApplication["MauiApplication"] --> Indiko_Maui_Controls_Chat_Sample_MainApplication["MainApplication"]
+    MauiAppCompatActivity["MauiAppCompatActivity"] --> Indiko_Maui_Controls_Chat_Sample_MainActivity["MainActivity"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_DateGroupSeperatorCell["DateGroupSeperatorCell"]
+    UIView["UIView"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_ChatContextMenuView["ChatContextMenuView"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OtherVideoMessageCell["OtherVideoMessageCell"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OwnAudioMessageCell["OwnAudioMessageCell"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OwnImageMessageCell["OwnImageMessageCell"]
+    UICollectionViewDiffableDataSource_Indiko_Maui_Controls_Chat_Platforms_iOS_ChatSection__Indiko_Maui_Controls_Chat_Platforms_iOS_ChatMessageItem_["ChatMessageItem>"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_ChatViewDataSource["ChatViewDataSource"]
+    NSObject["NSObject"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_ChatSection["ChatSection"]
+    NSObject["NSObject"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_ChatMessageItem["ChatMessageItem"]
+    ViewHandler_ChatView__UICollectionView_["ViewHandler<ChatView, UICollectionView>"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_ChatViewHandler["ChatViewHandler"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OwnVideoMessageCell["OwnVideoMessageCell"]
+    UICollectionViewDelegateFlowLayout["UICollectionViewDelegateFlowLayout"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_ChatViewDelegate["ChatViewDelegate"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OtherTextMessageCell["OtherTextMessageCell"]
+    UICollectionViewFlowLayout["UICollectionViewFlowLayout"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_ChatViewFlowLayout["ChatViewFlowLayout"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OtherAudioMessageCell["OtherAudioMessageCell"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OwnTextMessageCell["OwnTextMessageCell"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_OtherImageMessageCell["OtherImageMessageCell"]
+    UICollectionViewCell["UICollectionViewCell"] --> Indiko_Maui_Controls_Chat_Platforms_iOS_SystemMessageCell["SystemMessageCell"]
+    RecyclerView_Adapter["Adapter"] --> Indiko_Maui_Controls_Chat_Platforms_Android_ChatMessageAdapter["ChatMessageAdapter"]
+    RecyclerView_OnScrollListener["OnScrollListener"] --> Indiko_Maui_Controls_Chat_Platforms_Android_OnScrollListener["OnScrollListener"]
+    FrameLayout["FrameLayout"] --> Indiko_Maui_Controls_Chat_Platforms_Android_BlurOverlayView["BlurOverlayView"]
+    ViewHandler_ChatView__RecyclerView_["ViewHandler<ChatView, RecyclerView>"] --> Indiko_Maui_Controls_Chat_Platforms_Android_ChatViewHandler["ChatViewHandler"]
+    RecyclerView_ViewHolder["ViewHolder"] --> Indiko_Maui_Controls_Chat_Platforms_Android_ChatMessageViewHolder["ChatMessageViewHolder"]
+    IDisposable["IDisposable"] -.-> Indiko_Maui_Controls_Chat_Platforms_Android_ChatMessageViewHolder["ChatMessageViewHolder"]
+    RecyclerView_ItemDecoration["ItemDecoration"] --> Indiko_Maui_Controls_Chat_Platforms_Android_SpacingItemDecoration["SpacingItemDecoration"]
+```
+
+### Namespace Dependencies
+
+```mermaid
+graph LR
+    Indiko_Maui_Controls_Chat["Indiko.Maui.Controls.Chat"]
+    Indiko_Maui_Controls_Chat_Models["Indiko.Maui.Controls.Chat.Models"]
+    Indiko_Maui_Controls_Chat_Platforms_Android["Indiko.Maui.Controls.Chat.Platforms.Android"]
+    Indiko_Maui_Controls_Chat_Platforms_iOS["Indiko.Maui.Controls.Chat.Platforms.iOS"]
+    Indiko_Maui_Controls_Chat_Sample["Indiko.Maui.Controls.Chat.Sample"]
+    Indiko_Maui_Controls_Chat_Sample_Interfaces["Indiko.Maui.Controls.Chat.Sample.Interfaces"]
+    Indiko_Maui_Controls_Chat_Sample_Messages["Indiko.Maui.Controls.Chat.Sample.Messages"]
+    Indiko_Maui_Controls_Chat_Sample_Models["Indiko.Maui.Controls.Chat.Sample.Models"]
+    Indiko_Maui_Controls_Chat_Sample_Services["Indiko.Maui.Controls.Chat.Sample.Services"]
+    Indiko_Maui_Controls_Chat_Sample_Utils["Indiko.Maui.Controls.Chat.Sample.Utils"]
+    Indiko_Maui_Controls_Chat_Sample_ViewModels["Indiko.Maui.Controls.Chat.Sample.ViewModels"]
+    Tools_CodeDocGenerator["Tools.CodeDocGenerator"]
+```
 
 ## Namespaces
 

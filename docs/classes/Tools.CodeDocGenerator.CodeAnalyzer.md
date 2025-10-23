@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `tools/Tools.CodeDocGenerator/CodeAnalyzer.cs` |
 | Modifiers | public |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -27,10 +27,9 @@ public class CodeAnalyzer
 - [ITypeSymbol](ITypeSymbol.md)
 - [List<>](List__.md)
 - [MemberInfo](MemberInfo.md)
-- [object?](object?.md)
+- [object](object.md)
 - [SemanticModel](SemanticModel.md)
 - [string](string.md)
-- [string?](string?.md)
 - [SyntaxNode](SyntaxNode.md)
 - [Task<>](Task__.md)
 - [TypeInfo](TypeInfo.md)

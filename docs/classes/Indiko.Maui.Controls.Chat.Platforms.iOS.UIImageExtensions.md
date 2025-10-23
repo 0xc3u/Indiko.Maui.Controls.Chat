@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `src/Indiko.Maui.Controls.Chat/Platforms/iOS/UIImageExtensions.cs` |
 | Modifiers | public, static |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -22,6 +22,7 @@ public static class UIImageExtensions
 - [ImageSource](ImageSource.md)
 - [IMauiContext](IMauiContext.md)
 - [nfloat](nfloat.md)
+- [object](object.md)
 - [string](string.md)
 - [UIColor](UIColor.md)
 - [UIImage](UIImage.md)

@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `src/Indiko.Maui.Controls.Chat/Platforms/Android/PixelExtensions.cs` |
 | Modifiers | public, static |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -19,6 +19,7 @@ public static class PixelExtensions
 **Dependencies:**
 - [Context](Context.md)
 - [int](int.md)
+- [object](object.md)
 
 ## Methods
 

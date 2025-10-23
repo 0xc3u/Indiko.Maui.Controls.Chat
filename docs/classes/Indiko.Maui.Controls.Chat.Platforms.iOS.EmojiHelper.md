@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `src/Indiko.Maui.Controls.Chat/Platforms/iOS/EmojiHelper.cs` |
 | Modifiers | public, static |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -20,6 +20,7 @@ public static class EmojiHelper
 - [ChatMessageReaction](ChatMessageReaction.md)
 - [ChatView](ChatView.md)
 - [List<>](List__.md)
+- [object](object.md)
 - [UIStackView](UIStackView.md)
 - [void](void.md)
 

@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `samples/Indiko.Maui.Controls.Chat.Sample/AppShell.xaml.cs` |
 | Modifiers | public, partial |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 

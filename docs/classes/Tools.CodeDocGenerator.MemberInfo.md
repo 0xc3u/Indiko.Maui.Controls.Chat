@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `tools/Tools.CodeDocGenerator/TypeInfo.cs` |
 | Modifiers | public |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -18,8 +18,8 @@ public class MemberInfo
 
 **Dependencies:**
 - [List<>](List__.md)
+- [object](object.md)
 - [string](string.md)
-- [string?](string?.md)
 - [Tools.CodeDocGenerator.ParameterInfo](Tools.CodeDocGenerator.ParameterInfo.md)
 - [void](void.md)
 

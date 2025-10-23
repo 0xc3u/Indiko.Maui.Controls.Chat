@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `src/Indiko.Maui.Controls.Chat/Platforms/Android/ChatViewHandler.cs` |
 | Modifiers | public |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -34,7 +34,6 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 - [LinearLayout](LinearLayout.md)
 - [NotifyCollectionChangedEventArgs](NotifyCollectionChangedEventArgs.md)
 - [object](object.md)
-- [object?](object?.md)
 - [RecyclerView](RecyclerView.md)
 - [string](string.md)
 - [TextView](TextView.md)

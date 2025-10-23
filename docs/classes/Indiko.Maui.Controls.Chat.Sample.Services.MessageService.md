@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `samples/Indiko.Maui.Controls.Chat.Sample/Services/MessageService.cs` |
 | Modifiers | public |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -24,6 +24,7 @@ public class MessageService : Indiko.Maui.Controls.Chat.Sample.Services.IMessage
 - [DateTime](DateTime.md)
 - [Indiko.Maui.Controls.Chat.Sample.Services.IMessageService](Indiko.Maui.Controls.Chat.Sample.Services.IMessageService.md)
 - [List<>](List__.md)
+- [object](object.md)
 - [string](string.md)
 - [Task<>](Task__.md)
 - [User](User.md)

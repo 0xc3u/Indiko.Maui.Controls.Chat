@@ -6,7 +6,7 @@
 | Type | Class |
 | Source File | `samples/Indiko.Maui.Controls.Chat.Sample/Utils/FontAwesome.cs` |
 | Modifiers | public, static |
-| Generated | 2025-10-23 05:41:50 UTC |
+| Generated | 2025-10-23 05:48:17 UTC |
 
 ## Signature
 
@@ -17,6 +17,7 @@ public static class FontAwesome
 ## Relationships
 
 **Dependencies:**
+- [object](object.md)
 - [string](string.md)
 
 ## Fields
