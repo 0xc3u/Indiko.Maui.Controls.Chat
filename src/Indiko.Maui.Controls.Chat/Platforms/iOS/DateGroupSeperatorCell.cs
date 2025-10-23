@@ -43,7 +43,7 @@ public class DateGroupSeperatorCell : UICollectionViewCell
         {
             _dateLabel.Text = message.TextContent;
             _dateLabel.TextColor = chatView.DateTextColor.ToPlatform();
-            _dateLabel.Font = UIFont.SystemFontOfSize(chatView.DateTextFontSize);
+            _dateLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.DateTextFontSize);
 
             var font = _dateLabel.Font;
             var traits = font.FontDescriptor.SymbolicTraits | UIFontDescriptorSymbolicTraits.Bold;

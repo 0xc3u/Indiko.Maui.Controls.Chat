@@ -26,13 +26,13 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public Color OtherMessageBackgroundColor { get; }
     public Color OwnMessageTextColor { get; }
     public Color OtherMessageTextColor { get; }
-    public float MessageFontSize { get; }
+    public double MessageFontSize { get; }
     public Color MessageTimeTextColor { get; }
-    public float MessageTimeFontSize { get; }
+    public double MessageTimeFontSize { get; }
     public Color DateTextColor { get; }
-    public float DateTextFontSize { get; }
+    public double DateTextFontSize { get; }
     public Color NewMessagesSeperatorTextColor { get; }
-    public float NewMessagesSeperatorFontSize { get; }
+    public double NewMessagesSeperatorFontSize { get; }
     public string NewMessagesSeperatorText { get; }
     public bool ShowNewMessagesSeperator { get; }
     public float AvatarSize { get; }
@@ -40,16 +40,16 @@ public class ChatMessageAdapter : RecyclerView.Adapter
     public Color AvatarTextColor { get; }
     public bool ScrollToFirstNewMessage { get; }
     public Color EmojiReactionTextColor { get; }
-    public float EmojiReactionFontSize { get; }
+    public double EmojiReactionFontSize { get; }
     public ImageSource SendIcon { get; }
     public ImageSource DeliveredIcon { get; }
     public ImageSource ReadIcon { get; }
     public Color ReplyMessageBackgroundColor { get; }
     public Color ReplyMessageTextColor { get; }
-    public float ReplyMessageFontSize { get; }
+    public double ReplyMessageFontSize { get; }
     public Color SystemMessageBackgroundColor { get; }
     public Color SystemMessageTextColor { get; }
-    public float SystemMessageFontSize { get; }
+    public double SystemMessageFontSize { get; }
 
     private readonly IMauiContext _mauiContext;
     private readonly ChatView VirtualView;
@@ -126,7 +126,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         var dateTextView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            TextSize = DateTextFontSize,
+            TextSize = (float)DateTextFontSize,
             Typeface = Typeface.DefaultBold,
             Visibility = ViewStates.Gone // Initially hidden
         };
@@ -139,7 +139,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         {
             Id = AViews.View.GenerateViewId(),
             Text = NewMessagesSeperatorText,
-            TextSize = NewMessagesSeperatorFontSize,
+            TextSize = (float)NewMessagesSeperatorFontSize,
             TextAlignment = AViews.TextAlignment.Center,
             Visibility = ViewStates.Gone // Initially hidden
         };
@@ -179,7 +179,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         var replySenderTextView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            TextSize = ReplyMessageFontSize, // Smaller font size for the sender name
+            TextSize = (float)ReplyMessageFontSize, // Smaller font size for the sender name
             Typeface = Typeface.DefaultBold,
         };
         replySummaryFrame.AddView(replySenderTextView);
@@ -188,7 +188,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         var replyPreviewTextView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            TextSize = ReplyMessageFontSize, // Smaller font size for the preview
+            TextSize = (float)ReplyMessageFontSize, // Smaller font size for the preview
         };
         replySummaryFrame.AddView(replyPreviewTextView);
 
@@ -196,7 +196,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         var textView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            TextSize = MessageFontSize,
+            TextSize = (float)MessageFontSize,
             Visibility = ViewStates.Gone
         };
         textView.SetPadding(32, 16, 32, 16); // Padding inside the bubble
@@ -237,7 +237,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         var timestampTextView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            TextSize = MessageTimeFontSize
+            TextSize = (float)MessageTimeFontSize
         };
         timestampTextView.SetTextColor(MessageTimeTextColor.ToPlatform());
         constraintLayout.AddView(timestampTextView);
@@ -269,7 +269,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         var systemTextView = new TextView(_context)
         {
             Id = AViews.View.GenerateViewId(),
-            TextSize = SystemMessageFontSize,
+            TextSize = (float)SystemMessageFontSize,
             Visibility = ViewStates.Gone // Initially hidden
         };
         systemTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
@@ -535,7 +535,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
                 chatHolder.SystemMessageTextView.Text = message.TextContent;
                 chatHolder.SystemMessageTextView.SetTextColor(SystemMessageTextColor.ToPlatform());
-                chatHolder.SystemMessageTextView.TextSize = SystemMessageFontSize;
+                chatHolder.SystemMessageTextView.TextSize = (float)SystemMessageFontSize;
 
                 var systemMessageBackgroundDrawable = new GradientDrawable();
                 systemMessageBackgroundDrawable.SetShape(ShapeType.Rectangle);
@@ -559,7 +559,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                         var reactionTextView = new TextView(_context)
                         {
                             Text = $"{reaction.Emoji} {reaction.Count}",
-                            TextSize = EmojiReactionFontSize
+                            TextSize = (float)EmojiReactionFontSize
                         };
                         reactionTextView.SetTextColor(EmojiReactionTextColor.ToPlatform());
 

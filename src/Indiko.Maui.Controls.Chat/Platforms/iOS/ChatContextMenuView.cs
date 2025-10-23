@@ -66,7 +66,7 @@ public class ChatContextMenuView : UIView
             TextColor = _message.IsOwnMessage ? _chatView.OwnMessageTextColor.ToPlatform()
                                               : _chatView.OtherMessageTextColor.ToPlatform(),
             TranslatesAutoresizingMaskIntoConstraints = false,
-            Font = UIFont.SystemFontOfSize(_chatView.MessageFontSize)
+            Font = UIFont.SystemFontOfSize((nfloat)_chatView.MessageFontSize)
         };
 
         _bubbleView.AddSubview(_messageLabel);
@@ -109,7 +109,7 @@ public class ChatContextMenuView : UIView
             var label = new UILabel
             {
                 Text = emoji,
-                Font = UIFont.SystemFontOfSize(_chatView.ContextMenuReactionFontSize),
+                Font = UIFont.SystemFontOfSize((float)_chatView.ContextMenuReactionFontSize),
                 UserInteractionEnabled = true
             };
             var emojiTap = new UITapGestureRecognizer(() => AddReaction(emoji));

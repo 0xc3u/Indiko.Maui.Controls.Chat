@@ -94,7 +94,7 @@ public class SystemMessageCell : UICollectionViewCell
 
             _systemMessageLabel.Text = message.TextContent;
             _systemMessageLabel.TextColor = chatView.SystemMessageTextColor.ToPlatform();
-            _systemMessageLabel.Font = UIFont.SystemFontOfSize(chatView.SystemMessageFontSize);
+            _systemMessageLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.SystemMessageFontSize);
 
             var font = _systemMessageLabel.Font;
             var traits = font.FontDescriptor.SymbolicTraits | UIFontDescriptorSymbolicTraits.Bold;

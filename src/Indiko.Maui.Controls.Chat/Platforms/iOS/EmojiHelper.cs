@@ -24,7 +24,7 @@ public static class EmojiHelper
             var reactionLabel = new UILabel
             {
                 Text = $"{reaction.Emoji} {reaction.Count}",
-                Font = UIFont.SystemFontOfSize(chatView.EmojiReactionFontSize),
+                Font = UIFont.SystemFontOfSize((nfloat)chatView.EmojiReactionFontSize),
                 TextColor = chatView.EmojiReactionTextColor.ToPlatform()
             };
 

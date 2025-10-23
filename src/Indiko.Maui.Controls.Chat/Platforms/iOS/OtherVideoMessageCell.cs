@@ -271,11 +271,11 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
 
                 _replyPreviewTextLabel.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.TextPreview);
                 _replyPreviewTextLabel.TextColor = chatView.ReplyMessageTextColor.ToPlatform();
-                _replyPreviewTextLabel.Font = UIFont.SystemFontOfSize(chatView.ReplyMessageFontSize);
+                _replyPreviewTextLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.ReplyMessageFontSize);
 
                 _replySenderTextLabel.Text = RepliedMessage.GenerateTextPreview(message.ReplyToMessage.SenderId);
                 _replySenderTextLabel.TextColor = chatView.ReplyMessageTextColor.ToPlatform();
-                _replySenderTextLabel.Font = UIFont.SystemFontOfSize(chatView.ReplyMessageFontSize);
+                _replySenderTextLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.ReplyMessageFontSize);
 
                 _replyView.Hidden = false;
                 _replySenderTextLabel.Hidden = false;
@@ -298,7 +298,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
                 _messageVideoTopConstraint.Active = true;
             }
 
-            _timeLabel.Font = UIFont.SystemFontOfSize(chatView.MessageTimeFontSize);
+            _timeLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageTimeFontSize);
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
             _timeLabel.Text = message.Timestamp.ToString("HH:mm");
 

@@ -71,10 +71,10 @@ public class ChatView : View
         set => SetValue(SystemMessageTextColorProperty, value);
     }
 
-    public static readonly BindableProperty SystemMessageFontSizeProperty = BindableProperty.Create(nameof(SystemMessageFontSize), typeof(float), typeof(ChatView), 14f);
-    public float SystemMessageFontSize
+    public static readonly BindableProperty SystemMessageFontSizeProperty = BindableProperty.Create(nameof(SystemMessageFontSize), typeof(double), typeof(ChatView), 14d);
+    public double SystemMessageFontSize
     {
-        get => (float)GetValue(SystemMessageFontSizeProperty);
+        get => (double)GetValue(SystemMessageFontSizeProperty);
         set => SetValue(SystemMessageFontSizeProperty, value);
     }
 
@@ -107,17 +107,17 @@ public class ChatView : View
         set => SetValue(OtherMessageTextColorProperty, value);
     }
 
-    public static readonly BindableProperty MessageFontSizeProperty = BindableProperty.Create(nameof(MessageFontSize), typeof(float), typeof(ChatView), 14f);
-    public float MessageFontSize
+    public static readonly BindableProperty MessageFontSizeProperty = BindableProperty.Create(nameof(MessageFontSize), typeof(double), typeof(ChatView), 14d);
+    public double MessageFontSize
     {
-        get => (float)GetValue(MessageFontSizeProperty);
+        get => (double)GetValue(MessageFontSizeProperty);
         set => SetValue(MessageFontSizeProperty, value);
     }
 
-    public static readonly BindableProperty DateTextFontSizeProperty = BindableProperty.Create(nameof(DateTextFontSize), typeof(float), typeof(ChatView), 14f);
-    public float DateTextFontSize
+    public static readonly BindableProperty DateTextFontSizeProperty = BindableProperty.Create(nameof(DateTextFontSize), typeof(double), typeof(ChatView), 14d);
+    public double DateTextFontSize
     {
-        get => (float)GetValue(DateTextFontSizeProperty);
+        get => (double)GetValue(DateTextFontSizeProperty);
         set => SetValue(DateTextFontSizeProperty, value);
     }
 
@@ -128,10 +128,10 @@ public class ChatView : View
         set => SetValue(DateTextColorProperty, value);
     }
 
-    public static readonly BindableProperty MessageTimeFontSizeProperty = BindableProperty.Create(nameof(MessageTimeFontSize), typeof(float), typeof(ChatView), 12f);
-    public float MessageTimeFontSize
+    public static readonly BindableProperty MessageTimeFontSizeProperty = BindableProperty.Create(nameof(MessageTimeFontSize), typeof(double), typeof(ChatView), 12d);
+    public double MessageTimeFontSize
     {
-        get => (float)GetValue(MessageTimeFontSizeProperty);
+        get => (double)GetValue(MessageTimeFontSizeProperty);
         set => SetValue(MessageTimeFontSizeProperty, value);
     }
 
@@ -149,10 +149,10 @@ public class ChatView : View
         set => SetValue(NewMessagesSeperatorTextProperty, value);
     }
 
-    public static readonly BindableProperty NewMessagesSeperatorFontSizeProperty = BindableProperty.Create(nameof(NewMessagesSeperatorFontSize), typeof(float), typeof(ChatView), 14f);
-    public float NewMessagesSeperatorFontSize
+    public static readonly BindableProperty NewMessagesSeperatorFontSizeProperty = BindableProperty.Create(nameof(NewMessagesSeperatorFontSize), typeof(double), typeof(ChatView), 14d);
+    public double NewMessagesSeperatorFontSize
     {
-        get => (float)GetValue(NewMessagesSeperatorFontSizeProperty);
+        get => (double)GetValue(NewMessagesSeperatorFontSizeProperty);
         set => SetValue(NewMessagesSeperatorFontSizeProperty, value);
     }
 
@@ -170,10 +170,11 @@ public class ChatView : View
         set => SetValue(ShowNewMessagesSeperatorProperty, value);
     }
 
-    public static readonly BindableProperty EmojiReactionFontSizeProperty = BindableProperty.Create(nameof(EmojiReactionFontSize), typeof(float), typeof(ChatView), 10f);
-    public float EmojiReactionFontSize
+
+    public static readonly BindableProperty EmojiReactionFontSizeProperty = BindableProperty.Create(nameof(EmojiReactionFontSize), typeof(double), typeof(ChatView), 10d);
+    public double EmojiReactionFontSize
     {
-        get => (float)GetValue(EmojiReactionFontSizeProperty);
+        get => (double)GetValue(EmojiReactionFontSizeProperty);
         set => SetValue(EmojiReactionFontSizeProperty, value);
     }
 
@@ -212,7 +213,7 @@ public class ChatView : View
         set => SetValue(ScrollToFirstNewMessageProperty, value);
     }
 
-    public static readonly BindableProperty ScrollToLastMessageProperty = BindableProperty.Create(nameof(ScrollToFirstNewMessage), typeof(bool), typeof(ChatView), true);
+    public static readonly BindableProperty ScrollToLastMessageProperty = BindableProperty.Create(nameof(ScrollToLastMessage), typeof(bool), typeof(ChatView), true);
     public bool ScrollToLastMessage
     {
         get => (bool)GetValue(ScrollToLastMessageProperty);
@@ -261,10 +262,10 @@ public class ChatView : View
         set => SetValue(ReplyMessageTextColorProperty, value);
     }
 
-    public static readonly BindableProperty ReplyMessageFontSizeProperty = BindableProperty.Create(nameof(ReplyMessageFontSize), typeof(float), typeof(ChatView), 10f);
-    public float ReplyMessageFontSize
+    public static readonly BindableProperty ReplyMessageFontSizeProperty = BindableProperty.Create(nameof(ReplyMessageFontSize), typeof(double), typeof(ChatView), 10d);
+    public double ReplyMessageFontSize
     {
-        get => (float)GetValue(ReplyMessageFontSizeProperty);
+        get => (double)GetValue(ReplyMessageFontSizeProperty);
         set => SetValue(ReplyMessageFontSizeProperty, value);
     }
 
@@ -321,17 +322,17 @@ public class ChatView : View
         set => SetValue(ContextMenuDividerHeightProperty, value);
     }
 
-    public static readonly BindableProperty ContextMenuFontSizeProperty = BindableProperty.Create(nameof(ContextMenuFontSize), typeof(float), typeof(ChatView), 14f);
-    public float ContextMenuFontSize
+    public static readonly BindableProperty ContextMenuFontSizeProperty = BindableProperty.Create(nameof(ContextMenuFontSize), typeof(double), typeof(ChatView), 14d);
+    public double ContextMenuFontSize
     {
-        get => (float)GetValue(ContextMenuFontSizeProperty);
+        get => (double)GetValue(ContextMenuFontSizeProperty);
         set => SetValue(ContextMenuFontSizeProperty, value);
     }
 
-    public static readonly BindableProperty ContextMenuReactionFontSizeProperty = BindableProperty.Create(nameof(ContextMenuReactionFontSize), typeof(float), typeof(ChatView), 18f);
-    public float ContextMenuReactionFontSize
+    public static readonly BindableProperty ContextMenuReactionFontSizeProperty = BindableProperty.Create(nameof(ContextMenuReactionFontSize), typeof(double), typeof(ChatView), 18d);
+    public double ContextMenuReactionFontSize
     {
-        get => (float)GetValue(ContextMenuReactionFontSizeProperty);
+        get => (double)GetValue(ContextMenuReactionFontSizeProperty);
         set => SetValue(ContextMenuReactionFontSizeProperty, value);
     }
 

@@ -264,7 +264,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         _focusedMessageView.SetPadding(64, 32, 64, 32);
         _focusedMessageView.Text = message.TextContent;
         _focusedMessageView.SetTextColor(textColor.Value);
-        _focusedMessageView.TextSize = VirtualView.MessageFontSize;
+        _focusedMessageView.TextSize = (float)VirtualView.MessageFontSize;
 
         var backgroundDrawable = new GradientDrawable();
         backgroundDrawable.SetShape(ShapeType.Rectangle);
@@ -307,7 +307,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             var emojiTextView = new TextView(Context)
             {
                 Text = emoji,
-                TextSize = VirtualView.ContextMenuReactionFontSize,
+                TextSize = (float)VirtualView.ContextMenuReactionFontSize,
                 Gravity = GravityFlags.Center
             };
 
@@ -344,7 +344,7 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         var menuItem = new TextView(Context)
         {
             Text = text,
-            TextSize = VirtualView.ContextMenuFontSize,
+            TextSize = (float)VirtualView.ContextMenuFontSize,
             Gravity = GravityFlags.CenterHorizontal
         };
 
