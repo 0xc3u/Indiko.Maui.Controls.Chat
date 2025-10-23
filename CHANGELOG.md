@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.2...v1.1.3) (2025-10-23)
+
+
+### Bug Fixes
+
+* Updates font size properties to double ([d926736](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/d926736f9bbba321ee7f4679c4f1bb0d14b49176))
+
 ## [1.1.2](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.1...v1.1.2) (2025-05-26)
 
 
