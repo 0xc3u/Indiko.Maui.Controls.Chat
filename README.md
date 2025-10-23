@@ -400,6 +400,37 @@ void OnLongPressed(ContextAction contextAction)
 
 ---
 
+## Documentation
+
+Comprehensive technical documentation for all types, methods, and properties is available in the [`/docs`](docs/) folder. The documentation is auto-generated from the codebase using Roslyn analysis.
+
+### Quick Links
+
+- **[Documentation Index](docs/index.md)** — Start here for an overview
+- **[API Reference](docs/classes/)** — Browse all classes and types
+- **[Namespace Overview](docs/namespaces/)** — Organized by namespace
+- **[Architecture Diagrams](docs/index.md#diagrams)** — Class hierarchy and dependencies
+
+### Features
+
+- 📚 Complete API reference for all public types
+- 🔗 Cross-referenced type links
+- 📊 Mermaid diagrams for visualization
+- 📝 XML documentation comments included
+- 🔄 Version controlled alongside code
+
+### Regenerating Documentation
+
+After making code changes, regenerate the documentation:
+
+```bash
+dotnet run --project tools/Tools.CodeDocGenerator/Tools.CodeDocGenerator.csproj
+```
+
+See the [documentation guide](docs/README.md) for more details.
+
+---
+
 ## Contributing
 
 We encourage you to contribute to the development of the `ChatView` control! Whether you're fixing bugs, adding new features, or enhancing the documentation, your contributions make a difference.
