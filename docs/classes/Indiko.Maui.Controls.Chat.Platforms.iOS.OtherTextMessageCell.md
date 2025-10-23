@@ -1,0 +1,220 @@
+# Class: OtherTextMessageCell
+
+| Property | Value |
+|----------|-------|
+| Namespace | `Indiko.Maui.Controls.Chat.Platforms.iOS` |
+| Type | Class |
+| Source File | `src/Indiko.Maui.Controls.Chat/Platforms/iOS/OtherTextMessageCell.cs` |
+| Modifiers | internal |
+| Generated | 2025-10-23 05:41:50 UTC |
+
+## Signature
+
+```csharp
+internal class OtherTextMessageCell : UICollectionViewCell
+```
+
+## Relationships
+
+**Inherits from:** [UICollectionViewCell](UICollectionViewCell.md)
+
+**Dependencies:**
+- [ChatMessage](ChatMessage.md)
+- [ChatView](ChatView.md)
+- [IMauiContext](IMauiContext.md)
+- [int](int.md)
+- [NSLayoutConstraint](NSLayoutConstraint.md)
+- [NSString](NSString.md)
+- [ObjCRuntime.NativeHandle](ObjCRuntime.NativeHandle.md)
+- [UICollectionViewCell](UICollectionViewCell.md)
+- [UICollectionViewLayoutAttributes](UICollectionViewLayoutAttributes.md)
+- [UIImageView](UIImageView.md)
+- [UILabel](UILabel.md)
+- [UILongPressGestureRecognizer](UILongPressGestureRecognizer.md)
+- [UIStackView](UIStackView.md)
+- [UIView](UIView.md)
+- [void](void.md)
+
+## Constructors
+
+### OtherTextMessageCell
+
+```csharp
+public .ctor(ObjCRuntime.NativeHandle handle)
+```
+
+**Parameters:**
+
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| `handle` | `ObjCRuntime.NativeHandle` |  | `` |
+
+## Fields
+
+### Key
+
+```csharp
+public static NSString Key
+```
+
+**Returns:** `NSString`
+
+### _chatView
+
+```csharp
+private ChatView _chatView
+```
+
+**Returns:** `ChatView`
+
+### _message
+
+```csharp
+private ChatMessage _message
+```
+
+**Returns:** `ChatMessage`
+
+### _messageLabel
+
+```csharp
+private UILabel _messageLabel
+```
+
+**Returns:** `UILabel`
+
+### _avatarImageView
+
+```csharp
+private UIImageView _avatarImageView
+```
+
+**Returns:** `UIImageView`
+
+### _bubbleView
+
+```csharp
+private UIView _bubbleView
+```
+
+**Returns:** `UIView`
+
+### _timeLabel
+
+```csharp
+private UILabel _timeLabel
+```
+
+**Returns:** `UILabel`
+
+### _reactionsStackView
+
+```csharp
+private UIStackView _reactionsStackView
+```
+
+**Returns:** `UIStackView`
+
+### _deliveryStateImageView
+
+```csharp
+private UIImageView _deliveryStateImageView
+```
+
+**Returns:** `UIImageView`
+
+### _replyView
+
+```csharp
+private UIView _replyView
+```
+
+**Returns:** `UIView`
+
+### _replyPreviewTextLabel
+
+```csharp
+private UILabel _replyPreviewTextLabel
+```
+
+**Returns:** `UILabel`
+
+### _replySenderTextLabel
+
+```csharp
+private UILabel _replySenderTextLabel
+```
+
+**Returns:** `UILabel`
+
+### _messageLabelTopConstraint
+
+```csharp
+private NSLayoutConstraint _messageLabelTopConstraint
+```
+
+**Returns:** `NSLayoutConstraint`
+
+### _longPressGesture
+
+```csharp
+private UILongPressGestureRecognizer _longPressGesture
+```
+
+**Returns:** `UILongPressGestureRecognizer`
+
+## Methods
+
+### PreferredLayoutAttributesFittingAttributes
+
+```csharp
+public override UICollectionViewLayoutAttributes PreferredLayoutAttributesFittingAttributes(UICollectionViewLayoutAttributes layoutAttributes)
+```
+
+**Parameters:**
+
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| `layoutAttributes` | `UICollectionViewLayoutAttributes` |  | `` |
+
+**Returns:** `UICollectionViewLayoutAttributes`
+
+### SetupLayout
+
+```csharp
+private void SetupLayout()
+```
+
+### Update
+
+```csharp
+public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)
+```
+
+**Parameters:**
+
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| `index` | `int` |  | `` |
+| `message` | `ChatMessage` |  | `` |
+| `chatView` | `ChatView` |  | `` |
+| `mauiContext` | `IMauiContext` |  | `` |
+
+### LongPressHandler
+
+```csharp
+private void LongPressHandler(UILongPressGestureRecognizer recognizer)
+```
+
+**Parameters:**
+
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| `recognizer` | `UILongPressGestureRecognizer` |  | `` |
+
+### DismissContextMenu
+
+```csharp
+private void DismissContextMenu()
+```
+
