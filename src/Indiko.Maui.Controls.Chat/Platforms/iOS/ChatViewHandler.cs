@@ -24,6 +24,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     public static IPropertyMapper<ChatView, ChatViewHandler> PropertyMapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
     {
         [nameof(ChatView.Messages)] = MapProperties,
+        [nameof(ChatView.ScrollToFirstNewMessage)] = MapProperties,
     };
 
     public ChatViewHandler() : base(PropertyMapper, CommandMapper)
@@ -62,7 +63,16 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         {
             SaveScrollPosition(); // Save current position
             _dataSource.UpdateMessages(VirtualView.Messages);
-            RestoreScrollPosition(); // Restore position
+            
+            // Check if ScrollToFirstNewMessage is enabled
+            if (VirtualView.ScrollToFirstNewMessage)
+            {
+                ScrollToFirstNewMessage();
+            }
+            else
+            {
+                RestoreScrollPosition(); // Restore position
+            }
         }
     }
 
@@ -98,6 +108,12 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         platformView.LayoutIfNeeded();
         _dataSource.UpdateMessages(VirtualView.Messages);
 
+        // Check if ScrollToFirstNewMessage is enabled on initial load
+        if (VirtualView.ScrollToFirstNewMessage)
+        {
+            ScrollToFirstNewMessage();
+        }
+
         _weakChatView = new WeakReference<ChatView>(VirtualView);
         VirtualView.Messages.CollectionChanged += OnMessagesCollectionChanged;
     }
@@ -120,6 +136,43 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     {
         var lastIndexPath = NSIndexPath.FromRowSection(VirtualView.Messages.Count - 1, 0);
         PlatformView.ScrollToItem(lastIndexPath, UICollectionViewScrollPosition.Bottom, true);
+    }
+
+    private void ScrollToFirstNewMessage()
+    {
+        if (VirtualView?.Messages == null || VirtualView.Messages.Count == 0)
+            return;
+
+        // Find the index of the first message with ReadState == MessageReadState.New
+        var firstNewMessageIndex = -1;
+        for (int i = 0; i < VirtualView.Messages.Count; i++)
+        {
+            if (VirtualView.Messages[i].ReadState == Models.MessageReadState.New)
+            {
+                firstNewMessageIndex = i;
+                break;
+            }
+        }
+
+        // If a "New" message is found, scroll to its position
+        if (firstNewMessageIndex >= 0)
+        {
+            var indexPath = NSIndexPath.FromRowSection(firstNewMessageIndex, 0);
+            
+            // Defer the scroll operation until after the UICollectionView has completed its layout
+            // This ensures that all cells are properly sized and positioned before scrolling
+            PlatformView.PerformBatchUpdates(() =>
+            {
+                // Empty batch update to ensure layout is complete
+            }, (finished) =>
+            {
+                if (finished)
+                {
+                    // Scroll to the first new message with animation
+                    PlatformView.ScrollToItem(indexPath, UICollectionViewScrollPosition.CenteredVertically, true);
+                }
+            });
+        }
     }
 
     protected override void DisconnectHandler(UICollectionView nativeView)
