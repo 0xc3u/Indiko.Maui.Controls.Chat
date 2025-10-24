@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.3...v1.1.4) (2025-10-24)
+
+
+### Bug Fixes
+
+* Improves iOS ChatView performance and stability ([2778867](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/27788678f201929fdd8d8297e8d3c28d089c7b00))
+
 ## [1.1.3](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.2...v1.1.3) (2025-10-23)
 
 
