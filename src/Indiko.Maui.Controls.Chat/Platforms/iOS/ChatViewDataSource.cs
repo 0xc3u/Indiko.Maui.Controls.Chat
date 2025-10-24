@@ -75,6 +75,14 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
         ApplySnapshot(snapshot, true);
     }
 
+    public void UpdateMessages(ObservableCollection<ChatMessage> messages, bool animate)
+    {
+        var snapshot = new NSDiffableDataSourceSnapshot<ChatSection, ChatMessageItem>();
+        snapshot.AppendSections(new[] { new ChatSection("Messages") });
+        snapshot.AppendItems(messages.Select(m => new ChatMessageItem(m)).ToArray());
+        ApplySnapshot(snapshot, animate);
+    }
+
     private static string GetCellIdentifier(ChatMessage message)
     {
         if (message.MessageType == MessageType.Text && message.IsOwnMessage)

@@ -10,7 +10,9 @@ public class ChatViewFlowLayout : UICollectionViewFlowLayout
 
     public ChatViewFlowLayout() : base()
     {
-        EstimatedItemSize = EstimatedItemSize = new CGSize(UIScreen.MainScreen.Bounds.Width, 80);
+        //EstimatedItemSize = EstimatedItemSize = new CGSize(UIScreen.MainScreen.Bounds.Width, 80);
+        // Disable estimates on first layout to prevent jump/jitter
+        EstimatedItemSize = CGSize.Empty;
         ItemSize = UICollectionViewFlowLayout.AutomaticSize;
         MinimumInteritemSpacing = 0f;
         MinimumLineSpacing = 10f;
