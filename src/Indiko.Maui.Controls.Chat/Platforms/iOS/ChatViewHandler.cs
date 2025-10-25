@@ -92,6 +92,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             RestoreScrollPosition();
     }
 
+
     private void SaveScrollPosition()
     {
         _lastContentOffset = PlatformView.ContentOffset;
@@ -219,19 +220,25 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             return;
         }
 
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex >= (chatView.Messages.Count - 1))
+        {
+            _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: () =>
+            {
+                // Make sure layout finished, then scroll
+                PlatformView.PerformBatchUpdates(() => { }, _ =>
+                {
+                    ScrollToLastMessage(animated: true);
+                });
+            });
+            return;
+        }
+
         // Default path: update (no animation to avoid flicker)
         UIView.PerformWithoutAnimation(() =>
         {
-            _dataSource.UpdateMessages(chatView.Messages, animate: false);
+            _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: null);
             PlatformView.LayoutIfNeeded();
         });
-
-        // APPEND: scroll to bottom (animated if you like)
-        if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex >= (chatView.Messages.Count - 1))
-        {
-            // New message at the end -> smooth scroll
-            ScrollToLastMessage(animated: true);
-        }
     }
 
 

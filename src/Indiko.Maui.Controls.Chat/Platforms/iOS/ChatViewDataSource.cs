@@ -83,6 +83,17 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
         ApplySnapshot(snapshot, animate);
     }
 
+    public void UpdateMessages(ObservableCollection<ChatMessage> messages, bool animate, Action? completion)
+    {
+        var snapshot = new NSDiffableDataSourceSnapshot<ChatSection, ChatMessageItem>();
+        snapshot.AppendSections(new[] { new ChatSection("Messages") });
+        snapshot.AppendItems(messages.Select(m => new ChatMessageItem(m)).ToArray());
+
+        // IMPORTANT: use the completion overload so we know when layout can scroll
+        ApplySnapshot(snapshot, animate, completion);
+    }
+
+
     private static string GetCellIdentifier(ChatMessage message)
     {
         if (message.MessageType == MessageType.Text && message.IsOwnMessage)
