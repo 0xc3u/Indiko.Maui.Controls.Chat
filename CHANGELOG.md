@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.5...v1.2.0) (2026-03-31)
+
+
+### Features
+
+* Upgrade to .NET 10 and implement inverted ChatView on iOS ([3b8dd4a](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/3b8dd4a3cef15d4cb934eb54a009ced1d709c38b))
+
 ## [1.1.5](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.4...v1.1.5) (2025-10-25)
 
 
