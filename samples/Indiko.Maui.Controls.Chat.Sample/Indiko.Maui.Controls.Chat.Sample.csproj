@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net9.0-android;net9.0-ios</TargetFrameworks>
+		<TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Indiko.Maui.Controls.Chat.Sample</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -23,7 +23,7 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">30.0</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|**net8.0-ios**|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0-ios|AnyCPU'">
 		<ForceSimulatorX64ArchitectureInIDE>true</ForceSimulatorX64ArchitectureInIDE>
 		<RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>
 	</PropertyGroup>
@@ -64,9 +64,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="12.2.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="14.0.1" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -83,9 +83,5 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\Indiko.Maui.Controls.Chat\Indiko.Maui.Controls.Chat.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Update="Microsoft.Maui.Controls.Compatibility" Version="8.0.92" />
 	</ItemGroup>
 </Project>

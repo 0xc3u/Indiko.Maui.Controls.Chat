@@ -177,6 +177,9 @@ internal class OwnTextMessageCell : UICollectionViewCell
         // Initialize long press gesture
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
+
+        // Counter-rotate the cell content to undo the UICollectionView's scaleY(-1) transform.
+        ContentView.Transform = CoreGraphics.CGAffineTransform.MakeScale(1, -1);
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)

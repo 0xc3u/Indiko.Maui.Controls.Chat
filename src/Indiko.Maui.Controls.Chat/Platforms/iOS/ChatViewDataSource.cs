@@ -71,7 +71,9 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
     {
         var snapshot = new NSDiffableDataSourceSnapshot<ChatSection, ChatMessageItem>();
         snapshot.AppendSections(new[] { new ChatSection("Messages") });
-        snapshot.AppendItems(messages.Select(message => new ChatMessageItem(message)).ToArray());
+        // Reversed so that index 0 = newest message, which sits at the visual bottom of the
+        // inverted UICollectionView without requiring any programmatic scroll.
+        snapshot.AppendItems(messages.Reverse().Select(m => new ChatMessageItem(m)).ToArray());
         ApplySnapshot(snapshot, true);
     }
 
@@ -79,7 +81,7 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
     {
         var snapshot = new NSDiffableDataSourceSnapshot<ChatSection, ChatMessageItem>();
         snapshot.AppendSections(new[] { new ChatSection("Messages") });
-        snapshot.AppendItems(messages.Select(m => new ChatMessageItem(m)).ToArray());
+        snapshot.AppendItems(messages.Reverse().Select(m => new ChatMessageItem(m)).ToArray());
         ApplySnapshot(snapshot, animate);
     }
 
@@ -87,9 +89,7 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
     {
         var snapshot = new NSDiffableDataSourceSnapshot<ChatSection, ChatMessageItem>();
         snapshot.AppendSections(new[] { new ChatSection("Messages") });
-        snapshot.AppendItems(messages.Select(m => new ChatMessageItem(m)).ToArray());
-
-        // IMPORTANT: use the completion overload so we know when layout can scroll
+        snapshot.AppendItems(messages.Reverse().Select(m => new ChatMessageItem(m)).ToArray());
         ApplySnapshot(snapshot, animate, completion);
     }
 

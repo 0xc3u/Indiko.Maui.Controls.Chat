@@ -183,6 +183,8 @@ internal class OwnImageMessageCell : UICollectionViewCell
         // Initialize long press gesture
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
+
+        ContentView.Transform = CoreGraphics.CGAffineTransform.MakeScale(1, -1);
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)

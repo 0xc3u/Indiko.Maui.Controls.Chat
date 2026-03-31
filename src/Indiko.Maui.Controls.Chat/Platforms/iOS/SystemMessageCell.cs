@@ -63,7 +63,7 @@ public class SystemMessageCell : UICollectionViewCell
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
         {
-            
+
             // System message bubble
             _bubbleView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
             _bubbleView.CenterXAnchor.ConstraintEqualTo(ContentView.CenterXAnchor),
@@ -76,6 +76,7 @@ public class SystemMessageCell : UICollectionViewCell
             _systemMessageLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
         });
 
+        ContentView.Transform = CoreGraphics.CGAffineTransform.MakeScale(1, -1);
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)

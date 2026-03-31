@@ -40,18 +40,20 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
                 _virtualView.ScrolledCommand.Execute(args);
             }
 
+            // With the inverted UICollectionView, contentOffset.Y = 0 is the visual bottom
+            // (newest messages) and contentOffset.Y = max is the visual top (oldest messages).
             if (scrollView.ContentOffset.Y <= 0)
-            {
-                if (_virtualView.LoadMoreMessagesCommand?.CanExecute(null) == true)
-                {
-                    _virtualView.LoadMoreMessagesCommand.Execute(null);
-                }
-            }
-            else if(scrollView.ContentOffset.Y >= scrollView.ContentSize.Height - scrollView.Bounds.Height)
             {
                 if (_virtualView.ScrolledToLastMessageCommand?.CanExecute(null) == true)
                 {
                     _virtualView.ScrolledToLastMessageCommand.Execute(null);
+                }
+            }
+            else if (scrollView.ContentOffset.Y >= scrollView.ContentSize.Height - scrollView.Bounds.Height)
+            {
+                if (_virtualView.LoadMoreMessagesCommand?.CanExecute(null) == true)
+                {
+                    _virtualView.LoadMoreMessagesCommand.Execute(null);
                 }
             }
         }

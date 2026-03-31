@@ -1,4 +1,5 @@
-﻿using Foundation;
+﻿using CoreGraphics;
+using Foundation;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Platform;
 using UIKit;
@@ -30,6 +31,8 @@ public class DateGroupSeperatorCell : UICollectionViewCell
         _dateLabel.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor).Active = true;
         _dateLabel.CenterXAnchor.ConstraintEqualTo(ContentView.CenterXAnchor).Active = true;
         _dateLabel.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor).Active = true;
+
+        ContentView.Transform = CGAffineTransform.MakeScale(1, -1);
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)
