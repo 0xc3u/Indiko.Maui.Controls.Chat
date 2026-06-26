@@ -230,6 +230,32 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         // Add the VideoView to the container
         videoContainer.AddView(videoView);
+
+        // Poster (first frame, blurred) shown over the VideoView until the user taps play.
+        var videoPoster = new ImageView(_context)
+        {
+            Id = AViews.View.GenerateViewId()
+        };
+        videoPoster.SetScaleType(ImageView.ScaleType.CenterCrop);
+        videoPoster.SetBackgroundColor(global::Android.Graphics.Color.Black);
+        videoContainer.AddView(videoPoster, new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.MatchParent));
+
+        // Central play button overlay.
+        var videoPlayButton = new ImageButton(_context)
+        {
+            Id = AViews.View.GenerateViewId()
+        };
+        videoPlayButton.SetImageResource(global::Android.Resource.Drawable.IcMediaPlay);
+        videoPlayButton.SetColorFilter(global::Android.Graphics.Color.White);
+        videoPlayButton.SetBackgroundColor(global::Android.Graphics.Color.Argb(90, 0, 0, 0));
+        var playButtonSize = PixelExtensions.DpToPx(56, _context);
+        videoContainer.AddView(videoPlayButton, new FrameLayout.LayoutParams(playButtonSize, playButtonSize)
+        {
+            Gravity = GravityFlags.Center
+        });
+
         linearLayout.AddView(videoContainer, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.WrapContent));
@@ -367,7 +393,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout,
             newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView,
-            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView);
+            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView, videoPoster, videoPlayButton);
     }
 
 
@@ -491,7 +517,6 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.TextView.Visibility = ViewStates.Gone;
                     chatHolder.ImageView.Visibility = ViewStates.Gone;
                     chatHolder.VideoContainer.Visibility = ViewStates.Visible;
-                    chatHolder.VideoView.Visibility = ViewStates.Visible;
                     chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
 
                     // Define the file path based on MessageId
@@ -506,10 +531,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                         }
                     }
 
-                    // Set the VideoView to play the temporary video file
+                    // Set the VideoView source (playback starts only when the user taps play).
                     var videoUri = ANet.Uri.FromFile(tempFile);
                     chatHolder.VideoView.SetVideoURI(videoUri);
-                    chatHolder.VideoView.RequestFocus();
 
                     // Calculate dimensions for the video bubble
                     var videodisplayMetrics = _context.Resources.DisplayMetrics;
@@ -523,8 +547,8 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     // Set padding on the container for consistent styling
                     chatHolder.VideoContainer.SetPadding(32, 16, 32, 16);
 
-                    // Start playback when the video is ready
-                    chatHolder.VideoView.Start();
+                    // Show a blurred first-frame poster + play button; tap to start playback.
+                    chatHolder.SetupVideoPoster(ExtractVideoPoster(tempFile.AbsolutePath));
                 }
                 else
                 {
@@ -765,6 +789,20 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
     private static global::Android.Graphics.Color WithAlpha(global::Android.Graphics.Color color, float alpha)
         => global::Android.Graphics.Color.Argb((int)(alpha * 255), color.R, color.G, color.B);
+
+    private static global::Android.Graphics.Bitmap ExtractVideoPoster(string filePath)
+    {
+        try
+        {
+            using var retriever = new global::Android.Media.MediaMetadataRetriever();
+            retriever.SetDataSource(filePath);
+            return retriever.GetFrameAtTime(0); // first frame
+        }
+        catch
+        {
+            return null; // no poster — the dark scrim + play button still indicate a video
+        }
+    }
 
     private void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
     {

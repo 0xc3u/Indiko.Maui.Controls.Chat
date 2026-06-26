@@ -31,6 +31,10 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     public TextView AudioDurationTextView { get; }
     public VoiceNotePlayer VoicePlayer { get; }
 
+    public ImageView VideoPosterView { get; }
+    public ImageButton VideoPlayButton { get; }
+    private EventHandler _videoPlayHandler;
+
     private EventHandler _avatarClickHandler;
     private EventHandler _textBubbleClickHandler;
     private EventHandler _imageBubbleClickHandler;
@@ -61,7 +65,9 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         LinearLayout audioContainer,
         ImageButton audioPlayButton,
         WaveformView audioWaveform,
-        TextView audioDurationTextView)
+        TextView audioDurationTextView,
+        ImageView videoPosterView,
+        ImageButton videoPlayButton)
         : base(itemView)
     {
         DateTextView = dateTextView;
@@ -86,6 +92,46 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         AudioWaveform = audioWaveform;
         AudioDurationTextView = audioDurationTextView;
         VoicePlayer = new VoiceNotePlayer(audioPlayButton, audioWaveform, audioDurationTextView);
+
+        VideoPosterView = videoPosterView;
+        VideoPlayButton = videoPlayButton;
+    }
+
+    /// <summary>
+    /// Shows the blurred poster + play button over the (stopped) VideoView and wires the
+    /// tap that starts inline playback. Called per bind; no auto-play.
+    /// </summary>
+    public void SetupVideoPoster(global::Android.Graphics.Bitmap poster)
+    {
+        try { VideoView.StopPlayback(); } catch { /* not playing */ }
+        VideoView.Visibility = aViews.ViewStates.Gone;
+
+        VideoPosterView.Visibility = aViews.ViewStates.Visible;
+        VideoPlayButton.Visibility = aViews.ViewStates.Visible;
+        VideoPosterView.SetImageBitmap(poster);
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
+        {
+            VideoPosterView.SetRenderEffect(
+                global::Android.Graphics.RenderEffect.CreateBlurEffect(25f, 25f, global::Android.Graphics.Shader.TileMode.Clamp));
+        }
+
+        if (_videoPlayHandler != null)
+            VideoPlayButton.Click -= _videoPlayHandler;
+        _videoPlayHandler = (s, e) => StartVideoPlayback();
+        VideoPlayButton.Click += _videoPlayHandler;
+    }
+
+    private void StartVideoPlayback()
+    {
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
+            VideoPosterView.SetRenderEffect(null);
+
+        VideoPosterView.Visibility = aViews.ViewStates.Gone;
+        VideoPlayButton.Visibility = aViews.ViewStates.Gone;
+        VideoView.Visibility = aViews.ViewStates.Visible;
+        VideoView.RequestFocus();
+        VideoView.Start();
     }
 
     public void AttachEventHandlers(ChatMessage message, ChatView chatView, ChatViewHandler handler)
@@ -216,6 +262,13 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
 
         // Stop any in-progress playback when the row is rebound/recycled.
         VoicePlayer?.Stop();
+
+        if (_videoPlayHandler != null && VideoPlayButton != null)
+        {
+            VideoPlayButton.Click -= _videoPlayHandler;
+            _videoPlayHandler = null;
+        }
+        try { VideoView?.StopPlayback(); } catch { /* not playing */ }
 
         if (_emojiReactionClickHandler != null && ReactionContainer != null)
         {

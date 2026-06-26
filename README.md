@@ -49,6 +49,7 @@ builder.UseChatView();
 - **Message Display**: Renders text, image, video, audio (voice note), system, and date-separator messages.
 - **Voice Notes**: Audio messages render as a play/pause button, a tap-to-seek waveform, and an elapsed/total duration label, with native playback on both platforms.
 - **Media Bubbles**: Images and videos are sized to the content's aspect ratio (capped) so a photo never blows up the bubble.
+- **Tap-to-Play Video**: Videos show a blurred first-frame poster with a play button and play inline only when tapped — no auto-play while scrolling.
 - **Reply Support**: Reply-to-message functionality with previews of the original message.
 - **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
 - **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
@@ -75,7 +76,7 @@ builder.UseChatView();
 |--------------|-----------------------------------------------------------------------------|
 | `Text`       | Standard text messages.                                                     |
 | `Image`      | Image messages (PNG/JPEG bytes in `BinaryContent`); aspect-sized bubble.    |
-| `Video`      | Video messages (bytes in `BinaryContent`) with inline playback.             |
+| `Video`      | Video messages (bytes in `BinaryContent`); blurred poster + tap-to-play.     |
 | `Audio`      | Voice notes (bytes in `BinaryContent`) with play/pause, waveform, duration. |
 | `System`     | System-generated / service messages.                                        |
 | `Date`       | Day separator row (usually inserted by your app between date groups).        |
