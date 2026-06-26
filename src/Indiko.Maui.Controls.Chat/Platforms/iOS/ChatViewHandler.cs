@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using CoreAnimation;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Handlers;
@@ -12,6 +13,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     private ChatViewDelegate _delegate;
     private ChatViewFlowLayout _flowLayout;
     private WeakReference<ChatView> _weakChatView;
+    private bool _didInitialJump;
 
     public static CommandMapper<ChatView, ChatViewHandler> CommandMapper = new CommandMapper<ChatView, ChatViewHandler>()
     {
@@ -141,7 +143,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             {
                 if (IsNearBottom())
                 {
-                    ScrollToLastMessage(animated: false);
+                    ScrollToNewest(animated: false);
                 }
             });
             return;
