@@ -16,23 +16,45 @@ Status: ☐ todo · ◐ in progress · ☑ done
 
 ---
 
+## ✅ Shipped
+
+Media
+- ☑ **Voice notes + Android audio parity** [Render][Model] — real voice-note cell on both
+  platforms (play/pause, tap-to-seek waveform, duration). Added `ChatMessage.AudioDuration`
+  and `ChatMessage.AudioWaveform`. *(released in 1.3.0)*
+- ☑ **Tap-to-play video** [Render] — blurred first-frame poster + play button; no auto-play
+  on scroll.
+- ☑ **Full-screen video** [Render] — opens full screen with native play/pause + seek; opt-out
+  to inline via `OpenVideoFullScreen` (default true).
+- ☑ **Full-screen image viewer** [Render] — pinch-to-zoom, pan, double-tap; opt-out via
+  `OpenImageFullScreen` (default true).
+- ☑ **Aspect-sized image bubbles** [Render] — images/videos no longer blow up the bubble;
+  image-only messages (no caption required) can be sent.
+
+Interaction & correctness
+- ☑ **Long-press to react on every message type** [Render] — text, image, video, voice note
+  (fixed the `_message`-never-assigned bug on the iOS audio/video cells).
+- ☑ **iOS inverted-list scroll fixes** [Render] — correct initial position (newest at bottom,
+  no swoosh), stable load-more (no jump), no startup crash (diffable identity via `IsEqual`/
+  `GetNativeHash`).
+- ☑ **`ObservableRangeCollection.InsertRange`** [Render] — prepend older messages for
+  infinite-scroll load-more.
+- ☑ **Android RecyclerView crash fix** [Render] — adapter mutations during LoadMore/scroll
+  are marshalled off the layout pass.
+
+New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
+
+---
+
 ## P0 — Parity / correctness
 
-- ☑ **Voice notes + Android audio parity** [Render][Model] — Android had no audio
-  branch at all; iOS audio was a bare "Play" button. Now a real voice-note cell on both
-  platforms: circular play/pause, tap-to-seek waveform (real samples via
-  `ChatMessage.AudioWaveform`, else a stable pseudo-waveform), elapsed/total duration.
-  Added `ChatMessage.AudioDuration` and `ChatMessage.AudioWaveform`.
-  iOS verified end-to-end (render + play/pause + progress + duration + seek). Android
-  rendering verified; also fixed a pre-existing RecyclerView crash where LoadMore firing
-  during layout mutated the adapter (now deferred to the next frame).
-- ☐ **Media captions** [Render][Model] — image/video bubbles can't show text. Add a
-  caption under the media in the same bubble (`ChatMessage.Caption` or reuse `TextContent`).
+- ☐ **Media captions** [Render][Model] — image/video bubbles can't show text. Add a caption
+  under the media in the same bubble (`Caption`, or reuse `TextContent`).
 
 ## P1 — Table stakes for a common chat control
 
-- ☐ **Sender name in group chats** [Render][Model] — name label above other-people's
-  bubbles; consecutive-message grouping. Add `ChatMessage.SenderName`.
+- ☐ **Sender name in group chats** [Render][Model] — name label above other-people's bubbles;
+  consecutive-message grouping. Add `ChatMessage.SenderName`.
 - ☐ **Clickable links + data detectors** [Render] — URLs/phones/emails tappable in text.
 - ☐ **Link previews (URL unfurling)** [Render][Model] — title/description/thumbnail card.
 - ☐ **Swipe-to-reply gesture** [Render] — swipe a bubble to trigger reply.
@@ -45,7 +67,7 @@ Status: ☐ todo · ◐ in progress · ☑ done
 
 ## P2 — Polish / advanced
 
-- ☐ Full-screen image viewer w/ pinch-zoom; media download progress; blurhash placeholder [Render]
+- ☐ Media download progress + blurhash/placeholder while loading [Render]
 - ☐ Animated GIF & sticker support [Render][Model]
 - ☐ Jumbo emoji (large rendering for emoji-only messages) [Render]
 - ☐ Bubble tails/notches [Render]
@@ -60,3 +82,12 @@ Status: ☐ todo · ◐ in progress · ☑ done
 
 - ☐ Optional `ChatInputView` composer (attachments, voice recording, emoji picker) [Render]
   — lowers adoption friction; most consumers reimplement this today.
+
+---
+
+## Recommended next
+
+1. **Media captions** (P0) — small model add, finishes media coverage; pairs naturally with
+   the media work just shipped.
+2. **Sender name + consecutive grouping** (P1) — biggest readability win for group chats.
+3. **Clickable links + swipe-to-reply** (P1) — cheap, high daily-use payoff.
