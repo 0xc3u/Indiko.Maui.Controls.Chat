@@ -1,3 +1,18 @@
+# [1.4.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.3.0...v1.4.0) (2026-06-26)
+
+
+### Bug Fixes
+
+* enable long-press react on the Android video poster overlay ([8f693fd](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/8f693fd8d4632c89d08b6353572478074fedd2ac))
+
+
+### Features
+
+* full-screen image viewer with pinch-to-zoom ([c7b2d95](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/c7b2d951e4d39b0cbe48ade541b31eb24967378e))
+* play videos full screen by default (opt-out OpenVideoFullScreen) ([f6dc563](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/f6dc5633eb7bc6f0ffce06d8e7d941d6609e0478))
+* tap-to-play video with blurred poster instead of auto-play ([aa8ef0a](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/aa8ef0a2189e635af251214e0554a4a5ea2e9b23))
+* video play/pause + seek controls (Android MediaController) ([72d95d0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/72d95d0f565b9d79a726b06394fec9f4f265fcd5))
+
 # [1.3.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.2.2...v1.3.0) (2026-06-26)
 
 
