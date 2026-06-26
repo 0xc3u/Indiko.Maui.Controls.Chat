@@ -32,6 +32,9 @@ Media
   image-only messages (no caption required) can be sent.
 - ☑ **Media captions** [Render] — image/video messages show their `TextContent` as a caption
   under the media in the same bubble.
+- ☑ **Sender name + consecutive grouping** [Render][Model] — `ChatMessage.SenderName` shown
+  above incoming bubbles (all message types), de-duplicated for consecutive messages from the
+  same sender. New properties: `ShowSenderName`, `SenderNameTextColor`, `SenderNameFontSize`.
 
 Interaction & correctness
 - ☑ **Long-press to react on every message type** [Render] — text, image, video, voice note
@@ -50,8 +53,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
 
 ## P1 — Table stakes for a common chat control
 
-- ☐ **Sender name in group chats** [Render][Model] — name label above other-people's bubbles;
-  consecutive-message grouping. Add `ChatMessage.SenderName`.
 - ☐ **Clickable links + data detectors** [Render] — URLs/phones/emails tappable in text.
 - ☐ **Link previews (URL unfurling)** [Render][Model] — title/description/thumbnail card.
 - ☐ **Swipe-to-reply gesture** [Render] — swipe a bubble to trigger reply.
@@ -84,6 +85,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
 
 ## Recommended next
 
-1. **Sender name + consecutive grouping** (P1) — biggest readability win for group chats.
-2. **Clickable links + swipe-to-reply** (P1) — cheap, high daily-use payoff.
+1. **Clickable links + data detectors** (P1) — cheap, high daily-use payoff.
+2. **Swipe-to-reply gesture** (P1) — standard reply interaction.
 3. **Link previews / documents** (P1) — rounds out content-type coverage.

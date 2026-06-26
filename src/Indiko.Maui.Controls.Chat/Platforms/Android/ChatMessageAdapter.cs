@@ -164,6 +164,20 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         };
         frameLayout.AddView(linearLayout);
 
+        // Sender name (group chats), shown at the top of incoming bubbles for the first of a run.
+        var senderNameTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = (float)VirtualView.SenderNameFontSize,
+            Typeface = Typeface.DefaultBold,
+            Visibility = ViewStates.Gone
+        };
+        senderNameTextView.SetTextColor(VirtualView.SenderNameTextColor.ToPlatform());
+        senderNameTextView.SetPadding(32, 12, 32, 0);
+        linearLayout.AddView(senderNameTextView, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.WrapContent));
+
         // Reply summary container
         var replySummaryFrame = new LinearLayout(_context)
         {
@@ -410,7 +424,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout,
             newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView,
-            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView, videoPoster, videoPlayButton, captionTextView);
+            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView, videoPoster, videoPlayButton, captionTextView, senderNameTextView);
     }
 
 
@@ -482,6 +496,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             chatHolder.DateTextView.Visibility = ViewStates.Gone; // group by date set Visibility Gone at first place
             chatHolder.AudioContainer.Visibility = ViewStates.Gone; // hidden unless this is an audio message
             chatHolder.CaptionTextView.Visibility = ViewStates.Gone; // shown only for captioned image/video
+            chatHolder.SenderNameTextView.Visibility = ViewStates.Gone; // shown only for first-of-run incoming
 
             // Set message type handling
             if (message.MessageType == MessageType.Text)
@@ -761,6 +776,21 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.DeliveryStatusIcon.Visibility = (message.MessageType == MessageType.Date || message.MessageType == MessageType.System) ? ViewStates.Gone : ViewStates.Visible;
                 chatHolder.TimestampTextView.Visibility = (message.MessageType == MessageType.Date || message.MessageType == MessageType.System) ? ViewStates.Gone : ViewStates.Visible;
                 chatHolder.TimestampTextView.Text = message.Timestamp.ToString("HH:mm");
+
+                // Sender name (group chats): first message of a sender run on incoming bubbles.
+                var showSenderName = VirtualView.ShowSenderName
+                    && !message.IsOwnMessage
+                    && !string.IsNullOrEmpty(message.SenderName)
+                    && MessageGrouping.IsFirstOfSenderRun(_messages, position);
+                if (showSenderName)
+                {
+                    chatHolder.SenderNameTextView.Text = message.SenderName;
+                    chatHolder.SenderNameTextView.Visibility = ViewStates.Visible;
+                }
+                else
+                {
+                    chatHolder.SenderNameTextView.Visibility = ViewStates.Gone;
+                }
             }
 
             var constraintSet = new ConstraintSet();

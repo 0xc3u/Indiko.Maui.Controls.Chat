@@ -26,6 +26,9 @@ internal class OtherTextMessageCell : UICollectionViewCell
     private NSLayoutConstraint _messageLabelTopConstraint;
     private UILongPressGestureRecognizer _longPressGesture;
 
+    private UILabel _senderNameLabel;
+    private NSLayoutConstraint _replyTopConstraint;
+
 
     public OtherTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
@@ -123,8 +126,17 @@ internal class OtherTextMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
+        // Sender name shown at the top of the bubble for group chats (first of a sender run).
+        _senderNameLabel = new UILabel
+        {
+            Lines = 1,
+            LineBreakMode = UILineBreakMode.TailTruncation,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left
+        };
+
         // add child views into hierarchical order
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _senderNameLabel, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
@@ -141,8 +153,12 @@ internal class OtherTextMessageCell : UICollectionViewCell
             _bubbleView.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, 10),
             _bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
 
-            // Message reply view inside chat bubble
-            _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
+            // Sender name at the top of the bubble (content tops retarget to it when shown)
+            _senderNameLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 8),
+            _senderNameLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _senderNameLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
+            // Message reply view inside chat bubble (top managed dynamically for the sender name)
             _replyView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _replyView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
 
@@ -182,11 +198,39 @@ internal class OtherTextMessageCell : UICollectionViewCell
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
         });
         
+        // Default reply top (no sender name) — retargeted in LayoutContentTop.
+        _replyTopConstraint = _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
+        _replyTopConstraint.Active = true;
+
         // Initialize long press gesture
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
 
         ContentView.Transform = CoreGraphics.CGAffineTransform.MakeScale(1, -1);
+    }
+
+    // Pins the topmost bubble content (reply or message) to the sender name when shown,
+    // otherwise to the bubble top.
+    private void LayoutContentTop(bool showName, bool hasReply)
+    {
+        if (_replyTopConstraint != null) _replyTopConstraint.Active = false;
+        _messageLabelTopConstraint.Active = false;
+
+        var topAnchor = showName ? _senderNameLabel.BottomAnchor : _bubbleView.TopAnchor;
+        var topPad = showName ? (nfloat)2 : (nfloat)10;
+
+        if (hasReply)
+        {
+            _replyTopConstraint = _replyView.TopAnchor.ConstraintEqualTo(topAnchor, topPad);
+            _replyTopConstraint.Active = true;
+            _messageLabelTopConstraint = _messageLabel.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
+            _messageLabelTopConstraint.Active = true;
+        }
+        else
+        {
+            _messageLabelTopConstraint = _messageLabel.TopAnchor.ConstraintEqualTo(topAnchor, topPad);
+            _messageLabelTopConstraint.Active = true;
+        }
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)
@@ -216,7 +260,26 @@ internal class OtherTextMessageCell : UICollectionViewCell
             _messageLabel.TextColor = chatView.OtherMessageTextColor.ToPlatform();
             _messageLabel.Text = message.TextContent;
 
-            if (message.IsRepliedMessage && message.ReplyToMessage != null)
+            // Sender name (group chats): shown for the first message of a sender run.
+            var chronoIndex = chatView.Messages.Count - 1 - index;
+            var showName = chatView.ShowSenderName
+                && !string.IsNullOrEmpty(message.SenderName)
+                && MessageGrouping.IsFirstOfSenderRun(chatView.Messages, chronoIndex);
+
+            _senderNameLabel.Hidden = !showName;
+            if (showName)
+            {
+                _senderNameLabel.Text = message.SenderName;
+                _senderNameLabel.TextColor = chatView.SenderNameTextColor.ToPlatform();
+                _senderNameLabel.Font = UIFont.BoldSystemFontOfSize((nfloat)chatView.SenderNameFontSize);
+            }
+            else
+            {
+                _senderNameLabel.Text = null;
+            }
+
+            var hasReply = message.IsRepliedMessage && message.ReplyToMessage != null;
+            if (hasReply)
             {
                 _replyView.BackgroundColor = chatView.ReplyMessageBackgroundColor.ToPlatform();
 
@@ -231,23 +294,15 @@ internal class OtherTextMessageCell : UICollectionViewCell
                 _replyView.Hidden = false;
                 _replySenderTextLabel.Hidden = false;
                 _replyPreviewTextLabel.Hidden = false;
-
-                // Update the top constraint of the message label
-                _messageLabelTopConstraint.Active = false;
-                _messageLabelTopConstraint = _messageLabel.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
-                _messageLabelTopConstraint.Active = true;
             }
             else
             {
                 _replyView.Hidden = true;
                 _replySenderTextLabel.Hidden = true;
                 _replyPreviewTextLabel.Hidden = true;
-
-                // Update the top constraint of the message label
-                _messageLabelTopConstraint.Active = false;
-                _messageLabelTopConstraint = _messageLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
-                _messageLabelTopConstraint.Active = true;
             }
+
+            LayoutContentTop(showName, hasReply);
 
             _timeLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageTimeFontSize);
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();

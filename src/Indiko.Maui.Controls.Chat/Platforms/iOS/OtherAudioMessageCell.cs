@@ -31,6 +31,9 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
     private NSLayoutConstraint _messageAudioTopConstraint;
     private UILongPressGestureRecognizer _longPressGesture;
 
+    private UILabel _senderNameLabel;
+    private NSLayoutConstraint _replyTopConstraint;
+
     public OtherAudioMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
@@ -145,7 +148,16 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         };
 
         // add child views into hierarchical order
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _playButton, _waveform, _audioDurationLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        // Sender name shown at the top of the bubble for group chats (first of a sender run).
+        _senderNameLabel = new UILabel
+        {
+            Lines = 1,
+            LineBreakMode = UILineBreakMode.TailTruncation,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left
+        };
+
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _senderNameLabel, _playButton, _waveform, _audioDurationLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
@@ -163,7 +175,11 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
             _bubbleView.BottomAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, -4),
 
             // Message reply view inside chat bubble
-            _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
+            // Sender name at the top of the bubble (content tops retarget to it when shown)
+            _senderNameLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 8),
+            _senderNameLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _senderNameLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
             _replyView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _replyView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
 
@@ -216,6 +232,10 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
 
         // Initialize long press gesture
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
+        // Default reply top (no sender name) — retargeted in LayoutContentTop.
+        _replyTopConstraint = _replyView.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
+        _replyTopConstraint.Active = true;
+
         _bubbleView.AddGestureRecognizer(_longPressGesture);
 
         ContentView.Transform = CoreGraphics.CGAffineTransform.MakeScale(1, -1);
@@ -269,7 +289,25 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
                 iconColor: foreground,
                 textColor: foreground.ColorWithAlpha(0.85f));
 
-            if (message.IsRepliedMessage && message.ReplyToMessage != null)
+            var chronoIndex = chatView.Messages.Count - 1 - index;
+            var showName = chatView.ShowSenderName
+                && !string.IsNullOrEmpty(message.SenderName)
+                && MessageGrouping.IsFirstOfSenderRun(chatView.Messages, chronoIndex);
+
+            _senderNameLabel.Hidden = !showName;
+            if (showName)
+            {
+                _senderNameLabel.Text = message.SenderName;
+                _senderNameLabel.TextColor = chatView.SenderNameTextColor.ToPlatform();
+                _senderNameLabel.Font = UIFont.BoldSystemFontOfSize((nfloat)chatView.SenderNameFontSize);
+            }
+            else
+            {
+                _senderNameLabel.Text = null;
+            }
+
+            var hasReply = message.IsRepliedMessage && message.ReplyToMessage != null;
+            if (hasReply)
             {
                 _replyView.BackgroundColor = chatView.ReplyMessageBackgroundColor.ToPlatform();
 
@@ -284,21 +322,15 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
                 _replyView.Hidden = false;
                 _replySenderTextLabel.Hidden = false;
                 _replyPreviewTextLabel.Hidden = false;
-
-                _messageAudioTopConstraint.Active = false;
-                _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
-                _messageAudioTopConstraint.Active = true;
             }
             else
             {
                 _replyView.Hidden = true;
                 _replySenderTextLabel.Hidden = true;
                 _replyPreviewTextLabel.Hidden = true;
-
-                _messageAudioTopConstraint.Active = false;
-                _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
-                _messageAudioTopConstraint.Active = true;
             }
+
+            LayoutContentTop(showName, hasReply);
 
             _timeLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageTimeFontSize);
             _timeLabel.TextColor = chatView.MessageTimeTextColor.ToPlatform();
@@ -364,6 +396,30 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         catch (Exception ex)
         {
             Console.WriteLine($"Error in {nameof(OtherAudioMessageCell)}.{nameof(Update)}: {ex.Message}");
+        }
+    }
+
+    // Pins the topmost bubble content (reply or play button) to the sender name when shown,
+    // otherwise to the bubble top.
+    private void LayoutContentTop(bool showName, bool hasReply)
+    {
+        if (_replyTopConstraint != null) _replyTopConstraint.Active = false;
+        _messageAudioTopConstraint.Active = false;
+
+        var topAnchor = showName ? _senderNameLabel.BottomAnchor : _bubbleView.TopAnchor;
+        var topPad = showName ? (nfloat)2 : (nfloat)10;
+
+        if (hasReply)
+        {
+            _replyTopConstraint = _replyView.TopAnchor.ConstraintEqualTo(topAnchor, topPad);
+            _replyTopConstraint.Active = true;
+            _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
+            _messageAudioTopConstraint.Active = true;
+        }
+        else
+        {
+            _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(topAnchor, topPad);
+            _messageAudioTopConstraint.Active = true;
         }
     }
 

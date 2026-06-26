@@ -242,6 +242,31 @@ public class ChatView : View
         set => SetValue(OpenImageFullScreenProperty, value);
     }
 
+    /// <summary>
+    /// When true (default), the sender's <see cref="Models.ChatMessage.SenderName"/> is shown
+    /// above incoming bubbles (de-duplicated for consecutive messages from the same sender).
+    /// </summary>
+    public static readonly BindableProperty ShowSenderNameProperty = BindableProperty.Create(nameof(ShowSenderName), typeof(bool), typeof(ChatView), true);
+    public bool ShowSenderName
+    {
+        get => (bool)GetValue(ShowSenderNameProperty);
+        set => SetValue(ShowSenderNameProperty, value);
+    }
+
+    public static readonly BindableProperty SenderNameTextColorProperty = BindableProperty.Create(nameof(SenderNameTextColor), typeof(Color), typeof(ChatView), Colors.MediumPurple);
+    public Color SenderNameTextColor
+    {
+        get => (Color)GetValue(SenderNameTextColorProperty);
+        set => SetValue(SenderNameTextColorProperty, value);
+    }
+
+    public static readonly BindableProperty SenderNameFontSizeProperty = BindableProperty.Create(nameof(SenderNameFontSize), typeof(double), typeof(ChatView), 12d);
+    public double SenderNameFontSize
+    {
+        get => (double)GetValue(SenderNameFontSizeProperty);
+        set => SetValue(SenderNameFontSizeProperty, value);
+    }
+
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {

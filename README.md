@@ -55,6 +55,7 @@ builder.UseChatView();
 - **Reply Support**: Reply-to-message functionality with previews of the original message.
 - **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
 - **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
+- **Sender Names (group chats)**: Shows `SenderName` above incoming bubbles, de-duplicated for consecutive messages from the same sender. Toggle with `ShowSenderName`; style with `SenderNameTextColor` / `SenderNameFontSize`.
 - **Date Separators & "New Messages" Separator**: Group messages by day and highlight where unread messages begin.
 - **Customizable Styling**: Flexible styling for message backgrounds, text colors, fonts, and more.
 - **Commands and Events**: Handles user interactions like taps, emoji reactions, and scrolls.
@@ -101,6 +102,7 @@ public class ChatMessage
     public string SenderId { get; set; }
     public byte[] SenderAvatar { get; set; }
     public string SenderInitials { get; set; }
+    public string SenderName { get; set; }        // shown above incoming bubbles in group chats
     public MessageType MessageType { get; set; }
     public MessageReadState ReadState { get; set; }
     public MessageDeliveryState DeliveryState { get; set; }
