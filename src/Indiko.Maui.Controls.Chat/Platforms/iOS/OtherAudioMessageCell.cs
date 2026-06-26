@@ -1,4 +1,3 @@
-using System;
 using AVFoundation;
 using CoreGraphics;
 using Foundation;
@@ -14,8 +13,10 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
     private ChatView _chatView;
     private ChatMessage _message;
 
-    private AVAudioPlayer _audioPlayer;
     private UIButton _playButton;
+    private WaveformView _waveform;
+    private UILabel _audioDurationLabel;
+    private VoiceNotePlayer _voicePlayer;
 
     private UIImageView _avatarImageView;
     private UIView _bubbleView;
@@ -40,6 +41,12 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         return CellSizingHelper.CalculateFittingAttributes(layoutAttributes, ContentView, _message?.MessageId);
     }
 
+    public override void PrepareForReuse()
+    {
+        base.PrepareForReuse();
+        _voicePlayer?.Stop();
+    }
+
     private void SetupLayout()
     {
         // Avatar setup
@@ -60,16 +67,27 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         };
         _bubbleView.Layer.CornerRadius = 16;
 
-        // Play button for audio
+        // Voice-note controls: circular play/pause, seekable waveform, duration label.
         _playButton = new UIButton(UIButtonType.System)
         {
             TranslatesAutoresizingMaskIntoConstraints = false,
-            BackgroundColor = UIColor.LightGray,
             ClipsToBounds = true
         };
-        _playButton.SetTitle("Play", UIControlState.Normal);
-        _playButton.Layer.CornerRadius = 8;
-        _playButton.TouchUpInside += (sender, e) => PlayAudio();
+        _playButton.Layer.CornerRadius = 20;
+
+        _waveform = new WaveformView
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false
+        };
+
+        _audioDurationLabel = new UILabel
+        {
+            Font = UIFont.SystemFontOfSize(11),
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left
+        };
+
+        _voicePlayer = new VoiceNotePlayer(_playButton, _waveform, _audioDurationLabel);
 
         // Chat reply view setup
         _replyView = new UIView
@@ -81,7 +99,7 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         _replyView.Layer.CornerRadius = 4;
         _replyPreviewTextLabel = new UILabel
         {
-            Lines = 0, // Allows unlimited lines
+            Lines = 0,
             LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
             TextAlignment = UITextAlignment.Left,
@@ -106,7 +124,6 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
             TextAlignment = UITextAlignment.Left
         };
 
-        _playButton.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
         _timeLabel.SetContentHuggingPriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Horizontal);
 
         // Message reaction stack (horizontal Emoji-List)
@@ -128,7 +145,7 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         };
 
         // add child views into hierarchical order
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _playButton, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _playButton, _waveform, _audioDurationLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
@@ -161,21 +178,29 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
             _replyPreviewTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
             _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
 
-            // Play button inside chat bubble
-            _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
-
-            _playButton.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
+            // Play/pause button inside chat bubble
+            _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
             _playButton.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
-            _playButton.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
-
-            _playButton.WidthAnchor.ConstraintEqualTo(100),
+            _playButton.WidthAnchor.ConstraintEqualTo(40),
             _playButton.HeightAnchor.ConstraintEqualTo(40),
+
+            // Waveform fills the rest of the row, vertically centred on the button
+            _waveform.LeadingAnchor.ConstraintEqualTo(_playButton.TrailingAnchor, 10),
+            _waveform.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+            _waveform.CenterYAnchor.ConstraintEqualTo(_playButton.CenterYAnchor),
+            _waveform.HeightAnchor.ConstraintEqualTo(32),
+            _waveform.WidthAnchor.ConstraintGreaterThanOrEqualTo(150),
+
+            // Duration under the waveform
+            _audioDurationLabel.TopAnchor.ConstraintEqualTo(_playButton.BottomAnchor, 4),
+            _audioDurationLabel.LeadingAnchor.ConstraintEqualTo(_playButton.TrailingAnchor, 10),
+            _audioDurationLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
 
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
             _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
             _reactionsStackView.LeadingAnchor.ConstraintGreaterThanOrEqualTo(_bubbleView.LeadingAnchor),
-            _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f), // limit width to 50% of the chat bubble width
+            _reactionsStackView.WidthAnchor.ConstraintLessThanOrEqualTo(_bubbleView.WidthAnchor, 0.5f),
 
             // Message time stamp
             _timeLabel.TopAnchor.ConstraintEqualTo(_reactionsStackView.TopAnchor, 4),
@@ -188,7 +213,7 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
         });
-        
+
         // Initialize long press gesture
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
@@ -206,24 +231,43 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         try
         {
             _chatView = chatView;
+            _message = message;
+
+            _avatarImageView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.AvatarTappedCommand);
+            _avatarImageView.UserInteractionEnabled = true;
+
+            // No bubble-wide tap command for voice notes: the play button and waveform are
+            // interactive, and a parent tap gesture would swallow their touches.
+            _bubbleView.UserInteractionEnabled = true;
+
+            _reactionsStackView.AddWeakTapGestureRecognizerWithCommand(_message, _chatView.EmojiReactionTappedCommand);
+            _reactionsStackView.UserInteractionEnabled = true;
 
             _bubbleView.BackgroundColor = chatView.OtherMessageBackgroundColor.ToPlatform();
 
+            // Voice-note: theme colours derived from the bubble's text colour.
+            var foreground = chatView.OtherMessageTextColor.ToPlatform();
+            _playButton.BackgroundColor = foreground.ColorWithAlpha(0.15f);
+
+            string audioFile = null;
             if (message.BinaryContent != null)
             {
-                var tempFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.mp3");
-
-                if (!File.Exists(tempFile))
+                audioFile = Path.Combine(FileSystem.Current.CacheDirectory, $"{message.MessageId}.audio");
+                if (!File.Exists(audioFile))
                 {
-                    File.WriteAllBytes(tempFile, message.BinaryContent);
+                    File.WriteAllBytes(audioFile, message.BinaryContent);
                 }
+            }
 
-                _audioPlayer = AVAudioPlayer.FromUrl(NSUrl.FromFilename(tempFile));
-            }
-            else
-            {
-                _playButton.Hidden = true;
-            }
+            var samples = message.AudioWaveform ?? AudioWaveformHelper.GenerateFallback(message.MessageId);
+            _voicePlayer.Configure(
+                audioFile,
+                message.AudioDuration,
+                samples,
+                barColor: foreground.ColorWithAlpha(0.3f),
+                progressColor: foreground,
+                iconColor: foreground,
+                textColor: foreground.ColorWithAlpha(0.85f));
 
             if (message.IsRepliedMessage && message.ReplyToMessage != null)
             {
@@ -241,7 +285,6 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
                 _replySenderTextLabel.Hidden = false;
                 _replyPreviewTextLabel.Hidden = false;
 
-                // Update the top constraint of the message label
                 _messageAudioTopConstraint.Active = false;
                 _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10);
                 _messageAudioTopConstraint.Active = true;
@@ -252,7 +295,6 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
                 _replySenderTextLabel.Hidden = true;
                 _replyPreviewTextLabel.Hidden = true;
 
-                // Update the top constraint of the message label
                 _messageAudioTopConstraint.Active = false;
                 _messageAudioTopConstraint = _playButton.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
                 _messageAudioTopConstraint.Active = true;
@@ -325,14 +367,6 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
         }
     }
 
-    private void PlayAudio()
-    {
-        if (_audioPlayer != null)
-        {
-            _audioPlayer.Play();
-        }
-    }
-    
     private void LongPressHandler(UILongPressGestureRecognizer recognizer)
     {
         if (recognizer.State == UIGestureRecognizerState.Began)

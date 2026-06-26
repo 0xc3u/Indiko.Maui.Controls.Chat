@@ -10,6 +10,7 @@ using Microsoft.Maui.Platform;
 using aIO = Java.IO;
 using ANet = Android.Net;
 using AViews = Android.Views;
+using ImageButton = Android.Widget.ImageButton;
 using Color = Microsoft.Maui.Graphics.Color;
 using Paint = Android.Graphics.Paint;
 using Rect = Android.Graphics.Rect;
@@ -233,6 +234,48 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.WrapContent));
 
+        // Audio (voice-note) row: play/pause, waveform, duration
+        var audioContainer = new LinearLayout(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            Orientation = Orientation.Horizontal,
+            Visibility = ViewStates.Gone
+        };
+        audioContainer.SetGravity(GravityFlags.CenterVertical);
+        audioContainer.SetPadding(24, 16, 24, 16);
+
+        var audioPlayButton = new ImageButton(_context)
+        {
+            Id = AViews.View.GenerateViewId()
+        };
+        audioPlayButton.SetBackgroundColor(global::Android.Graphics.Color.Transparent);
+        var playSize = PixelExtensions.DpToPx(40, _context);
+        audioContainer.AddView(audioPlayButton, new LinearLayout.LayoutParams(playSize, playSize));
+
+        var audioWaveform = new WaveformView(_context)
+        {
+            Id = AViews.View.GenerateViewId()
+        };
+        var waveformParams = new LinearLayout.LayoutParams(0, PixelExtensions.DpToPx(32, _context), 1f)
+        {
+            LeftMargin = PixelExtensions.DpToPx(8, _context)
+        };
+        audioContainer.AddView(audioWaveform, waveformParams);
+
+        var audioDurationTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = 11f
+        };
+        audioDurationTextView.SetPadding(PixelExtensions.DpToPx(8, _context), 0, 0, 0);
+        audioContainer.AddView(audioDurationTextView, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WrapContent,
+            ViewGroup.LayoutParams.WrapContent));
+
+        linearLayout.AddView(audioContainer, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.WrapContent));
+
         // Timestamp TextView (displayed below the message bubble)
         var timestampTextView = new TextView(_context)
         {
@@ -323,7 +366,8 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         constraintSet.ApplyTo(constraintLayout);
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout,
-            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView);
+            newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView,
+            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView);
     }
 
 
@@ -393,6 +437,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
             bool isSystemMessage = false;
             chatHolder.DateTextView.Visibility = ViewStates.Gone; // group by date set Visibility Gone at first place
+            chatHolder.AudioContainer.Visibility = ViewStates.Gone; // hidden unless this is an audio message
 
             // Set message type handling
             if (message.MessageType == MessageType.Text)
@@ -488,6 +533,36 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     chatHolder.VideoContainer.Visibility = ViewStates.Gone;
                     chatHolder.VideoView.Visibility = ViewStates.Gone;
                 }
+            }
+            else if (message.MessageType == MessageType.Audio)
+            {
+                chatHolder.TextView.Visibility = ViewStates.Gone;
+                chatHolder.ImageView.Visibility = ViewStates.Gone;
+                chatHolder.VideoContainer.Visibility = ViewStates.Gone;
+                chatHolder.VideoView.Visibility = ViewStates.Gone;
+                chatHolder.SystemMessageTextView.Visibility = ViewStates.Gone;
+                chatHolder.AudioContainer.Visibility = ViewStates.Visible;
+
+                var audioForeground = (message.IsOwnMessage ? OwnMessageTextColor : OtherMessageTextColor).ToPlatform();
+                chatHolder.AudioWaveform.SetColors(
+                    WithAlpha(audioForeground, message.IsOwnMessage ? 0.4f : 0.3f),
+                    audioForeground);
+                chatHolder.AudioWaveform.SetSamples(message.AudioWaveform ?? AudioWaveformHelper.GenerateFallback(message.MessageId));
+                chatHolder.AudioDurationTextView.SetTextColor(WithAlpha(audioForeground, 0.85f));
+
+                string audioFile = null;
+                if (message.BinaryContent != null)
+                {
+                    var tempFile = new aIO.File(_context.CacheDir, $"{message.MessageId}.audio");
+                    if (!tempFile.Exists())
+                    {
+                        using var fs = new FileStream(tempFile.AbsolutePath, FileMode.Create, FileAccess.Write);
+                        fs.Write(message.BinaryContent, 0, message.BinaryContent.Length);
+                    }
+                    audioFile = tempFile.AbsolutePath;
+                }
+
+                chatHolder.VoicePlayer.Configure(audioFile, message.AudioDuration, audioForeground);
             }
             else if (message.MessageType == MessageType.Date)
             {
@@ -687,6 +762,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
         }
     }
 
+
+    private static global::Android.Graphics.Color WithAlpha(global::Android.Graphics.Color color, float alpha)
+        => global::Android.Graphics.Color.Argb((int)(alpha * 255), color.R, color.G, color.B);
 
     private void SetImageSourceToImageView(ImageSource imageSource, ImageView imageView)
     {

@@ -3,6 +3,7 @@ using AndroidX.RecyclerView.Widget;
 using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Handlers;
 using aViews = Android.Views;
+using ImageButton = Android.Widget.ImageButton;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 
@@ -24,10 +25,17 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     public TextView ReplyPreviewTextView { get; }
     public TextView SystemMessageTextView { get; }
 
+    public LinearLayout AudioContainer { get; }
+    public ImageButton AudioPlayButton { get; }
+    public WaveformView AudioWaveform { get; }
+    public TextView AudioDurationTextView { get; }
+    public VoiceNotePlayer VoicePlayer { get; }
+
     private EventHandler _avatarClickHandler;
     private EventHandler _textBubbleClickHandler;
     private EventHandler _imageBubbleClickHandler;
     private EventHandler _videoBubbleClickHandler;
+    private EventHandler _audioBubbleClickHandler;
     private EventHandler _emojiReactionClickHandler;
 
     private EventHandler<aViews.View.LongClickEventArgs> _longPressHandler;
@@ -49,7 +57,11 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         LinearLayout replySummaryFrame,
         TextView replyPreviewTextView,
         TextView replySenderTextView,
-        TextView systemMessageTextView)
+        TextView systemMessageTextView,
+        LinearLayout audioContainer,
+        ImageButton audioPlayButton,
+        WaveformView audioWaveform,
+        TextView audioDurationTextView)
         : base(itemView)
     {
         DateTextView = dateTextView;
@@ -68,6 +80,12 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         ReplySenderTextView = replySenderTextView;
         ReplyPreviewTextView = replyPreviewTextView;
         SystemMessageTextView = systemMessageTextView;
+
+        AudioContainer = audioContainer;
+        AudioPlayButton = audioPlayButton;
+        AudioWaveform = audioWaveform;
+        AudioDurationTextView = audioDurationTextView;
+        VoicePlayer = new VoiceNotePlayer(audioPlayButton, audioWaveform, audioDurationTextView);
     }
 
     public void AttachEventHandlers(ChatMessage message, ChatView chatView, ChatViewHandler handler)
@@ -99,6 +117,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         TextView.LongClick += _longPressHandler;
         ImageView.LongClick += _longPressHandler;
         VideoContainer.LongClick += _longPressHandler;
+        AudioContainer.LongClick += _longPressHandler;
         ReactionContainer.LongClick += _longPressHandler;
 
         _textBubbleClickHandler = (s, e) =>
@@ -131,6 +150,16 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         };
         VideoContainer.Click += _videoBubbleClickHandler;
 
+        _audioBubbleClickHandler = (s, e) =>
+        {
+            if (weakChatView.TryGetTarget(out var target))
+            {
+                target.MessageTappedCommand?.Execute(message);
+                ApplyVisualFeedbackToChatBubble();
+            }
+        };
+        AudioContainer.Click += _audioBubbleClickHandler;
+
         _emojiReactionClickHandler = (s, e) =>
         {
             if (weakChatView.TryGetTarget(out var target))
@@ -156,6 +185,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             TextView.LongClick -= _longPressHandler;
             ImageView.LongClick -= _longPressHandler;
             VideoContainer.LongClick -= _longPressHandler;
+            AudioContainer.LongClick -= _longPressHandler;
             ReactionContainer.LongClick -= _longPressHandler;
             _longPressHandler = null;
         }
@@ -177,6 +207,15 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             VideoContainer.Click -= _videoBubbleClickHandler;
             _videoBubbleClickHandler = null;
         }
+
+        if (_audioBubbleClickHandler != null && AudioContainer != null)
+        {
+            AudioContainer.Click -= _audioBubbleClickHandler;
+            _audioBubbleClickHandler = null;
+        }
+
+        // Stop any in-progress playback when the row is rebound/recycled.
+        VoicePlayer?.Stop();
 
         if (_emojiReactionClickHandler != null && ReactionContainer != null)
         {
