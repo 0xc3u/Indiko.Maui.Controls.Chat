@@ -1,3 +1,11 @@
+## [1.2.1](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.2.0...v1.2.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* resolve iOS build errors in ChatViewHandler ([8710e76](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/8710e76cb2d5cd5489e54d380ed11798319bf388))
+* resolve merge conflicts using working-tree changes ([6aaaaf5](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/6aaaaf53b93168c07ea343d370bb42031f2e8739))
+
 # [1.2.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.1.5...v1.2.0) (2026-03-31)
 
 
