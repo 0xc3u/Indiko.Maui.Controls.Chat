@@ -495,6 +495,9 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     var bitmap = BitmapFactory.DecodeByteArray(message.BinaryContent, 0, message.BinaryContent.Length);
                     chatHolder.ImageView.SetImageBitmap(bitmap);
 
+                    // Tap the image to open the full-screen zoomable viewer.
+                    chatHolder.SetImageViewerData(bitmap, VirtualView.OpenImageFullScreen);
+
                     // Calculate the dimensions for the image bubble
                     var imageDisplayMetrics = _context.Resources.DisplayMetrics;
                     int imagemaxWidth = (int)(imageDisplayMetrics.WidthPixels * 0.65); // Limit width to 65% of screen

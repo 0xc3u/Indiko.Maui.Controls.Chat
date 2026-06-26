@@ -35,6 +35,9 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     public ImageButton VideoPlayButton { get; }
     private EventHandler _videoPlayHandler;
 
+    private global::Android.Graphics.Bitmap _imageBitmap;
+    private bool _openImageFullScreen;
+
     private EventHandler _avatarClickHandler;
     private EventHandler _textBubbleClickHandler;
     private EventHandler _imageBubbleClickHandler;
@@ -122,6 +125,47 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             ? (s, e) => OpenFullScreenVideo(filePath)
             : (s, e) => StartVideoPlayback();
         VideoPlayButton.Click += _videoPlayHandler;
+    }
+
+    /// <summary>Stores the data used to open the full-screen image viewer on image tap.</summary>
+    public void SetImageViewerData(global::Android.Graphics.Bitmap bitmap, bool openFullScreen)
+    {
+        _imageBitmap = bitmap;
+        _openImageFullScreen = openFullScreen;
+    }
+
+    // Opens a full-screen image viewer with pinch-to-zoom / pan / double-tap.
+    private void OpenFullScreenImage(global::Android.Graphics.Bitmap bitmap)
+    {
+        var context = ItemView.Context;
+        var dialog = new global::Android.App.Dialog(context, global::Android.Resource.Style.ThemeBlackNoTitleBarFullScreen);
+
+        var frame = new FrameLayout(context);
+        frame.SetBackgroundColor(global::Android.Graphics.Color.Black);
+
+        var zoomImage = new ZoomableImageView(context);
+        zoomImage.SetImageBitmap(bitmap);
+        frame.AddView(zoomImage, new FrameLayout.LayoutParams(
+            aViews.ViewGroup.LayoutParams.MatchParent,
+            aViews.ViewGroup.LayoutParams.MatchParent));
+
+        // Close button.
+        var closeButton = new ImageButton(context);
+        closeButton.SetImageResource(global::Android.Resource.Drawable.IcMenuCloseClearCancel);
+        closeButton.SetColorFilter(global::Android.Graphics.Color.White);
+        closeButton.SetBackgroundColor(global::Android.Graphics.Color.Argb(90, 0, 0, 0));
+        var closeSize = PixelExtensions.DpToPx(40, context);
+        var closeParams = new FrameLayout.LayoutParams(closeSize, closeSize)
+        {
+            Gravity = aViews.GravityFlags.Top | aViews.GravityFlags.Left,
+            LeftMargin = PixelExtensions.DpToPx(12, context),
+            TopMargin = PixelExtensions.DpToPx(12, context)
+        };
+        closeButton.Click += (s, e) => dialog.Dismiss();
+        frame.AddView(closeButton, closeParams);
+
+        dialog.SetContentView(frame);
+        dialog.Show();
     }
 
     // Plays the video full screen in a dialog with native media controls (play/pause + seek).
@@ -214,6 +258,11 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             {
                 target.MessageTappedCommand?.Execute(message);
                 ApplyVisualFeedbackToChatBubble();
+            }
+
+            if (_openImageFullScreen && _imageBitmap != null)
+            {
+                OpenFullScreenImage(_imageBitmap);
             }
         };
         ImageView.Click += _imageBubbleClickHandler;

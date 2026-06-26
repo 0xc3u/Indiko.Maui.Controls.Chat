@@ -231,6 +231,17 @@ public class ChatView : View
         set => SetValue(OpenVideoFullScreenProperty, value);
     }
 
+    /// <summary>
+    /// When true (default), tapping an image opens a full-screen viewer with pinch-to-zoom and
+    /// pan. <see cref="MessageTappedCommand"/> still fires. Set to false to handle taps yourself.
+    /// </summary>
+    public static readonly BindableProperty OpenImageFullScreenProperty = BindableProperty.Create(nameof(OpenImageFullScreen), typeof(bool), typeof(ChatView), true);
+    public bool OpenImageFullScreen
+    {
+        get => (bool)GetValue(OpenImageFullScreenProperty);
+        set => SetValue(OpenImageFullScreenProperty, value);
+    }
+
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {
