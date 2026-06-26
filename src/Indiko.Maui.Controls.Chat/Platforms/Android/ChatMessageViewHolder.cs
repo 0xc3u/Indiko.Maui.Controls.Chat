@@ -31,6 +31,13 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     public TextView AudioDurationTextView { get; }
     public VoiceNotePlayer VoicePlayer { get; }
 
+    public ImageView VideoPosterView { get; }
+    public ImageButton VideoPlayButton { get; }
+    private EventHandler _videoPlayHandler;
+
+    private global::Android.Graphics.Bitmap _imageBitmap;
+    private bool _openImageFullScreen;
+
     private EventHandler _avatarClickHandler;
     private EventHandler _textBubbleClickHandler;
     private EventHandler _imageBubbleClickHandler;
@@ -61,7 +68,9 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         LinearLayout audioContainer,
         ImageButton audioPlayButton,
         WaveformView audioWaveform,
-        TextView audioDurationTextView)
+        TextView audioDurationTextView,
+        ImageView videoPosterView,
+        ImageButton videoPlayButton)
         : base(itemView)
     {
         DateTextView = dateTextView;
@@ -86,6 +95,119 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         AudioWaveform = audioWaveform;
         AudioDurationTextView = audioDurationTextView;
         VoicePlayer = new VoiceNotePlayer(audioPlayButton, audioWaveform, audioDurationTextView);
+
+        VideoPosterView = videoPosterView;
+        VideoPlayButton = videoPlayButton;
+    }
+
+    /// <summary>
+    /// Shows the blurred poster + play button over the (stopped) VideoView and wires the
+    /// tap that starts inline playback. Called per bind; no auto-play.
+    /// </summary>
+    public void SetupVideoPoster(global::Android.Graphics.Bitmap poster, bool openFullScreen, string filePath)
+    {
+        try { VideoView.StopPlayback(); } catch { /* not playing */ }
+        VideoView.Visibility = aViews.ViewStates.Gone;
+
+        VideoPosterView.Visibility = aViews.ViewStates.Visible;
+        VideoPlayButton.Visibility = aViews.ViewStates.Visible;
+        VideoPosterView.SetImageBitmap(poster);
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
+        {
+            VideoPosterView.SetRenderEffect(
+                global::Android.Graphics.RenderEffect.CreateBlurEffect(25f, 25f, global::Android.Graphics.Shader.TileMode.Clamp));
+        }
+
+        if (_videoPlayHandler != null)
+            VideoPlayButton.Click -= _videoPlayHandler;
+        _videoPlayHandler = openFullScreen
+            ? (s, e) => OpenFullScreenVideo(filePath)
+            : (s, e) => StartVideoPlayback();
+        VideoPlayButton.Click += _videoPlayHandler;
+    }
+
+    /// <summary>Stores the data used to open the full-screen image viewer on image tap.</summary>
+    public void SetImageViewerData(global::Android.Graphics.Bitmap bitmap, bool openFullScreen)
+    {
+        _imageBitmap = bitmap;
+        _openImageFullScreen = openFullScreen;
+    }
+
+    // Opens a full-screen image viewer with pinch-to-zoom / pan / double-tap.
+    private void OpenFullScreenImage(global::Android.Graphics.Bitmap bitmap)
+    {
+        var context = ItemView.Context;
+        var dialog = new global::Android.App.Dialog(context, global::Android.Resource.Style.ThemeBlackNoTitleBarFullScreen);
+
+        var frame = new FrameLayout(context);
+        frame.SetBackgroundColor(global::Android.Graphics.Color.Black);
+
+        var zoomImage = new ZoomableImageView(context);
+        zoomImage.SetImageBitmap(bitmap);
+        frame.AddView(zoomImage, new FrameLayout.LayoutParams(
+            aViews.ViewGroup.LayoutParams.MatchParent,
+            aViews.ViewGroup.LayoutParams.MatchParent));
+
+        // Close button.
+        var closeButton = new ImageButton(context);
+        closeButton.SetImageResource(global::Android.Resource.Drawable.IcMenuCloseClearCancel);
+        closeButton.SetColorFilter(global::Android.Graphics.Color.White);
+        closeButton.SetBackgroundColor(global::Android.Graphics.Color.Argb(90, 0, 0, 0));
+        var closeSize = PixelExtensions.DpToPx(40, context);
+        var closeParams = new FrameLayout.LayoutParams(closeSize, closeSize)
+        {
+            Gravity = aViews.GravityFlags.Top | aViews.GravityFlags.Left,
+            LeftMargin = PixelExtensions.DpToPx(12, context),
+            TopMargin = PixelExtensions.DpToPx(12, context)
+        };
+        closeButton.Click += (s, e) => dialog.Dismiss();
+        frame.AddView(closeButton, closeParams);
+
+        dialog.SetContentView(frame);
+        dialog.Show();
+    }
+
+    // Plays the video full screen in a dialog with native media controls (play/pause + seek).
+    private void OpenFullScreenVideo(string filePath)
+    {
+        var context = ItemView.Context;
+        var dialog = new global::Android.App.Dialog(context, global::Android.Resource.Style.ThemeBlackNoTitleBarFullScreen);
+
+        var frame = new FrameLayout(context);
+        frame.SetBackgroundColor(global::Android.Graphics.Color.Black);
+
+        var videoView = new VideoView(context);
+        frame.AddView(videoView, new FrameLayout.LayoutParams(
+            aViews.ViewGroup.LayoutParams.MatchParent,
+            aViews.ViewGroup.LayoutParams.MatchParent)
+        {
+            Gravity = aViews.GravityFlags.Center
+        });
+
+        var mediaController = new MediaController(context);
+        mediaController.SetAnchorView(videoView);
+        videoView.SetMediaController(mediaController);
+        videoView.SetVideoPath(filePath);
+
+        dialog.SetContentView(frame);
+        dialog.Show();
+        videoView.RequestFocus();
+        videoView.Start();
+
+        dialog.DismissEvent += (s, e) => { try { videoView.StopPlayback(); } catch { /* already stopped */ } };
+    }
+
+    private void StartVideoPlayback()
+    {
+        if (OperatingSystem.IsAndroidVersionAtLeast(31))
+            VideoPosterView.SetRenderEffect(null);
+
+        VideoPosterView.Visibility = aViews.ViewStates.Gone;
+        VideoPlayButton.Visibility = aViews.ViewStates.Gone;
+        VideoView.Visibility = aViews.ViewStates.Visible;
+        VideoView.RequestFocus();
+        VideoView.Start();
     }
 
     public void AttachEventHandlers(ChatMessage message, ChatView chatView, ChatViewHandler handler)
@@ -117,6 +239,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         TextView.LongClick += _longPressHandler;
         ImageView.LongClick += _longPressHandler;
         VideoContainer.LongClick += _longPressHandler;
+        VideoPosterView.LongClick += _longPressHandler;   // poster overlays the container
         AudioContainer.LongClick += _longPressHandler;
         ReactionContainer.LongClick += _longPressHandler;
 
@@ -136,6 +259,11 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             {
                 target.MessageTappedCommand?.Execute(message);
                 ApplyVisualFeedbackToChatBubble();
+            }
+
+            if (_openImageFullScreen && _imageBitmap != null)
+            {
+                OpenFullScreenImage(_imageBitmap);
             }
         };
         ImageView.Click += _imageBubbleClickHandler;
@@ -185,6 +313,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             TextView.LongClick -= _longPressHandler;
             ImageView.LongClick -= _longPressHandler;
             VideoContainer.LongClick -= _longPressHandler;
+            VideoPosterView.LongClick -= _longPressHandler;
             AudioContainer.LongClick -= _longPressHandler;
             ReactionContainer.LongClick -= _longPressHandler;
             _longPressHandler = null;
@@ -216,6 +345,13 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
 
         // Stop any in-progress playback when the row is rebound/recycled.
         VoicePlayer?.Stop();
+
+        if (_videoPlayHandler != null && VideoPlayButton != null)
+        {
+            VideoPlayButton.Click -= _videoPlayHandler;
+            _videoPlayHandler = null;
+        }
+        try { VideoView?.StopPlayback(); } catch { /* not playing */ }
 
         if (_emojiReactionClickHandler != null && ReactionContainer != null)
         {

@@ -178,7 +178,19 @@ internal class OwnImageMessageCell : UICollectionViewCell
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
 
+        // Tap the image to open the full-screen zoomable viewer.
+        _imageView.UserInteractionEnabled = true;
+        _imageView.AddGestureRecognizer(new UITapGestureRecognizer(OnImageTapped));
+
         ContentView.Transform = CoreGraphics.CGAffineTransform.MakeScale(1, -1);
+    }
+
+    private void OnImageTapped()
+    {
+        if (_chatView?.OpenImageFullScreen == true && _imageView.Image != null)
+        {
+            ImageViewerController.Present(_imageView.Image);
+        }
     }
 
     public void Update(int index, ChatMessage message, ChatView chatView, IMauiContext mauiContext)

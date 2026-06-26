@@ -49,6 +49,8 @@ builder.UseChatView();
 - **Message Display**: Renders text, image, video, audio (voice note), system, and date-separator messages.
 - **Voice Notes**: Audio messages render as a play/pause button, a tap-to-seek waveform, and an elapsed/total duration label, with native playback on both platforms.
 - **Media Bubbles**: Images and videos are sized to the content's aspect ratio (capped) so a photo never blows up the bubble.
+- **Tap-to-Play Video**: Videos show a blurred first-frame poster with a play button; nothing auto-plays while scrolling. Tapping play opens the video **full screen** with native controls (play/pause + seek bar) by default — set `OpenVideoFullScreen="False"` to play inline in the bubble instead.
+- **Full-Screen Image Viewer**: Tapping an image opens a full-screen viewer with pinch-to-zoom, pan and double-tap zoom. `MessageTapped` still fires; set `OpenImageFullScreen="False"` to handle the tap yourself.
 - **Reply Support**: Reply-to-message functionality with previews of the original message.
 - **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
 - **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
@@ -58,7 +60,7 @@ builder.UseChatView();
 - **Smart Scrolling**: On iOS the list is rendered with an inverted `UICollectionView`, so the newest message rests at the bottom with no animated jump on open; supports scroll-to-last-message and scroll-to-first-new-message.
 - **Load More Messages**: Supports dynamic loading of older messages via a bound command; prepended messages keep the viewport stable.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
-- **Long Press Gesture**: Displays a configured context menu for chat message actions.
+- **Long Press Gesture**: Displays a configured context menu (emoji reactions + actions) on any message — text, image, video and voice note.
 
 ---
 
@@ -75,7 +77,7 @@ builder.UseChatView();
 |--------------|-----------------------------------------------------------------------------|
 | `Text`       | Standard text messages.                                                     |
 | `Image`      | Image messages (PNG/JPEG bytes in `BinaryContent`); aspect-sized bubble.    |
-| `Video`      | Video messages (bytes in `BinaryContent`) with inline playback.             |
+| `Video`      | Video messages (bytes in `BinaryContent`); blurred poster + tap-to-play.     |
 | `Audio`      | Voice notes (bytes in `BinaryContent`) with play/pause, waveform, duration. |
 | `System`     | System-generated / service messages.                                        |
 | `Date`       | Day separator row (usually inserted by your app between date groups).        |
