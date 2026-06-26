@@ -10,10 +10,10 @@ public class ChatViewFlowLayout : UICollectionViewFlowLayout
 
     public ChatViewFlowLayout() : base()
     {
-        //EstimatedItemSize = EstimatedItemSize = new CGSize(UIScreen.MainScreen.Bounds.Width, 80);
-        // Disable estimates on first layout to prevent jump/jitter
-        EstimatedItemSize = CGSize.Empty;
-        ItemSize = UICollectionViewFlowLayout.AutomaticSize;
+        // Enable self-sizing via PreferredLayoutAttributesFittingAttributes.
+        // A non-zero estimate lets UICollectionView compute ContentSize up-front
+        // and only adjust incrementally (cheap) instead of from scratch.
+        EstimatedItemSize = new CGSize(UIScreen.MainScreen.Bounds.Width, 80);
         MinimumInteritemSpacing = 0f;
         MinimumLineSpacing = 10f;
         ScrollDirection = UICollectionViewScrollDirection.Vertical;
@@ -53,6 +53,7 @@ public class ChatViewFlowLayout : UICollectionViewFlowLayout
         if (CollectionView != null && CollectionView.Bounds.Width != _calculatedItemWidth)
         {
             _calculatedItemWidth = CollectionView.Bounds.Width - SectionInset.Left - SectionInset.Right;
+            CellSizingHelper.ClearCache();
             return true;
         }
         return false; // Do not invalidate during scrolling

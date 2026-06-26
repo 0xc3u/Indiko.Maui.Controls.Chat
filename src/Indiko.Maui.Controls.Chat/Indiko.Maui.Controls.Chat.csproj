@@ -37,16 +37,16 @@
 	  <None Remove="Platforms\Tizen\**" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
-	</ItemGroup>
+  <ItemGroup>
+	  <PackageReference Include="Microsoft.Maui.Controls" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<None Include="..\Indiko.Maui.Controls.Chat\icon.png" Pack="true" PackagePath="" />
-	</ItemGroup>
+  <ItemGroup>
+	  <None Include="..\Indiko.Maui.Controls.Chat\icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
 
-	<ItemGroup>
+  <ItemGroup>
 	  <Folder Include="Platforms\Android\Resources\Drawable\" />
-	</ItemGroup>
+  </ItemGroup>
 
 </Project>

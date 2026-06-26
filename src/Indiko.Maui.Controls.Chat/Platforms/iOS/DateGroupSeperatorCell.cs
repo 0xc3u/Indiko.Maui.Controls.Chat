@@ -16,6 +16,11 @@ public class DateGroupSeperatorCell : UICollectionViewCell
         SetupLayout();
     }
 
+    public override UICollectionViewLayoutAttributes PreferredLayoutAttributesFittingAttributes(UICollectionViewLayoutAttributes layoutAttributes)
+    {
+        return CellSizingHelper.CalculateFittingAttributes(layoutAttributes, ContentView, null);
+    }
+
     private void SetupLayout()
     {
         _dateLabel = new UILabel

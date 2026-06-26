@@ -18,12 +18,9 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
     }
 
 
-    public override CGSize GetSizeForItem(UICollectionView collectionView, UICollectionViewLayout layout, NSIndexPath indexPath)
-    {
-        var width = collectionView.Bounds.Width - _flowLayout.SectionInset.Left - _flowLayout.SectionInset.Right;
-        nfloat estimatedHeight = 80; // chat bubble's average height
-        return new CGSize(width, estimatedHeight);
-    }
+    // Self-sizing is handled by each cell via PreferredLayoutAttributesFittingAttributes.
+    // Returning UICollectionViewFlowLayout.AutomaticSize here defers to the cells,
+    // which is required now that EstimatedItemSize is non-zero in the flow layout.
 
     public override void Scrolled(UIScrollView scrollView)
     {

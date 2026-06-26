@@ -86,16 +86,14 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
         platformView.Delegate = _delegate;
 
-        // With the inverted transform, item[0] is at the visual bottom by default — no
-        // initial scroll-to-bottom is needed regardless of when bounds are finalised.
-        UIView.PerformWithoutAnimation(() =>
+        // Initial populate without animation, then defer the initial scroll
+        // to after the snapshot has been applied and the layout pass has
+        // finalized. This ensures ContentSize reflects real cell heights
+        // (via PreferredLayoutAttributesFittingAttributes), not estimates.
+        _dataSource.UpdateMessages(VirtualView.Messages, animate: false, completion: () =>
         {
-            _dataSource.UpdateMessages(VirtualView.Messages, animate: false);
-            platformView.LayoutIfNeeded();
+            TryInitialJump();
         });
-
-        if (VirtualView.ScrollToFirstNewMessage)
-            ScrollToFirstNewMessage(animated: false);
 
         _weakChatView = new WeakReference<ChatView>(VirtualView);
         VirtualView.Messages.CollectionChanged += OnMessagesCollectionChanged;
@@ -114,16 +112,37 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     {
         if (!_weakChatView.TryGetTarget(out var chatView)) return;
 
-        // New outgoing/incoming message appended to the chronological list.
-        // In the reversed data source it lands at index 0 (visual bottom).
-        // The collection view is already positioned at contentOffset.Y≈0, so the
-        // message appears there naturally; we just ensure we scroll into view.
-        if (e.Action == NotifyCollectionChangedAction.Add
-            && e.NewStartingIndex >= chatView.Messages.Count - 1)
+        // PREPEND: keep viewport stable by adjusting offset *after* layout
+        // completes. Computing the delta synchronously is wrong because
+        // ContentSize still reflects estimated heights for off-screen cells.
+        // The ApplySnapshot completion fires after the batch update finishes,
+        // so ContentSize is accurate there.
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex == 0)
+        {
+            var oldOffset = PlatformView.ContentOffset;
+            var oldHeight = PlatformView.ContentSize.Height;
+
+            _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: () =>
+            {
+                PlatformView.LayoutIfNeeded();
+                var newHeight = PlatformView.ContentSize.Height;
+                var delta = newHeight - oldHeight;
+                PlatformView.SetContentOffset(new CGPoint(oldOffset.X, oldOffset.Y + delta), false);
+            });
+
+            return;
+        }
+
+        // APPEND: only auto-scroll if the user is already near the bottom.
+        // Use animated:false to avoid the "swoosh down" when a new message arrives.
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex >= (chatView.Messages.Count - 1))
         {
             _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: () =>
             {
-                PlatformView.PerformBatchUpdates(() => { }, _ => ScrollToNewest(animated: true));
+                if (IsNearBottom())
+                {
+                    ScrollToLastMessage(animated: false);
+                }
             });
             return;
         }
@@ -194,4 +213,58 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             }
         }
     }
+
+    private void TryInitialJump()
+    {
+        if (_didInitialJump) return;
+        _didInitialJump = true;
+
+        // Called from the ApplySnapshot completion handler, so layout is
+        // already finalized and ContentSize is accurate. No need for
+        // another LayoutIfNeeded or PerformBatchUpdates here.
+        if (VirtualView.ScrollToFirstNewMessage)
+            ScrollToFirstNewMessage(animated: false);
+        else
+            JumpToBottom(animated: false);
+    }
+
+    private void JumpToBottom(bool animated)
+    {
+        var count = VirtualView.Messages?.Count ?? 0;
+        if (count <= 0) return;
+
+        CATransaction.Begin();
+        CATransaction.DisableActions = !animated;
+
+        var bottomY = Math.Max(
+            0,
+            PlatformView.ContentSize.Height
+            - PlatformView.Bounds.Height
+            + PlatformView.AdjustedContentInset.Bottom);
+
+        PlatformView.SetContentOffset(new CGPoint(0, bottomY), animated);
+
+        CATransaction.Commit();
+    }
+
+    /// <summary>
+    /// Returns true when the user is currently near the bottom of the chat.
+    /// Used to decide whether to auto-scroll when a new message arrives.
+    /// </summary>
+    private bool IsNearBottom()
+    {
+        var contentHeight = PlatformView.ContentSize.Height;
+        var visibleHeight = PlatformView.Bounds.Height
+            - PlatformView.AdjustedContentInset.Top
+            - PlatformView.AdjustedContentInset.Bottom;
+
+        if (visibleHeight <= 0) return true;
+
+        var currentOffset = PlatformView.ContentOffset.Y + PlatformView.AdjustedContentInset.Top;
+        var distanceFromBottom = contentHeight - currentOffset - visibleHeight;
+
+        // Within half a screen height of the bottom → near bottom
+        return distanceFromBottom <= visibleHeight * 0.5;
+    }
+
 }

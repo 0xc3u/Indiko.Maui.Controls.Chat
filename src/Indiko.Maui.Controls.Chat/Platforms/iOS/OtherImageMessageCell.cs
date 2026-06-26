@@ -34,21 +34,7 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
 
     public override UICollectionViewLayoutAttributes PreferredLayoutAttributesFittingAttributes(UICollectionViewLayoutAttributes layoutAttributes)
     {
-        // Update the layout attributes for auto-sizing
-        SetNeedsLayout();
-        LayoutIfNeeded();
-
-        var widthConstraint = ContentView.WidthAnchor.ConstraintEqualTo(layoutAttributes.Frame.Width);
-        widthConstraint.Active = true;
-
-        // Calculate the size fitting the content
-        var size = ContentView.SystemLayoutSizeFittingSize(UIView.UILayoutFittingCompressedSize);
-        widthConstraint.Active = false;
-
-        var updatedAttributes = layoutAttributes.Copy() as UICollectionViewLayoutAttributes;
-        updatedAttributes.Frame = new CGRect(0, updatedAttributes.Frame.Y, layoutAttributes.Frame.Width, size.Height);
-
-        return updatedAttributes;
+        return CellSizingHelper.CalculateFittingAttributes(layoutAttributes, ContentView, _message?.MessageId);
     }
 
     private void SetupLayout()
