@@ -552,8 +552,12 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                     // Set padding on the container for consistent styling
                     chatHolder.VideoContainer.SetPadding(32, 16, 32, 16);
 
-                    // Show a blurred first-frame poster + play button; tap to start playback.
-                    chatHolder.SetupVideoPoster(ExtractVideoPoster(tempFile.AbsolutePath));
+                    // Show a blurred first-frame poster + play button; tap to start playback
+                    // (full screen by default, or inline when OpenVideoFullScreen is false).
+                    chatHolder.SetupVideoPoster(
+                        ExtractVideoPoster(tempFile.AbsolutePath),
+                        VirtualView.OpenVideoFullScreen,
+                        tempFile.AbsolutePath);
                 }
                 else
                 {

@@ -1,3 +1,4 @@
+using System.Linq;
 using AVFoundation;
 using AVKit;
 using CoreGraphics;
@@ -18,6 +19,10 @@ internal sealed class VideoBubbleView : UIView
     private readonly UIImageView _posterView;
     private readonly UIVisualEffectView _blurView;
     private readonly UIButton _playButton;
+    private string _filePath;
+
+    /// <summary>When true, tapping play opens the video full screen instead of inline.</summary>
+    public bool OpenFullScreen { get; set; } = true;
 
     public VideoBubbleView()
     {
@@ -88,6 +93,7 @@ internal sealed class VideoBubbleView : UIView
     public void Configure(string filePath)
     {
         ResetToPoster();
+        _filePath = filePath;
 
         if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
         {
@@ -114,10 +120,46 @@ internal sealed class VideoBubbleView : UIView
 
     private void StartPlayback()
     {
+        if (OpenFullScreen)
+        {
+            PresentFullScreen();
+            return;
+        }
+
         _posterView.Hidden = true;
         _blurView.Hidden = true;
         _playButton.Hidden = true;
         _player.Play();
+    }
+
+    private void PresentFullScreen()
+    {
+        if (string.IsNullOrEmpty(_filePath) || !File.Exists(_filePath))
+            return;
+
+        var top = TopViewController();
+        if (top == null) return;
+
+        var fullScreenController = new AVPlayerViewController
+        {
+            Player = new AVPlayer(NSUrl.FromFilename(_filePath)),
+            ShowsPlaybackControls = true
+        };
+        top.PresentViewController(fullScreenController, true, () => fullScreenController.Player?.Play());
+    }
+
+    private static UIViewController TopViewController()
+    {
+        var window = UIApplication.SharedApplication.ConnectedScenes
+            .OfType<UIWindowScene>()
+            .SelectMany(s => s.Windows)
+            .FirstOrDefault(w => w.IsKeyWindow)
+            ?? UIApplication.SharedApplication.KeyWindow;
+
+        var controller = window?.RootViewController;
+        while (controller?.PresentedViewController != null)
+            controller = controller.PresentedViewController;
+        return controller;
     }
 
     private void GeneratePoster(AVAsset asset)

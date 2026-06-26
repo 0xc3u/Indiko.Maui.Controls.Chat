@@ -220,6 +220,17 @@ public class ChatView : View
         set => SetValue(ScrollToLastMessageProperty, value);
     }
 
+    /// <summary>
+    /// When true (default), tapping a video's play button opens it full screen. Set to false
+    /// to play videos inline inside the chat bubble instead.
+    /// </summary>
+    public static readonly BindableProperty OpenVideoFullScreenProperty = BindableProperty.Create(nameof(OpenVideoFullScreen), typeof(bool), typeof(ChatView), true);
+    public bool OpenVideoFullScreen
+    {
+        get => (bool)GetValue(OpenVideoFullScreenProperty);
+        set => SetValue(OpenVideoFullScreenProperty, value);
+    }
+
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {

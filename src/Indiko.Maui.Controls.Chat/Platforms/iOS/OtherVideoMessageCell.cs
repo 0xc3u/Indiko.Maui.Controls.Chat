@@ -197,6 +197,7 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
                 }
 
                 _videoBubble.Hidden = false;
+                _videoBubble.OpenFullScreen = chatView.OpenVideoFullScreen;
                 _videoBubble.Configure(tempFile);
             }
             else

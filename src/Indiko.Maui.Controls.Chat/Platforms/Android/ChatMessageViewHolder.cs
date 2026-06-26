@@ -101,7 +101,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     /// Shows the blurred poster + play button over the (stopped) VideoView and wires the
     /// tap that starts inline playback. Called per bind; no auto-play.
     /// </summary>
-    public void SetupVideoPoster(global::Android.Graphics.Bitmap poster)
+    public void SetupVideoPoster(global::Android.Graphics.Bitmap poster, bool openFullScreen, string filePath)
     {
         try { VideoView.StopPlayback(); } catch { /* not playing */ }
         VideoView.Visibility = aViews.ViewStates.Gone;
@@ -118,8 +118,40 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
 
         if (_videoPlayHandler != null)
             VideoPlayButton.Click -= _videoPlayHandler;
-        _videoPlayHandler = (s, e) => StartVideoPlayback();
+        _videoPlayHandler = openFullScreen
+            ? (s, e) => OpenFullScreenVideo(filePath)
+            : (s, e) => StartVideoPlayback();
         VideoPlayButton.Click += _videoPlayHandler;
+    }
+
+    // Plays the video full screen in a dialog with native media controls (play/pause + seek).
+    private void OpenFullScreenVideo(string filePath)
+    {
+        var context = ItemView.Context;
+        var dialog = new global::Android.App.Dialog(context, global::Android.Resource.Style.ThemeBlackNoTitleBarFullScreen);
+
+        var frame = new FrameLayout(context);
+        frame.SetBackgroundColor(global::Android.Graphics.Color.Black);
+
+        var videoView = new VideoView(context);
+        frame.AddView(videoView, new FrameLayout.LayoutParams(
+            aViews.ViewGroup.LayoutParams.MatchParent,
+            aViews.ViewGroup.LayoutParams.MatchParent)
+        {
+            Gravity = aViews.GravityFlags.Center
+        });
+
+        var mediaController = new MediaController(context);
+        mediaController.SetAnchorView(videoView);
+        videoView.SetMediaController(mediaController);
+        videoView.SetVideoPath(filePath);
+
+        dialog.SetContentView(frame);
+        dialog.Show();
+        videoView.RequestFocus();
+        videoView.Start();
+
+        dialog.DismissEvent += (s, e) => { try { videoView.StopPlayback(); } catch { /* already stopped */ } };
     }
 
     private void StartVideoPlayback()
