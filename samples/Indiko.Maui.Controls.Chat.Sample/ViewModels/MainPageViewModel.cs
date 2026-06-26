@@ -32,11 +32,46 @@ public partial class MainPageViewModel : BaseViewModel
         ChatMessages = new ObservableRangeCollection<ChatMessage>(messages);
     }
 
+    private int _olderPagesLoaded;
+    private bool _isLoadingOlder;
+
     [RelayCommand]
     private void LoadOlderMessages()
     {
+        // Demo of infinite-scroll load-more. Fires when the user scrolls to the top
+        // (the oldest message). Prepend a page of older messages via InsertRange(0, ...)
+        // so the handler keeps the viewport stable instead of jumping. Capped so the
+        // demo doesn't grow without bound.
+        if (ChatMessages == null || _isLoadingOlder || _olderPagesLoaded >= 3)
+            return;
 
+        _isLoadingOlder = true;
+        _olderPagesLoaded++;
 
+        var oldest = ChatMessages.Count > 0 ? ChatMessages[0].Timestamp : DateTime.Now;
+
+        const int pageSize = 10;
+        var older = new List<ChatMessage>(pageSize);
+        for (int i = 0; i < pageSize; i++)
+        {
+            // i == 0 is the earliest; all earlier than the current oldest message.
+            var isOwn = i % 3 == 0;
+            older.Add(new ChatMessage
+            {
+                TextContent = $"Older message (page {_olderPagesLoaded}, #{i + 1})",
+                IsOwnMessage = isOwn,
+                Timestamp = oldest.AddMinutes(-(pageSize - i)),
+                SenderInitials = isOwn ? "JD" : "AB",
+                MessageId = Guid.NewGuid().ToString(),
+                MessageType = MessageType.Text,
+                ReadState = MessageReadState.Read,
+                DeliveryState = MessageDeliveryState.Read,
+                Reactions = [],
+            });
+        }
+
+        ChatMessages.InsertRange(0, older);
+        _isLoadingOlder = false;
     }
 
 
@@ -44,6 +79,28 @@ public partial class MainPageViewModel : BaseViewModel
     private void Scrolled(ScrolledArgs scrolledArgs)
     {
 
+    }
+
+    // Appends an incoming "other" message (newest). Use it while scrolled up to verify
+    // the handler keeps the viewport stable, and while at the bottom to verify it follows.
+    [RelayCommand]
+    private void SimulateIncoming()
+    {
+        if (ChatMessages == null)
+            return;
+
+        ChatMessages.Add(new ChatMessage
+        {
+            TextContent = $"Incoming message at {DateTime.Now:HH:mm:ss}",
+            IsOwnMessage = false,
+            Timestamp = DateTime.Now,
+            SenderInitials = "AB",
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.Text,
+            ReadState = MessageReadState.New,
+            DeliveryState = MessageDeliveryState.Delivered,
+            Reactions = [],
+        });
     }
 
     [RelayCommand]

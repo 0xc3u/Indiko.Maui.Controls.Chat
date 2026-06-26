@@ -9,6 +9,11 @@
              BackgroundColor="White"
              Title="ChatView Sample">
 
+    <ContentPage.ToolbarItems>
+        <!-- Simulates an incoming ("other") message so the receive-while-scrolled-up
+             behaviour can be exercised without a backend. -->
+        <ToolbarItem Text="Receive" Command="{Binding SimulateIncomingCommand}" />
+    </ContentPage.ToolbarItems>
 
     <Grid RowDefinitions="*, 2, Auto">
 

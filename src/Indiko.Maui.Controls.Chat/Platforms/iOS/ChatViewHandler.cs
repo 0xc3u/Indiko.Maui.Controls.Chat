@@ -1,5 +1,4 @@
 using System.Collections.Specialized;
-using CoreAnimation;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Handlers;
@@ -13,6 +12,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     private ChatViewDelegate _delegate;
     private ChatViewFlowLayout _flowLayout;
     private WeakReference<ChatView> _weakChatView;
+    private System.Collections.Specialized.INotifyCollectionChanged _observedMessages;
     private bool _didInitialJump;
 
     public static CommandMapper<ChatView, ChatViewHandler> CommandMapper = new CommandMapper<ChatView, ChatViewHandler>()
@@ -63,9 +63,34 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     private void UpdateMessages(bool animate = false)
     {
         if (_dataSource == null) return;
-        _dataSource.UpdateMessages(VirtualView.Messages, animate);
-        if (VirtualView.ScrollToFirstNewMessage)
-            ScrollToFirstNewMessage(animated: false);
+        HookMessages();
+        // Defer the scroll to the snapshot completion so ContentSize reflects real
+        // cell heights before we position. Without ScrollToFirstNewMessage, rest at
+        // the newest message (visual bottom = contentOffset 0 in the inverted layout).
+        _dataSource.UpdateMessages(VirtualView.Messages, animate, completion: () =>
+        {
+            if (VirtualView.ScrollToFirstNewMessage)
+                ScrollToFirstNewMessage(animated: false);
+            else
+                ScrollToNewest(animated: false);
+        });
+    }
+
+    // Subscribe to CollectionChanged on the *current* Messages instance, moving the
+    // subscription if the consumer assigns a new collection after ConnectHandler ran.
+    // Without this, runtime add/prepend on a reassigned collection is never observed.
+    private void HookMessages()
+    {
+        var current = VirtualView?.Messages;
+        if (ReferenceEquals(current, _observedMessages)) return;
+
+        if (_observedMessages != null)
+            _observedMessages.CollectionChanged -= OnMessagesCollectionChanged;
+
+        _observedMessages = current;
+
+        if (_observedMessages != null)
+            _observedMessages.CollectionChanged += OnMessagesCollectionChanged;
     }
 
     protected override void ConnectHandler(UICollectionView platformView)
@@ -98,14 +123,15 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         });
 
         _weakChatView = new WeakReference<ChatView>(VirtualView);
-        VirtualView.Messages.CollectionChanged += OnMessagesCollectionChanged;
+        HookMessages();
     }
 
     protected override void DisconnectHandler(UICollectionView nativeView)
     {
-        if (_weakChatView.TryGetTarget(out var chatView))
+        if (_observedMessages != null)
         {
-            chatView.Messages.CollectionChanged -= OnMessagesCollectionChanged;
+            _observedMessages.CollectionChanged -= OnMessagesCollectionChanged;
+            _observedMessages = null;
         }
         base.DisconnectHandler(nativeView);
     }
@@ -114,49 +140,57 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     {
         if (!_weakChatView.TryGetTarget(out var chatView)) return;
 
-        // PREPEND: keep viewport stable by adjusting offset *after* layout
-        // completes. Computing the delta synchronously is wrong because
-        // ContentSize still reflects estimated heights for off-screen cells.
-        // The ApplySnapshot completion fires after the batch update finishes,
-        // so ContentSize is accurate there.
+        // LOAD-MORE (older messages prepended at Messages[0]). In the reversed snapshot
+        // these map to the *end* of the data (visual top), beyond the current viewport.
+        // Appending there does not move any visible item, so NO contentOffset
+        // compensation is needed — doing so would itself cause the dreaded jump.
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex == 0)
+        {
+            UIView.PerformWithoutAnimation(() =>
+            {
+                _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: () =>
+                {
+                    PlatformView.LayoutIfNeeded();
+                });
+            });
+            return;
+        }
+
+        // NEW MESSAGE (appended at the end of Messages). In the reversed snapshot it is
+        // inserted at index 0 (visual bottom), which pushes every existing item up in
+        // content space. If the user is near the newest message, follow it; otherwise
+        // compensate the offset by the inserted height so their view stays put.
+        if (e.Action == NotifyCollectionChangedAction.Add)
         {
             var oldOffset = PlatformView.ContentOffset;
             var oldHeight = PlatformView.ContentSize.Height;
+            var nearBottom = IsNearBottom();
 
             _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: () =>
             {
                 PlatformView.LayoutIfNeeded();
-                var newHeight = PlatformView.ContentSize.Height;
-                var delta = newHeight - oldHeight;
-                PlatformView.SetContentOffset(new CGPoint(oldOffset.X, oldOffset.Y + delta), false);
-            });
-
-            return;
-        }
-
-        // APPEND: only auto-scroll if the user is already near the bottom.
-        // Use animated:false to avoid the "swoosh down" when a new message arrives.
-        if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex >= (chatView.Messages.Count - 1))
-        {
-            _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: () =>
-            {
-                if (IsNearBottom())
+                if (nearBottom)
                 {
+                    // animated:false avoids the "swoosh down" when a message arrives.
                     ScrollToNewest(animated: false);
+                }
+                else
+                {
+                    var delta = PlatformView.ContentSize.Height - oldHeight;
+                    PlatformView.SetContentOffset(new CGPoint(oldOffset.X, oldOffset.Y + delta), false);
                 }
             });
             return;
         }
 
-        // Older messages prepended (infinite-scroll load-more).
-        // In the reversed snapshot they are appended at the end (visual top).
-        // Appending beyond the current viewport does NOT shift existing item positions,
-        // so no contentOffset compensation is required.
+        // Reset / Replace / Remove: re-apply the snapshot without forcing a scroll so the
+        // user's current position is preserved (the diffable diff keeps cells in place).
         UIView.PerformWithoutAnimation(() =>
         {
-            _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: null);
-            PlatformView.LayoutIfNeeded();
+            _dataSource.UpdateMessages(chatView.Messages, animate: false, completion: () =>
+            {
+                PlatformView.LayoutIfNeeded();
+            });
         });
     }
 
@@ -227,46 +261,28 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         if (VirtualView.ScrollToFirstNewMessage)
             ScrollToFirstNewMessage(animated: false);
         else
-            JumpToBottom(animated: false);
-    }
-
-    private void JumpToBottom(bool animated)
-    {
-        var count = VirtualView.Messages?.Count ?? 0;
-        if (count <= 0) return;
-
-        CATransaction.Begin();
-        CATransaction.DisableActions = !animated;
-
-        var bottomY = Math.Max(
-            0,
-            PlatformView.ContentSize.Height
-            - PlatformView.Bounds.Height
-            + PlatformView.AdjustedContentInset.Bottom);
-
-        PlatformView.SetContentOffset(new CGPoint(0, bottomY), animated);
-
-        CATransaction.Commit();
+            ScrollToNewest(animated: false);
     }
 
     /// <summary>
-    /// Returns true when the user is currently near the bottom of the chat.
-    /// Used to decide whether to auto-scroll when a new message arrives.
+    /// Returns true when the user is currently near the newest message (the visual
+    /// bottom of the chat). In the inverted layout the newest message sits at
+    /// contentOffset.Y ≈ 0, so "near bottom" means the offset is close to the top of
+    /// the content. Used to decide whether to auto-scroll when a new message arrives.
     /// </summary>
     private bool IsNearBottom()
     {
-        var contentHeight = PlatformView.ContentSize.Height;
         var visibleHeight = PlatformView.Bounds.Height
             - PlatformView.AdjustedContentInset.Top
             - PlatformView.AdjustedContentInset.Bottom;
 
         if (visibleHeight <= 0) return true;
 
+        // 0 at the newest message; grows as the user scrolls toward older messages.
         var currentOffset = PlatformView.ContentOffset.Y + PlatformView.AdjustedContentInset.Top;
-        var distanceFromBottom = contentHeight - currentOffset - visibleHeight;
 
-        // Within half a screen height of the bottom → near bottom
-        return distanceFromBottom <= visibleHeight * 0.5;
+        // Within half a screen height of the newest message → near bottom.
+        return currentOffset <= visibleHeight * 0.5;
     }
 
 }
