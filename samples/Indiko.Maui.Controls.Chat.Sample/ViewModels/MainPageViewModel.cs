@@ -160,7 +160,8 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private void SendMessage()
     {
-        if (string.IsNullOrWhiteSpace(NewMessage))
+        // Allow sending an image on its own — only block when there is neither text nor media.
+        if (string.IsNullOrWhiteSpace(NewMessage) && SelectedMedia == null)
             return;
 
 
