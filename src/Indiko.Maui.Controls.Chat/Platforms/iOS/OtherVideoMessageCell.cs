@@ -27,6 +27,11 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
     private NSLayoutConstraint _messageVideoTopConstraint;
     private UILongPressGestureRecognizer _longPressGesture;
 
+    private UILabel _captionLabel;
+    private NSLayoutConstraint _videoBottomToBubble;
+    private NSLayoutConstraint _videoBottomToCaption;
+    private NSLayoutConstraint _captionBottomToBubble;
+
     public OtherVideoMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
         SetupLayout();
@@ -118,7 +123,16 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _videoBubble, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        // Optional caption shown under the video (from the message's TextContent).
+        _captionLabel = new UILabel
+        {
+            Lines = 0,
+            LineBreakMode = UILineBreakMode.WordWrap,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left
+        };
+
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _videoBubble, _captionLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         NSLayoutConstraint.ActivateConstraints(new[]
         {
@@ -145,13 +159,16 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             _replyPreviewTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
             _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
 
-            // Inline video bubble inside the chat bubble
+            // Inline video bubble inside the chat bubble (bottom managed dynamically for the caption)
             _messageVideoTopConstraint = _videoBubble.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10),
-            _videoBubble.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
             _videoBubble.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _videoBubble.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
             _videoBubble.WidthAnchor.ConstraintEqualTo(240),
             _videoBubble.HeightAnchor.ConstraintEqualTo(160),
+
+            // Caption under the video
+            _captionLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _captionLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
 
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
             _reactionsStackView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor),
@@ -167,6 +184,12 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
         });
+
+        // Video bottom is pinned either to the bubble (no caption) or to the caption (with caption).
+        _videoBottomToBubble = _videoBubble.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10);
+        _videoBottomToCaption = _videoBubble.BottomAnchor.ConstraintEqualTo(_captionLabel.TopAnchor, -8);
+        _captionBottomToBubble = _captionLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10);
+        _videoBottomToBubble.Active = true;
 
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
@@ -203,6 +226,27 @@ internal sealed class OtherVideoMessageCell : UICollectionViewCell
             else
             {
                 _videoBubble.Hidden = true;
+            }
+
+            // Optional caption under the video (from TextContent).
+            if (!string.IsNullOrEmpty(message.TextContent))
+            {
+                _captionLabel.Hidden = false;
+                _captionLabel.Text = message.TextContent;
+                _captionLabel.TextColor = chatView.OtherMessageTextColor.ToPlatform();
+                _captionLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageFontSize);
+
+                _videoBottomToBubble.Active = false;
+                _videoBottomToCaption.Active = true;
+                _captionBottomToBubble.Active = true;
+            }
+            else
+            {
+                _captionLabel.Hidden = true;
+                _captionLabel.Text = null;
+                _videoBottomToCaption.Active = false;
+                _captionBottomToBubble.Active = false;
+                _videoBottomToBubble.Active = true;
             }
 
             if (message.IsRepliedMessage && message.ReplyToMessage != null)

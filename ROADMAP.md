@@ -30,6 +30,8 @@ Media
   `OpenImageFullScreen` (default true).
 - ☑ **Aspect-sized image bubbles** [Render] — images/videos no longer blow up the bubble;
   image-only messages (no caption required) can be sent.
+- ☑ **Media captions** [Render] — image/video messages show their `TextContent` as a caption
+  under the media in the same bubble.
 
 Interaction & correctness
 - ☑ **Long-press to react on every message type** [Render] — text, image, video, voice note
@@ -45,11 +47,6 @@ Interaction & correctness
 New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
 
 ---
-
-## P0 — Parity / correctness
-
-- ☐ **Media captions** [Render][Model] — image/video bubbles can't show text. Add a caption
-  under the media in the same bubble (`Caption`, or reuse `TextContent`).
 
 ## P1 — Table stakes for a common chat control
 
@@ -87,7 +84,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
 
 ## Recommended next
 
-1. **Media captions** (P0) — small model add, finishes media coverage; pairs naturally with
-   the media work just shipped.
-2. **Sender name + consecutive grouping** (P1) — biggest readability win for group chats.
-3. **Clickable links + swipe-to-reply** (P1) — cheap, high daily-use payoff.
+1. **Sender name + consecutive grouping** (P1) — biggest readability win for group chats.
+2. **Clickable links + swipe-to-reply** (P1) — cheap, high daily-use payoff.
+3. **Link previews / documents** (P1) — rounds out content-type coverage.

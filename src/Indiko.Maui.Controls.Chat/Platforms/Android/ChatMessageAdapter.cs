@@ -307,6 +307,18 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.WrapContent));
 
+        // Caption shown under image/video media (from the message's TextContent).
+        var captionTextView = new TextView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            TextSize = (float)MessageFontSize,
+            Visibility = ViewStates.Gone
+        };
+        captionTextView.SetPadding(32, 8, 32, 16);
+        linearLayout.AddView(captionTextView, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.WrapContent));
+
         // Timestamp TextView (displayed below the message bubble)
         var timestampTextView = new TextView(_context)
         {
@@ -398,7 +410,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout,
             newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView,
-            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView, videoPoster, videoPlayButton);
+            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView, videoPoster, videoPlayButton, captionTextView);
     }
 
 
@@ -469,6 +481,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             bool isSystemMessage = false;
             chatHolder.DateTextView.Visibility = ViewStates.Gone; // group by date set Visibility Gone at first place
             chatHolder.AudioContainer.Visibility = ViewStates.Gone; // hidden unless this is an audio message
+            chatHolder.CaptionTextView.Visibility = ViewStates.Gone; // shown only for captioned image/video
 
             // Set message type handling
             if (message.MessageType == MessageType.Text)
@@ -497,6 +510,8 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
                     // Tap the image to open the full-screen zoomable viewer.
                     chatHolder.SetImageViewerData(bitmap, VirtualView.OpenImageFullScreen);
+
+                    SetCaption(chatHolder, message);
 
                     // Calculate the dimensions for the image bubble
                     var imageDisplayMetrics = _context.Resources.DisplayMetrics;
@@ -561,6 +576,8 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                         ExtractVideoPoster(tempFile.AbsolutePath),
                         VirtualView.OpenVideoFullScreen,
                         tempFile.AbsolutePath);
+
+                    SetCaption(chatHolder, message);
                 }
                 else
                 {
@@ -801,6 +818,20 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
     private static global::Android.Graphics.Color WithAlpha(global::Android.Graphics.Color color, float alpha)
         => global::Android.Graphics.Color.Argb((int)(alpha * 255), color.R, color.G, color.B);
+
+    private void SetCaption(ChatMessageViewHolder holder, ChatMessage message)
+    {
+        if (!string.IsNullOrEmpty(message.TextContent))
+        {
+            holder.CaptionTextView.Text = message.TextContent;
+            holder.CaptionTextView.SetTextColor((message.IsOwnMessage ? OwnMessageTextColor : OtherMessageTextColor).ToPlatform());
+            holder.CaptionTextView.Visibility = ViewStates.Visible;
+        }
+        else
+        {
+            holder.CaptionTextView.Visibility = ViewStates.Gone;
+        }
+    }
 
     private static global::Android.Graphics.Bitmap ExtractVideoPoster(string filePath)
     {
