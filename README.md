@@ -49,6 +49,7 @@ builder.UseChatView();
 - **Message Display**: Renders text, image, video, audio (voice note), system, and date-separator messages.
 - **Voice Notes**: Audio messages render as a play/pause button, a tap-to-seek waveform, and an elapsed/total duration label, with native playback on both platforms.
 - **Media Bubbles**: Images and videos are sized to the content's aspect ratio (capped) so a photo never blows up the bubble.
+- **Media Captions**: Image and video messages can carry a text caption (the message's `TextContent`), shown under the media in the same bubble.
 - **Tap-to-Play Video**: Videos show a blurred first-frame poster with a play button; nothing auto-plays while scrolling. Tapping play opens the video **full screen** with native controls (play/pause + seek bar) by default — set `OpenVideoFullScreen="False"` to play inline in the bubble instead.
 - **Full-Screen Image Viewer**: Tapping an image opens a full-screen viewer with pinch-to-zoom, pan and double-tap zoom. `MessageTapped` still fires; set `OpenImageFullScreen="False"` to handle the tap yourself.
 - **Reply Support**: Reply-to-message functionality with previews of the original message.
@@ -272,6 +273,7 @@ ChatMessages.Add(new ChatMessage
     IsOwnMessage = true,
     MessageType = MessageType.Image,
     BinaryContent = imageBytes,            // PNG/JPEG
+    TextContent = "optional caption",      // shown under the image in the same bubble
 });
 
 // Voice note

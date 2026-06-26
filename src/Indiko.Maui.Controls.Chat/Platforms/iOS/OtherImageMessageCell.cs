@@ -28,6 +28,11 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
     private NSLayoutConstraint _imageAspectConstraint;
     private UILongPressGestureRecognizer _longPressGesture;
 
+    private UILabel _captionLabel;
+    private NSLayoutConstraint _imageBottomToBubble;
+    private NSLayoutConstraint _imageBottomToCaption;
+    private NSLayoutConstraint _captionBottomToBubble;
+
     // Cap the displayed image height so a tall photo can't blow up the bubble.
     private const float MaxImageHeight = 280f;
 
@@ -129,7 +134,16 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
         };
 
         // add child views into hierarchical order
-        ContentView.AddSubviews(_avatarImageView, _bubbleView, _imageView, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        // Optional caption shown under the image (from the message's TextContent).
+        _captionLabel = new UILabel
+        {
+            Lines = 0,
+            LineBreakMode = UILineBreakMode.WordWrap,
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            TextAlignment = UITextAlignment.Left
+        };
+
+        ContentView.AddSubviews(_avatarImageView, _bubbleView, _imageView, _captionLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         // Layout-Constraints
         NSLayoutConstraint.ActivateConstraints(new[]
@@ -162,13 +176,16 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             _replyPreviewTextLabel.TrailingAnchor.ConstraintEqualTo(_replyView.TrailingAnchor, -10),
             _replyPreviewTextLabel.BottomAnchor.ConstraintEqualTo(_replyView.BottomAnchor, -10),
 
-            // Message Image inside chat bubble
+            // Message Image inside chat bubble (bottom managed dynamically for the caption)
             _messageImageTopConstraint = _imageView.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
 
-            _imageView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
             _imageView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _imageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
             _imageView.HeightAnchor.ConstraintLessThanOrEqualTo(MaxImageHeight),
+
+            // Caption under the image
+            _captionLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _captionLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
 
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
@@ -188,6 +205,12 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
         });
         
+        // Image bottom is pinned either to the bubble (no caption) or to the caption (with caption).
+        _imageBottomToBubble = _imageView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10);
+        _imageBottomToCaption = _imageView.BottomAnchor.ConstraintEqualTo(_captionLabel.TopAnchor, -8);
+        _captionBottomToBubble = _captionLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10);
+        _imageBottomToBubble.Active = true;
+
         // Initialize long press gesture
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
@@ -249,6 +272,27 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
                 _imageView.Image = null;
                 _imageView.Hidden = true;
                 ApplyImageAspect(null);
+            }
+
+            // Optional caption under the image (from TextContent).
+            if (!string.IsNullOrEmpty(message.TextContent))
+            {
+                _captionLabel.Hidden = false;
+                _captionLabel.Text = message.TextContent;
+                _captionLabel.TextColor = chatView.OtherMessageTextColor.ToPlatform();
+                _captionLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageFontSize);
+
+                _imageBottomToBubble.Active = false;
+                _imageBottomToCaption.Active = true;
+                _captionBottomToBubble.Active = true;
+            }
+            else
+            {
+                _captionLabel.Hidden = true;
+                _captionLabel.Text = null;
+                _imageBottomToCaption.Active = false;
+                _captionBottomToBubble.Active = false;
+                _imageBottomToBubble.Active = true;
             }
 
             if (message.IsRepliedMessage && message.ReplyToMessage != null)

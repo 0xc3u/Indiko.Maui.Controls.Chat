@@ -33,6 +33,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
 
     public ImageView VideoPosterView { get; }
     public ImageButton VideoPlayButton { get; }
+    public TextView CaptionTextView { get; }
     private EventHandler _videoPlayHandler;
 
     private global::Android.Graphics.Bitmap _imageBitmap;
@@ -70,7 +71,8 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         WaveformView audioWaveform,
         TextView audioDurationTextView,
         ImageView videoPosterView,
-        ImageButton videoPlayButton)
+        ImageButton videoPlayButton,
+        TextView captionTextView)
         : base(itemView)
     {
         DateTextView = dateTextView;
@@ -98,6 +100,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
 
         VideoPosterView = videoPosterView;
         VideoPlayButton = videoPlayButton;
+        CaptionTextView = captionTextView;
     }
 
     /// <summary>

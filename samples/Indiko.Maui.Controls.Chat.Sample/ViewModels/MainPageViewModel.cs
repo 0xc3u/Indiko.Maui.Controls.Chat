@@ -141,6 +141,42 @@ public partial class MainPageViewModel : BaseViewModel
         });
     }
 
+    // Posts an own and an incoming image, each with a caption, to exercise media captions.
+    [RelayCommand]
+    private void SendCaptionedImage()
+    {
+        if (ChatMessages == null)
+            return;
+
+        ChatMessages.Add(new ChatMessage
+        {
+            IsOwnMessage = true,
+            Timestamp = DateTime.Now,
+            SenderInitials = "JD",
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.Image,
+            BinaryContent = Utils.SampleImageGenerator.GenerateBmp(),
+            TextContent = "Check out this view from the trail!",
+            ReadState = MessageReadState.Read,
+            DeliveryState = MessageDeliveryState.Sent,
+            Reactions = [],
+        });
+
+        ChatMessages.Add(new ChatMessage
+        {
+            IsOwnMessage = false,
+            Timestamp = DateTime.Now,
+            SenderInitials = "AB",
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.Image,
+            BinaryContent = Utils.SampleImageGenerator.GenerateBmp(width: 200, height: 200, r: 0x10, g: 0x80, b: 0x40),
+            TextContent = "Nice! Here's mine 🌄",
+            ReadState = MessageReadState.New,
+            DeliveryState = MessageDeliveryState.Delivered,
+            Reactions = [],
+        });
+    }
+
     [RelayCommand]
     private void ScrolledToLastMessage()
     {
