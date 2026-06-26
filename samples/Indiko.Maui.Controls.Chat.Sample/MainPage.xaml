@@ -13,6 +13,8 @@
         <!-- Simulates an incoming ("other") message so the receive-while-scrolled-up
              behaviour can be exercised without a backend. -->
         <ToolbarItem Text="Receive" Command="{Binding SimulateIncomingCommand}" />
+        <!-- Posts an own + incoming voice note to exercise the audio cells. -->
+        <ToolbarItem Text="Voice" Command="{Binding SendVoiceNoteCommand}" />
     </ContentPage.ToolbarItems>
 
     <Grid RowDefinitions="*, 2, Auto">

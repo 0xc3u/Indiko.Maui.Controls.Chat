@@ -138,45 +138,29 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
     private void OnMessagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
     {
-        if (_weakChatView.TryGetTarget(out var chatView))
+        if (!_weakChatView.TryGetTarget(out var chatView))
+            return;
+
+        // Always marshal adapter mutations to the next frame. RecyclerView throws
+        // IllegalStateException if the adapter is notified while it is laying out, scrolling
+        // or dispatching a scroll callback — which is exactly what happens when LoadMore fires
+        // from dispatchOnScrolled (during layout) and the consumer prepends messages.
+        PlatformView.Post(() => ApplyCollectionChange(chatView, args));
+    }
+
+    private void ApplyCollectionChange(ChatView chatView, NotifyCollectionChangedEventArgs args)
+    {
+        // The adapter reads the live Messages list for its item count, so granular notifications
+        // can race ahead of the data when several changes arrive in one frame (e.g. repeated
+        // LoadMore prepends), producing "Inconsistency detected" crashes. A full refresh always
+        // reconciles the count with the views and is robust against that.
+        _adapter.NotifyDataSetChanged();
+
+        // Scroll to the newest message when one is appended at the end.
+        if (args.Action == NotifyCollectionChangedAction.Add &&
+            args.NewStartingIndex >= chatView.Messages.Count - (args.NewItems?.Count ?? 1))
         {
-            switch (args.Action)
-            {
-                case NotifyCollectionChangedAction.Add:
-
-                    foreach (var item in args.NewItems)
-                    {
-                        var index = chatView.Messages.IndexOf((ChatMessage)item);
-                        _adapter.NotifyItemInserted(index);
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Remove:
-                    foreach (var item in args.OldItems)
-                    {
-                        var index = args.OldStartingIndex;
-                        _adapter.NotifyItemRemoved(index);
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Replace:
-                    foreach (var item in args.NewItems)
-                    {
-                        var index = chatView.Messages.IndexOf((ChatMessage)item);
-                        _adapter.NotifyItemChanged(index);
-                    }
-                    break;
-                case NotifyCollectionChangedAction.Move:
-                    _adapter.NotifyItemMoved(args.OldStartingIndex, args.NewStartingIndex);
-                    break;
-                case NotifyCollectionChangedAction.Reset:
-                    _adapter.NotifyDataSetChanged();
-                    break;
-            }
-
-            // Scroll to the bottom when a new message is added
-            if (args.Action == NotifyCollectionChangedAction.Add)
-            {
-                PlatformView.Post(() => PlatformView.SmoothScrollToPosition(chatView.Messages.Count - 1));
-            }
+            PlatformView.Post(() => PlatformView.SmoothScrollToPosition(chatView.Messages.Count - 1));
         }
     }
 

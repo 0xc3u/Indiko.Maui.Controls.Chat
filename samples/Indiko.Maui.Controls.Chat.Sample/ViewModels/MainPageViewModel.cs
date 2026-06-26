@@ -103,6 +103,44 @@ public partial class MainPageViewModel : BaseViewModel
         });
     }
 
+    // Posts an own and an incoming voice note so both audio cells can be exercised.
+    [RelayCommand]
+    private void SendVoiceNote()
+    {
+        if (ChatMessages == null)
+            return;
+
+        var (ownBytes, ownDuration) = Utils.SampleAudioGenerator.GenerateWav(seconds: 3, frequency: 440);
+        ChatMessages.Add(new ChatMessage
+        {
+            IsOwnMessage = true,
+            Timestamp = DateTime.Now,
+            SenderInitials = "JD",
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.Audio,
+            BinaryContent = ownBytes,
+            AudioDuration = ownDuration,
+            ReadState = MessageReadState.Read,
+            DeliveryState = MessageDeliveryState.Sent,
+            Reactions = [],
+        });
+
+        var (otherBytes, otherDuration) = Utils.SampleAudioGenerator.GenerateWav(seconds: 2, frequency: 330);
+        ChatMessages.Add(new ChatMessage
+        {
+            IsOwnMessage = false,
+            Timestamp = DateTime.Now,
+            SenderInitials = "AB",
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.Audio,
+            BinaryContent = otherBytes,
+            AudioDuration = otherDuration,
+            ReadState = MessageReadState.New,
+            DeliveryState = MessageDeliveryState.Delivered,
+            Reactions = [],
+        });
+    }
+
     [RelayCommand]
     private void ScrolledToLastMessage()
     {
@@ -160,7 +198,8 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private void SendMessage()
     {
-        if (string.IsNullOrWhiteSpace(NewMessage))
+        // Allow sending an image on its own — only block when there is neither text nor media.
+        if (string.IsNullOrWhiteSpace(NewMessage) && SelectedMedia == null)
             return;
 
 

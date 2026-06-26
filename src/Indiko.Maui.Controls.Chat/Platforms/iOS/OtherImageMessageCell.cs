@@ -25,7 +25,11 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
     private UILabel _replySenderTextLabel;
 
     private NSLayoutConstraint _messageImageTopConstraint;
+    private NSLayoutConstraint _imageAspectConstraint;
     private UILongPressGestureRecognizer _longPressGesture;
+
+    // Cap the displayed image height so a tall photo can't blow up the bubble.
+    private const float MaxImageHeight = 280f;
 
     public OtherImageMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
     {
@@ -100,7 +104,10 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             TextAlignment = UITextAlignment.Left
         };
 
-        _imageView.SetContentCompressionResistancePriority((float)UILayoutPriority.Required, UILayoutConstraintAxis.Vertical);
+        // The image's intrinsic (raw pixel) size must not drive the bubble height —
+        // a per-image aspect-ratio constraint and the max-height cap do that instead.
+        _imageView.SetContentCompressionResistancePriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Vertical);
+        _imageView.SetContentHuggingPriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Vertical);
         _timeLabel.SetContentHuggingPriority((float)UILayoutPriority.DefaultLow, UILayoutConstraintAxis.Horizontal);
 
         // Message reaction stack (horizontal Emoji-List)
@@ -161,7 +168,7 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
             _imageView.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
             _imageView.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _imageView.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
-            //_imageView.WidthAnchor.ConstraintEqualTo(_imageView.HeightAnchor, multiplier: 16.0f / 9.0f), // Aspect ratio constraint for 16:9
+            _imageView.HeightAnchor.ConstraintLessThanOrEqualTo(MaxImageHeight),
 
             // Message Emoji-reactions
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
@@ -220,12 +227,16 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
                     File.WriteAllBytes(tempFile, message.BinaryContent);
                 }
 
-                _imageView.Image = UIImage.FromFile(tempFile);
+                var image = UIImage.FromFile(tempFile);
+                _imageView.Image = image;
                 _imageView.Hidden = false;
+                ApplyImageAspect(image);
             }
             else
             {
+                _imageView.Image = null;
                 _imageView.Hidden = true;
+                ApplyImageAspect(null);
             }
 
             if (message.IsRepliedMessage && message.ReplyToMessage != null)
@@ -328,6 +339,28 @@ internal sealed class OtherImageMessageCell : UICollectionViewCell
         }
     }
     
+    // Pins the image view's height to its width by the image's aspect ratio so the bubble
+    // sizes to the picture instead of the raw pixel dimensions. Priority is just below the
+    // required max-height cap, so very tall images letterbox within the cap rather than conflict.
+    private void ApplyImageAspect(UIImage image)
+    {
+        if (_imageAspectConstraint != null)
+        {
+            _imageAspectConstraint.Active = false;
+            _imageAspectConstraint = null;
+        }
+
+        if (image == null || image.Size.Width <= 0 || image.Size.Height <= 0)
+        {
+            return;
+        }
+
+        var ratio = (nfloat)(image.Size.Height / image.Size.Width);
+        _imageAspectConstraint = _imageView.HeightAnchor.ConstraintEqualTo(_imageView.WidthAnchor, multiplier: ratio);
+        _imageAspectConstraint.Priority = (float)UILayoutPriority.Required - 1;
+        _imageAspectConstraint.Active = true;
+    }
+
     private void LongPressHandler(UILongPressGestureRecognizer recognizer)
     {
         if (recognizer.State == UIGestureRecognizerState.Began)

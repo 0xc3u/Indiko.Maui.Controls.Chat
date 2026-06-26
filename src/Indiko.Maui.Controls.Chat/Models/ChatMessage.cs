@@ -16,4 +16,17 @@ public class ChatMessage
     public bool IsRepliedMessage => ReplyToMessage != null;
     public RepliedMessage ReplyToMessage { get; set; }
     public List<ChatMessageReaction> Reactions { get; set; } = [];
+
+    /// <summary>
+    /// Total length of an <see cref="MessageType.Audio"/> message. Optional — when not set
+    /// the player derives it from the audio file once loaded.
+    /// </summary>
+    public TimeSpan? AudioDuration { get; set; }
+
+    /// <summary>
+    /// Optional normalized (0..1) amplitude samples for an <see cref="MessageType.Audio"/>
+    /// message, used to draw the voice-note waveform. When null the control renders a
+    /// stable pseudo-waveform derived from the message so bars still vary per clip.
+    /// </summary>
+    public float[] AudioWaveform { get; set; }
 }
