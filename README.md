@@ -60,7 +60,7 @@ builder.UseChatView();
 - **Smart Scrolling**: On iOS the list is rendered with an inverted `UICollectionView`, so the newest message rests at the bottom with no animated jump on open; supports scroll-to-last-message and scroll-to-first-new-message.
 - **Load More Messages**: Supports dynamic loading of older messages via a bound command; prepended messages keep the viewport stable.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
-- **Long Press Gesture**: Displays a configured context menu for chat message actions.
+- **Long Press Gesture**: Displays a configured context menu (emoji reactions + actions) on any message — text, image, video and voice note.
 
 ---
 

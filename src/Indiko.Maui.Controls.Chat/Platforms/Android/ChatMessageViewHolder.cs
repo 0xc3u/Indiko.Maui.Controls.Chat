@@ -239,6 +239,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         TextView.LongClick += _longPressHandler;
         ImageView.LongClick += _longPressHandler;
         VideoContainer.LongClick += _longPressHandler;
+        VideoPosterView.LongClick += _longPressHandler;   // poster overlays the container
         AudioContainer.LongClick += _longPressHandler;
         ReactionContainer.LongClick += _longPressHandler;
 
@@ -312,6 +313,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             TextView.LongClick -= _longPressHandler;
             ImageView.LongClick -= _longPressHandler;
             VideoContainer.LongClick -= _longPressHandler;
+            VideoPosterView.LongClick -= _longPressHandler;
             AudioContainer.LongClick -= _longPressHandler;
             ReactionContainer.LongClick -= _longPressHandler;
             _longPressHandler = null;
