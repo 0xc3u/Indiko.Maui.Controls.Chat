@@ -19,7 +19,7 @@ There are no automated tests in this repository. NuGet publishing is handled aut
 
 ## Architecture
 
-This is a .NET MAUI control library that ships as a NuGet package (`Indiko.Maui.Controls.Chat`). It targets `net9.0-android` and `net9.0-ios` only.
+This is a .NET MAUI control library that ships as a NuGet package (`Indiko.Maui.Controls.Chat`). It targets `net10.0-android` and `net10.0-ios` only (min OS: Android 30, iOS 14.2). The package version is set in the library `.csproj` and bumped automatically by Semantic Release CI on tagged commits — do not edit it by hand.
 
 ### Layer Structure
 
@@ -34,7 +34,7 @@ ChatView (cross-platform MAUI View)
 
 **`BuilderExtension.cs`** — Registers platform handlers via `UseChatView()` called in consumer apps' `MauiProgram.cs`.
 
-**`Models/`** — `ChatMessage`, `ChatMessageReaction`, `RepliedMessage`, `ContextAction`, `ContextMenuItem`, `ObservableRangeCollection<T>`, and enums (`MessageType`, `MessageDeliveryState`, `MessageReadState`).
+**`Models/`** — `ChatMessage`, `ChatMessageReaction`, `RepliedMessage`, `ContextAction`, `ContextMenuItem`, `ObservableRangeCollection<T>`, and enums (`MessageType`, `MessageDeliveryState`, `MessageReadState`). `MessageType` is `Text`, `Image`, `Video`, `Audio`, `System`, `Date` — each non-system type has its own `Own*`/`Other*` cell on iOS and its own ViewHolder branch on Android. The README's "Supported Message Types" table is stale (omits `Audio`); trust the enum.
 
 **`Platforms/Android/`** — Handler, RecyclerView adapter, ViewHolder, scroll listener, blur overlay, and bitmap/pixel utilities.
 
@@ -45,6 +45,7 @@ ChatView (cross-platform MAUI View)
 - All new `ChatView` properties must be declared as `BindableProperty` in `ChatView.cs` and mapped in both platform handlers via the `PropertyMapper`.
 - `ObservableRangeCollection<T>` is used instead of `ObservableCollection<T>` to support bulk `AddRange`/`ReplaceRange` without per-item change notifications — essential for scroll performance.
 - Platform handlers use `ConnectHandler`/`DisconnectHandler` lifecycle methods. On iOS, use a `Proxy` inner class with `WeakReference<T>` to the virtual view to avoid circular reference memory leaks (C# objects subclassing `NSObject` do not get GC'd when circular refs exist on Apple platforms).
+- The iOS `UICollectionView` is **inverted**: the view itself carries a `CGAffineTransform.MakeScale(1, -1)` and each cell's `ContentView` carries the inverse transform to render upright. This puts the newest message (`Messages[0]`) at the visual bottom with `contentOffset.Y = 0`, so new messages appear without programmatic scrolling. Consequence: data-source indices are reversed relative to `Messages` — convert with `Messages.Count - 1 - index` when mapping between a model index and an `NSIndexPath` row.
 
 ## Code Style
 
