@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.2.1...v1.2.2) (2026-06-26)
+
+
+### Bug Fixes
+
+* correct iOS inverted-list scroll position and load-more handling ([8b1a662](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/8b1a6620dc214821ba9eea90481e58e05a421111))
+
 ## [1.2.1](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.2.0...v1.2.1) (2026-06-26)
 
 
