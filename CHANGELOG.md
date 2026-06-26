@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.2.2...v1.3.0) (2026-06-26)
+
+
+### Bug Fixes
+
+* size iOS image message bubbles to the image instead of raw pixels ([2e18607](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/2e1860725d02974b4f3d820e694e36556bd52e9e))
+
+
+### Features
+
+* real voice-note cells with Android audio parity ([220afda](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/220afda6f566c8f0ea2871e0a7bd34724cbdee7b))
+
 ## [1.2.2](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.2.1...v1.2.2) (2026-06-26)
 
 
