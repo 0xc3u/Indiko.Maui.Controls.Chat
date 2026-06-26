@@ -46,28 +46,39 @@ builder.UseChatView();
 
 ## Features
 
-- **Message Display**: Renders text, image, video, and system messages.
+- **Message Display**: Renders text, image, video, audio (voice note), system, and date-separator messages.
+- **Voice Notes**: Audio messages render as a play/pause button, a tap-to-seek waveform, and an elapsed/total duration label, with native playback on both platforms.
+- **Media Bubbles**: Images and videos are sized to the content's aspect ratio (capped) so a photo never blows up the bubble.
 - **Reply Support**: Reply-to-message functionality with previews of the original message.
 - **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
-- **Avatars**: Displays sender avatars with customizable appearance.
-- **Dynamic Separator**: Shows a customizable "New Messages" separator.
+- **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
+- **Date Separators & "New Messages" Separator**: Group messages by day and highlight where unread messages begin.
 - **Customizable Styling**: Flexible styling for message backgrounds, text colors, fonts, and more.
 - **Commands and Events**: Handles user interactions like taps, emoji reactions, and scrolls.
-- **Scrollable Chat**: Supports smooth scrolling, including scroll-to-last-message and scroll-to-first-new-message.
-- **Load More Messages**: Supports dynamic loading of older messages via a bound command.
+- **Smart Scrolling**: On iOS the list is rendered with an inverted `UICollectionView`, so the newest message rests at the bottom with no animated jump on open; supports scroll-to-last-message and scroll-to-first-new-message.
+- **Load More Messages**: Supports dynamic loading of older messages via a bound command; prepended messages keep the viewport stable.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
 - **Long Press Gesture**: Displays a configured context menu for chat message actions.
 
 ---
 
+## Requirements
+
+- .NET 10 (`net10.0-android`, `net10.0-ios`)
+- Minimum OS: Android 12 (API 31)+ / iOS 14.2+
+
+---
+
 ## Supported Message Types
 
-| Message Type | Description                |
-|--------------|----------------------------|
-| Text         | Standard text messages.    |
-| Image        | Image-based messages.      |
-| Video        | Video messages.            |
-| System       | System-generated messages. |
+| Message Type | Description                                                                 |
+|--------------|-----------------------------------------------------------------------------|
+| `Text`       | Standard text messages.                                                     |
+| `Image`      | Image messages (PNG/JPEG bytes in `BinaryContent`); aspect-sized bubble.    |
+| `Video`      | Video messages (bytes in `BinaryContent`) with inline playback.             |
+| `Audio`      | Voice notes (bytes in `BinaryContent`) with play/pause, waveform, duration. |
+| `System`     | System-generated / service messages.                                        |
+| `Date`       | Day separator row (usually inserted by your app between date groups).        |
 
 ---
 
@@ -82,7 +93,7 @@ public class ChatMessage
     public string MessageId { get; set; }
     public DateTime Timestamp { get; set; }
     public string TextContent { get; set; }
-    public byte[] BinaryContent { get; set; }
+    public byte[] BinaryContent { get; set; }          // image / video / audio payload
     public bool IsOwnMessage { get; set; }
     public string SenderId { get; set; }
     public byte[] SenderAvatar { get; set; }
@@ -93,7 +104,11 @@ public class ChatMessage
     public bool IsRepliedMessage => ReplyToMessage != null;
     public RepliedMessage ReplyToMessage { get; set; }
     public List<ChatMessageReaction> Reactions { get; set; } = [];
-    public bool IsDateSeperator { get; set; }
+
+    // Audio (voice note) — both optional.
+    public TimeSpan? AudioDuration { get; set; }       // shown while idle; derived from the file if null
+    public float[] AudioWaveform { get; set; }         // normalized 0..1 samples; a stable
+                                                       // pseudo-waveform is generated when null
 }
 ```
 
@@ -167,7 +182,9 @@ public class ContextAction
 - `Text`
 - `Image`
 - `Video`
+- `Audio`
 - `System`
+- `Date`
 
 ---
 
@@ -226,6 +243,49 @@ public class ContextAction
 > **Platform-Specific Note:** The platform-specific code for iOS and Android uses a caching mechanism for images and video-based messages. The binary content of such messages is stored in the device's cache folder for optimized performance and memory management.
 
 > **Note:** The `ChatView` control is solely responsible for rendering different message types. It does not include features like a text input box or a send button. These components need to be implemented by the user in the MAUI.NET app, as demonstrated in the `Indiko.Maui.Controls.Chat.Sample` project.
+
+### Managing the `Messages` Collection
+
+`Messages` is an `ObservableRangeCollection<ChatMessage>` — an `ObservableCollection` with bulk operations so large updates raise a single notification (important for scroll performance):
+
+```csharp
+ChatMessages.Add(message);                 // append a new (newest) message
+ChatMessages.AddRange(newMessages);        // append many at once
+ChatMessages.InsertRange(0, olderMessages);// prepend older messages (infinite-scroll load-more)
+ChatMessages.ReplaceRange(allMessages);    // replace the whole conversation
+```
+
+Use `InsertRange(0, ...)` from your `LoadMoreMessagesCommand` handler to add older history; the control keeps the current viewport stable instead of jumping.
+
+### Sending Images and Voice Notes
+
+Media is passed as raw bytes in `BinaryContent` together with the matching `MessageType`. The control writes the bytes to the platform cache and renders/plays them natively.
+
+```csharp
+// Image
+ChatMessages.Add(new ChatMessage
+{
+    MessageId = Guid.NewGuid().ToString(),
+    Timestamp = DateTime.Now,
+    IsOwnMessage = true,
+    MessageType = MessageType.Image,
+    BinaryContent = imageBytes,            // PNG/JPEG
+});
+
+// Voice note
+ChatMessages.Add(new ChatMessage
+{
+    MessageId = Guid.NewGuid().ToString(),
+    Timestamp = DateTime.Now,
+    IsOwnMessage = true,
+    MessageType = MessageType.Audio,
+    BinaryContent = audioBytes,            // e.g. m4a / mp3 / wav
+    AudioDuration = TimeSpan.FromSeconds(3), // optional; derived from the file if omitted
+    AudioWaveform = samples,               // optional float[] (0..1); a pseudo-waveform is drawn if omitted
+});
+```
+
+The voice-note bubble shows a play/pause button, a tap-to-seek waveform, and the elapsed/total duration. Supply `AudioWaveform` (e.g. amplitudes captured while recording) for an accurate waveform; otherwise the control renders a stable per-message pseudo-waveform.
 
 ### Emoji Reaction Tapped Event Handling Example
 
