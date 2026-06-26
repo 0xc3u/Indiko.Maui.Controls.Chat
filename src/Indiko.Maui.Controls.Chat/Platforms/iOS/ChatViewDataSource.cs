@@ -152,19 +152,21 @@ public class ChatSection : NSObject
         Title = title;
     }
 
-    public new bool Equals(NSObject obj)
+    // Must override IsEqual (exported as isEqual:) and GetHashCode — the diffable
+    // data source identifies items/sections natively via those, not via the managed
+    // Equals. A `new` Equals is never seen by the diff, so every snapshot would be
+    // treated as all-new identifiers and trigger a full reload.
+    public override bool IsEqual(NSObject anObject)
     {
-        if (obj is ChatSection other)
-        {
-            return Title.Equals(other.Title);
-        }
-        return false;
+        if (ReferenceEquals(this, anObject)) return true;
+        return anObject is ChatSection other && Title == other.Title;
     }
 
-    public override int GetHashCode()
-    {
-        return Title.GetHashCode();
-    }
+    // See ChatMessageItem: the diff hashes via native -hash (GetNativeHash), so it must
+    // be overridden alongside GetHashCode and stay consistent with IsEqual.
+    public override nuint GetNativeHash() => (nuint)(uint)(Title?.GetHashCode() ?? 0);
+
+    public override int GetHashCode() => Title?.GetHashCode() ?? 0;
 }
 
 public class ChatMessageItem : NSObject
@@ -176,17 +178,30 @@ public class ChatMessageItem : NSObject
         Message = message;
     }
 
-    public new bool Equals(NSObject obj)
+    // Identity is keyed on MessageId so the same logical message keeps a stable
+    // identifier across snapshots (the ChatMessage instance is re-wrapped on every
+    // update). This lets the diffable data source compute an incremental diff instead
+    // of a full reload — essential for stable scroll position and no flicker.
+    // Messages without an id (e.g. date separators) fall back to reference identity.
+    public override bool IsEqual(NSObject anObject)
     {
-        if (obj is ChatMessageItem other)
-        {
-            return Message.Equals(other.Message);
-        }
-        return false;
+        if (ReferenceEquals(this, anObject)) return true;
+        if (anObject is not ChatMessageItem other) return false;
+        if (string.IsNullOrEmpty(Message?.MessageId) || string.IsNullOrEmpty(other.Message?.MessageId))
+            return ReferenceEquals(Message, other.Message);
+        return string.Equals(Message.MessageId, other.Message.MessageId, System.StringComparison.Ordinal);
     }
 
-    public override int GetHashCode()
-    {
-        return Message.GetHashCode();
-    }
+    // The diffable data source hashes via the native -hash selector, which is bridged by
+    // GetNativeHash() — NOT managed GetHashCode(). Two identifiers that IsEqual must also
+    // return the same hash, so this mirrors IsEqual exactly: keyed on MessageId, or the
+    // identity of the wrapped Message instance (not the wrapper) for id-less rows.
+    private int StableHash() =>
+        string.IsNullOrEmpty(Message?.MessageId)
+            ? System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Message)
+            : Message.MessageId.GetHashCode();
+
+    public override nuint GetNativeHash() => (nuint)(uint)StableHash();
+
+    public override int GetHashCode() => StableHash();
 }
