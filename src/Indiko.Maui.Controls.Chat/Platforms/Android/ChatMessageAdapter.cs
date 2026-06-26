@@ -228,6 +228,11 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             Id = AViews.View.GenerateViewId()
         };
 
+        // Native media controls (play/pause + seek bar) shown when the user taps the video.
+        var mediaController = new MediaController(_context);
+        mediaController.SetAnchorView(videoView);
+        videoView.SetMediaController(mediaController);
+
         // Add the VideoView to the container
         videoContainer.AddView(videoView);
 
