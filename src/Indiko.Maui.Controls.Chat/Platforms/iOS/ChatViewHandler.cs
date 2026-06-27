@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Handlers;
+using Microsoft.Maui.Platform;
 using UIKit;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.iOS;
@@ -22,10 +23,26 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         [nameof(ChatView.ScrolledCommand)] = MapCommands
     };
 
+    private ScrollToBottomButton _fab;
+    private NSLayoutConstraint _fabWidth;
+    private NSLayoutConstraint _fabHeight;
+    private NSLayoutConstraint _fabTrailing;
+    private NSLayoutConstraint _fabBottom;
+    private int _unreadCount;
+
     public static IPropertyMapper<ChatView, ChatViewHandler> PropertyMapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
     {
         [nameof(ChatView.Messages)] = MapProperties,
         [nameof(ChatView.ScrollToFirstNewMessage)] = MapProperties,
+        [nameof(ChatView.ShowScrollToBottomButton)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonBackgroundColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonIconColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonSize)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonMargin)] = MapFab,
+        [nameof(ChatView.ShowScrollToBottomBadge)] = MapFab,
+        [nameof(ChatView.ScrollToBottomBadgeBackgroundColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomBadgeTextColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomBadgeFontSize)] = MapFab,
     };
 
     public ChatViewHandler() : base(PropertyMapper, CommandMapper)
@@ -35,8 +52,9 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     protected override UICollectionView CreatePlatformView()
     {
         _flowLayout = new ChatViewFlowLayout();
-        var collectionView = new UICollectionView(CGRect.Empty, _flowLayout)
+        var collectionView = new ChatCollectionView(CGRect.Empty, _flowLayout)
         {
+            MovedToWindowAction = EnsureFab,
             BackgroundColor = UIColor.Clear,
             AllowsSelection = true,
             AllowsMultipleSelection = false,
@@ -54,6 +72,11 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
     private static void MapProperties(ChatViewHandler handler, ChatView chatView)
     {
         handler.UpdateMessages();
+    }
+
+    private static void MapFab(ChatViewHandler handler, ChatView chatView)
+    {
+        handler.EnsureFab();
     }
 
     private static void MapCommands(ChatViewHandler handler, ChatView chatView, object? args)
@@ -98,7 +121,10 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         base.ConnectHandler(platformView);
 
         _dataSource = new ChatViewDataSource(VirtualView, MauiContext, platformView);
-        _delegate = new ChatViewDelegate(VirtualView, MauiContext, _flowLayout);
+        _delegate = new ChatViewDelegate(VirtualView, MauiContext, _flowLayout)
+        {
+            ScrollChanged = _ => UpdateFab(),
+        };
 
         platformView.RegisterClassForCell(typeof(DateGroupSeperatorCell), DateGroupSeperatorCell.Key);
         platformView.RegisterClassForCell(typeof(SystemMessageCell), SystemMessageCell.Key);
@@ -131,6 +157,7 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
         _weakChatView = new WeakReference<ChatView>(VirtualView);
         HookMessages();
+        EnsureFab();
     }
 
     protected override void DisconnectHandler(UICollectionView nativeView)
@@ -185,6 +212,11 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
                 {
                     var delta = PlatformView.ContentSize.Height - oldHeight;
                     PlatformView.SetContentOffset(new CGPoint(oldOffset.X, oldOffset.Y + delta), false);
+
+                    // New message arrived while scrolled up: count it on the FAB badge.
+                    _unreadCount++;
+                    if (_fab != null) _fab.UnreadCount = _unreadCount;
+                    UpdateFab();
                 }
             });
             return;
@@ -297,6 +329,95 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             ScrollToFirstNewMessage(animated: false);
         else
             ScrollToNewest(animated: false);
+
+        // Superview exists once the first layout pass has run, so attach the FAB here too.
+        EnsureFab();
+    }
+
+    // ---- Scroll-to-bottom button ----------------------------------------------------------------
+
+    private void EnsureFab()
+    {
+        if (VirtualView == null) return;
+
+        if (!VirtualView.ShowScrollToBottomButton)
+        {
+            if (_fab != null) _fab.Hidden = true;
+            return;
+        }
+
+        if (_fab == null)
+        {
+            _fab = new ScrollToBottomButton { Hidden = true };
+            _fab.Tapped = OnFabTapped;
+        }
+
+        // The FAB is a sibling of the collection view in its superview so it stays fixed while
+        // the list scrolls. Superview may be null until the view is in the hierarchy.
+        var parent = PlatformView?.Superview;
+        if (_fab.Superview == null && parent != null)
+        {
+            parent.AddSubview(_fab);
+            _fabWidth = _fab.WidthAnchor.ConstraintEqualTo(0);
+            _fabHeight = _fab.HeightAnchor.ConstraintEqualTo(0);
+            _fabTrailing = _fab.TrailingAnchor.ConstraintEqualTo(PlatformView.TrailingAnchor, 0);
+            _fabBottom = _fab.BottomAnchor.ConstraintEqualTo(PlatformView.BottomAnchor, 0);
+            NSLayoutConstraint.ActivateConstraints(new[] { _fabWidth, _fabHeight, _fabTrailing, _fabBottom });
+        }
+
+        ApplyFabStyle();
+        UpdateFab();
+    }
+
+    private void ApplyFabStyle()
+    {
+        if (_fab == null || VirtualView == null) return;
+
+        var size = (nfloat)VirtualView.ScrollToBottomButtonSize;
+        var margin = (nfloat)VirtualView.ScrollToBottomButtonMargin;
+        if (_fabWidth != null) _fabWidth.Constant = size;
+        if (_fabHeight != null) _fabHeight.Constant = size;
+        if (_fabTrailing != null) _fabTrailing.Constant = -margin;
+        if (_fabBottom != null) _fabBottom.Constant = -margin;
+
+        _fab.ApplyStyle(
+            VirtualView.ScrollToBottomButtonBackgroundColor.ToPlatform(),
+            VirtualView.ScrollToBottomButtonIconColor.ToPlatform(),
+            VirtualView.ScrollToBottomBadgeBackgroundColor.ToPlatform(),
+            VirtualView.ScrollToBottomBadgeTextColor.ToPlatform(),
+            (nfloat)VirtualView.ScrollToBottomBadgeFontSize,
+            VirtualView.ShowScrollToBottomBadge);
+    }
+
+    // Toggle visibility based on scroll position; reset the unread badge once the user is back
+    // at the newest message.
+    private void UpdateFab()
+    {
+        if (_fab == null || VirtualView == null) return;
+
+        var nearBottom = IsNearBottom();
+        if (nearBottom && _unreadCount != 0)
+        {
+            _unreadCount = 0;
+            _fab.UnreadCount = 0;
+        }
+
+        var shouldShow = VirtualView.ShowScrollToBottomButton
+            && (VirtualView.Messages?.Count ?? 0) > 0
+            && !nearBottom;
+
+        _fab.Hidden = !shouldShow;
+    }
+
+    private void OnFabTapped()
+    {
+        _unreadCount = 0;
+        if (_fab != null)
+        {
+            _fab.UnreadCount = 0;
+            _fab.Hidden = true;
+        }
+        ScrollToNewest(animated: true);
     }
 
     /// <summary>

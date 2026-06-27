@@ -40,6 +40,12 @@ Media
   works. New properties: `DetectLinks`, `LinkTextColor`.
 
 Interaction & correctness
+- ☑ **Scroll-to-bottom button + unread badge** [Render] — a floating button appears when the user
+  scrolls away from the newest message and jumps back on tap; an optional badge counts messages
+  arriving while scrolled up. Fully styleable (background/icon/size/margin + badge colors/font) via
+  bindable properties; toggle with `ShowScrollToBottomButton` / `ShowScrollToBottomBadge`. Also
+  fixed a latent Android bug where `Messages.CollectionChanged` was subscribed once per mapped
+  property.
 - ☑ **Swipe-to-reply gesture** [Render] — swipe a bubble to the right to trigger a reply. Raises
   the same event as the context menu's "Reply" item (`LongPressedCommand` with a `ContextAction`
   named "reply") so consumers handle reply once; springs the row back (haptic on iOS, clamped
@@ -55,7 +61,10 @@ Interaction & correctness
   are marshalled off the layout pass.
 
 New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSwipeToReply`,
-`SwipeReplyActionName`.
+`SwipeReplyActionName`, `ShowScrollToBottomButton`, `ScrollToBottomButtonBackgroundColor`,
+`ScrollToBottomButtonIconColor`, `ScrollToBottomButtonSize`, `ScrollToBottomButtonMargin`,
+`ShowScrollToBottomBadge`, `ScrollToBottomBadgeBackgroundColor`, `ScrollToBottomBadgeTextColor`,
+`ScrollToBottomBadgeFontSize`.
 
 ---
 
@@ -65,7 +74,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 - ☐ **Tap reply-preview → jump to original** [Render].
 - ☐ **Documents / files** [Render][Model] — filename + size + icon (`FileName`, `MimeType`, `FileSize`).
 - ☐ **Edited / forwarded indicators** [Render][Model] — `IsEdited`, `IsForwarded`.
-- ☐ **Scroll-to-bottom FAB with unread count** [Render].
 - ☐ **Reaction details** [Render] — show who reacted (model already has `ParticipantIds`).
 - ☐ **Typing indicator bubble** [Render].
 
@@ -92,5 +100,5 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 ## Recommended next
 
 1. **Link previews / documents** (P1) — rounds out content-type coverage.
-2. **Scroll-to-bottom FAB with unread count** (P1).
-3. **Tap reply-preview → jump to original** (P1) — pairs naturally with swipe-to-reply.
+2. **Tap reply-preview → jump to original** (P1) — pairs naturally with swipe-to-reply.
+3. **Typing indicator bubble** (P1).

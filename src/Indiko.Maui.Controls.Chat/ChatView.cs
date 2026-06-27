@@ -312,6 +312,89 @@ public class ChatView : View
         set => SetValue(SwipeReplyActionNameProperty, value);
     }
 
+    // ---- Scroll-to-bottom button (FAB) -------------------------------------------------------
+    // A floating button that appears when the user scrolls away from the newest message; tapping
+    // it jumps back to the bottom. An optional badge shows how many new messages arrived while the
+    // user was scrolled up. Every aspect is styleable through the bindable properties below.
+
+    /// <summary>
+    /// When true (default), a floating "scroll to bottom" button is shown while the user is scrolled
+    /// away from the newest message. Set false to disable the button entirely.
+    /// </summary>
+    public static readonly BindableProperty ShowScrollToBottomButtonProperty = BindableProperty.Create(nameof(ShowScrollToBottomButton), typeof(bool), typeof(ChatView), true);
+    public bool ShowScrollToBottomButton
+    {
+        get => (bool)GetValue(ShowScrollToBottomButtonProperty);
+        set => SetValue(ShowScrollToBottomButtonProperty, value);
+    }
+
+    /// <summary>Background (fill) color of the circular scroll-to-bottom button.</summary>
+    public static readonly BindableProperty ScrollToBottomButtonBackgroundColorProperty = BindableProperty.Create(nameof(ScrollToBottomButtonBackgroundColor), typeof(Color), typeof(ChatView), Colors.White);
+    public Color ScrollToBottomButtonBackgroundColor
+    {
+        get => (Color)GetValue(ScrollToBottomButtonBackgroundColorProperty);
+        set => SetValue(ScrollToBottomButtonBackgroundColorProperty, value);
+    }
+
+    /// <summary>Color of the chevron icon drawn inside the scroll-to-bottom button.</summary>
+    public static readonly BindableProperty ScrollToBottomButtonIconColorProperty = BindableProperty.Create(nameof(ScrollToBottomButtonIconColor), typeof(Color), typeof(ChatView), Colors.Black);
+    public Color ScrollToBottomButtonIconColor
+    {
+        get => (Color)GetValue(ScrollToBottomButtonIconColorProperty);
+        set => SetValue(ScrollToBottomButtonIconColorProperty, value);
+    }
+
+    /// <summary>Diameter (in device-independent units) of the scroll-to-bottom button.</summary>
+    public static readonly BindableProperty ScrollToBottomButtonSizeProperty = BindableProperty.Create(nameof(ScrollToBottomButtonSize), typeof(double), typeof(ChatView), 44d);
+    public double ScrollToBottomButtonSize
+    {
+        get => (double)GetValue(ScrollToBottomButtonSizeProperty);
+        set => SetValue(ScrollToBottomButtonSizeProperty, value);
+    }
+
+    /// <summary>Spacing between the scroll-to-bottom button and the bottom/trailing edges of the chat.</summary>
+    public static readonly BindableProperty ScrollToBottomButtonMarginProperty = BindableProperty.Create(nameof(ScrollToBottomButtonMargin), typeof(double), typeof(ChatView), 16d);
+    public double ScrollToBottomButtonMargin
+    {
+        get => (double)GetValue(ScrollToBottomButtonMarginProperty);
+        set => SetValue(ScrollToBottomButtonMarginProperty, value);
+    }
+
+    /// <summary>
+    /// When true (default), an unread-count badge is shown on the scroll-to-bottom button counting
+    /// messages that arrived while the user was scrolled up. Set false to hide the badge.
+    /// </summary>
+    public static readonly BindableProperty ShowScrollToBottomBadgeProperty = BindableProperty.Create(nameof(ShowScrollToBottomBadge), typeof(bool), typeof(ChatView), true);
+    public bool ShowScrollToBottomBadge
+    {
+        get => (bool)GetValue(ShowScrollToBottomBadgeProperty);
+        set => SetValue(ShowScrollToBottomBadgeProperty, value);
+    }
+
+    /// <summary>Background (fill) color of the unread-count badge.</summary>
+    public static readonly BindableProperty ScrollToBottomBadgeBackgroundColorProperty = BindableProperty.Create(nameof(ScrollToBottomBadgeBackgroundColor), typeof(Color), typeof(ChatView), Colors.Red);
+    public Color ScrollToBottomBadgeBackgroundColor
+    {
+        get => (Color)GetValue(ScrollToBottomBadgeBackgroundColorProperty);
+        set => SetValue(ScrollToBottomBadgeBackgroundColorProperty, value);
+    }
+
+    /// <summary>Text color of the unread-count badge.</summary>
+    public static readonly BindableProperty ScrollToBottomBadgeTextColorProperty = BindableProperty.Create(nameof(ScrollToBottomBadgeTextColor), typeof(Color), typeof(ChatView), Colors.White);
+    public Color ScrollToBottomBadgeTextColor
+    {
+        get => (Color)GetValue(ScrollToBottomBadgeTextColorProperty);
+        set => SetValue(ScrollToBottomBadgeTextColorProperty, value);
+    }
+
+    /// <summary>Font size of the unread-count badge text.</summary>
+    public static readonly BindableProperty ScrollToBottomBadgeFontSizeProperty = BindableProperty.Create(nameof(ScrollToBottomBadgeFontSize), typeof(double), typeof(ChatView), 12d);
+    public double ScrollToBottomBadgeFontSize
+    {
+        get => (double)GetValue(ScrollToBottomBadgeFontSizeProperty);
+        set => SetValue(ScrollToBottomBadgeFontSizeProperty, value);
+    }
+
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {

@@ -62,6 +62,7 @@ builder.UseChatView();
 - **Customizable Styling**: Flexible styling for message backgrounds, text colors, fonts, and more.
 - **Commands and Events**: Handles user interactions like taps, emoji reactions, and scrolls.
 - **Smart Scrolling**: On iOS the list is rendered with an inverted `UICollectionView`, so the newest message rests at the bottom with no animated jump on open; supports scroll-to-last-message and scroll-to-first-new-message.
+- **Scroll-to-Bottom Button**: A floating button appears when the user scrolls away from the newest message; tapping it jumps back to the bottom. An optional badge counts messages that arrive while scrolled up. Fully styleable — toggle with `ShowScrollToBottomButton`; style with `ScrollToBottomButtonBackgroundColor`, `ScrollToBottomButtonIconColor`, `ScrollToBottomButtonSize`, `ScrollToBottomButtonMargin`; the badge with `ShowScrollToBottomBadge`, `ScrollToBottomBadgeBackgroundColor`, `ScrollToBottomBadgeTextColor`, `ScrollToBottomBadgeFontSize`.
 - **Load More Messages**: Supports dynamic loading of older messages via a bound command; prepended messages keep the viewport stable.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
 - **Long Press Gesture**: Displays a configured context menu (emoji reactions + actions) on any message — text, image, video and voice note.
@@ -242,6 +243,15 @@ public class ContextAction
 | `ContextMenuDividerHeight`       | 1                  | Height of the context menu divider.              |
 | `ContextMenuFontSize`            | 14                 | Font size for the context menu.                  |
 | `ContextMenuReactionFontSize`    | 18                 | Font size for reaction items in the context menu.|
+| `ShowScrollToBottomButton`       | true               | Shows the floating scroll-to-bottom button when scrolled up. |
+| `ScrollToBottomButtonBackgroundColor` | White         | Fill color of the scroll-to-bottom button.       |
+| `ScrollToBottomButtonIconColor`  | Black              | Color of the chevron icon.                       |
+| `ScrollToBottomButtonSize`       | 44                 | Diameter of the scroll-to-bottom button.         |
+| `ScrollToBottomButtonMargin`     | 16                 | Spacing from the bottom/trailing edges.          |
+| `ShowScrollToBottomBadge`        | true               | Shows the unread-count badge on the button.      |
+| `ScrollToBottomBadgeBackgroundColor` | Red            | Fill color of the unread-count badge.            |
+| `ScrollToBottomBadgeTextColor`   | White              | Text color of the unread-count badge.            |
+| `ScrollToBottomBadgeFontSize`    | 12                 | Font size of the unread-count badge.             |
 
 ---
 
