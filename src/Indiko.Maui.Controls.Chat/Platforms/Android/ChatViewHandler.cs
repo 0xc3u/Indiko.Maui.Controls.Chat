@@ -129,6 +129,8 @@ public class ChatViewHandler : ViewHandler<ChatView, FrameLayout>
         container.AddView(_fab);
         ApplyFabStyle();
 
+        VirtualView.RepliedMessageJumpRequested += OnJumpToRepliedMessage;
+
         return container;
     }
 
@@ -263,6 +265,83 @@ public class ChatViewHandler : ViewHandler<ChatView, FrameLayout>
         if (_weakChatView.TryGetTarget(out var chatView))
         {
             chatView.Messages.CollectionChanged -= OnMessagesCollectionChanged;
+            chatView.RepliedMessageJumpRequested -= OnJumpToRepliedMessage;
+        }
+    }
+
+    // Scroll the original message into view and briefly flash it.
+    private void OnJumpToRepliedMessage(ChatMessage original)
+    {
+        if (_recyclerView == null || VirtualView?.Messages == null) return;
+
+        var position = VirtualView.Messages.IndexOf(original);
+        if (position < 0) return;
+
+        var highlight = VirtualView.RepliedMessageHighlightColor;
+        var color = (highlight == null || highlight.Alpha <= 0) ? null : (AGraphics.Color?)highlight.ToPlatform();
+
+        if (_recyclerView.GetLayoutManager() is LinearLayoutManager lm
+            && position >= lm.FindFirstCompletelyVisibleItemPosition()
+            && position <= lm.FindLastCompletelyVisibleItemPosition())
+        {
+            // Already fully on screen — no scroll needed, flash right away.
+            if (color != null) FlashRow(position, color.Value);
+            return;
+        }
+
+        _recyclerView.SmoothScrollToPosition(position);
+
+        if (color == null) return;
+
+        // Holders are recycled mid-scroll, so wait until the list settles, then flash the row.
+        _recyclerView.AddOnScrollListener(new IdleFlashListener(position, color.Value, FlashRow));
+    }
+
+    private void FlashRow(int position, AGraphics.Color color)
+    {
+        var view = _recyclerView?.FindViewHolderForAdapterPosition(position)?.ItemView;
+        if (view == null) return;
+
+        var overlay = new ColorDrawable(color);
+        view.Foreground = overlay;
+
+        // Hold the highlight, then fade it out with timed steps. Done with PostDelayed rather than
+        // a ValueAnimator so it still works when the device's animator duration scale is 0 (which
+        // is common on emulators and would otherwise make the flash vanish instantly). The alpha
+        // here is the drawable's 0-255 modulator over the configured color's own alpha.
+        void Fade(int alpha)
+        {
+            if (view.Handle == IntPtr.Zero) return;
+            if (alpha <= 0)
+            {
+                view.Foreground = null;
+                return;
+            }
+            overlay.SetAlpha(alpha);
+            view.PostDelayed(() => Fade(alpha - 32), 40);
+        }
+        view.PostDelayed(() => Fade(255), 650);
+    }
+
+    // Fires the flash once after a programmatic smooth-scroll has settled, then detaches itself.
+    private sealed class IdleFlashListener : RecyclerView.OnScrollListener
+    {
+        private readonly int _position;
+        private readonly AGraphics.Color _color;
+        private readonly Action<int, AGraphics.Color> _flash;
+
+        public IdleFlashListener(int position, AGraphics.Color color, Action<int, AGraphics.Color> flash)
+        {
+            _position = position;
+            _color = color;
+            _flash = flash;
+        }
+
+        public override void OnScrollStateChanged(RecyclerView recyclerView, int newState)
+        {
+            if (newState != RecyclerView.ScrollStateIdle) return;
+            recyclerView.RemoveOnScrollListener(this);
+            _flash(_position, _color);
         }
     }
 

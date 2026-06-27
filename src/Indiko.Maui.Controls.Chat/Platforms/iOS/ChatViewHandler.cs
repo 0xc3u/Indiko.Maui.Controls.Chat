@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using CoreGraphics;
 using Foundation;
+using Indiko.Maui.Controls.Chat.Models;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
 using UIKit;
@@ -158,6 +159,8 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         _weakChatView = new WeakReference<ChatView>(VirtualView);
         HookMessages();
         EnsureFab();
+
+        VirtualView.RepliedMessageJumpRequested += OnJumpToRepliedMessage;
     }
 
     protected override void DisconnectHandler(UICollectionView nativeView)
@@ -167,7 +170,61 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             _observedMessages.CollectionChanged -= OnMessagesCollectionChanged;
             _observedMessages = null;
         }
+        if (VirtualView != null)
+            VirtualView.RepliedMessageJumpRequested -= OnJumpToRepliedMessage;
         base.DisconnectHandler(nativeView);
+    }
+
+    // Scroll the original message into view (centered) and briefly flash it.
+    private void OnJumpToRepliedMessage(ChatMessage original)
+    {
+        if (VirtualView?.Messages == null) return;
+
+        var chrono = VirtualView.Messages.IndexOf(original);
+        if (chrono < 0) return;
+
+        // Reversed data source: chronological index i maps to (Count - 1 - i).
+        var inverted = VirtualView.Messages.Count - 1 - chrono;
+        var indexPath = NSIndexPath.FromRowSection(inverted, 0);
+        PlatformView.ScrollToItem(indexPath, UICollectionViewScrollPosition.CenteredVertically, true);
+
+        var highlight = VirtualView.RepliedMessageHighlightColor;
+        if (highlight == null || highlight.Alpha <= 0) return;
+
+        var color = highlight.ToPlatform();
+        // Flash once the scroll has brought the cell on screen; retry while it animates in.
+        FlashCellWhenReady(indexPath, color, 0);
+    }
+
+    private void FlashCellWhenReady(NSIndexPath indexPath, UIColor color, int attempt)
+    {
+        var cell = PlatformView.CellForItem(indexPath);
+        if (cell == null)
+        {
+            if (attempt < 14)
+                NSTimer.CreateScheduledTimer(0.12, false, _ => FlashCellWhenReady(indexPath, color, attempt + 1));
+            return;
+        }
+        FlashCell(cell, color);
+    }
+
+    private void FlashCell(UICollectionViewCell cell, UIColor color)
+    {
+
+        // The cell's ContentView carries the inverse transform, so an overlay added here renders
+        // upright over the whole row.
+        var overlay = new UIView(cell.ContentView.Bounds)
+        {
+            BackgroundColor = color,
+            UserInteractionEnabled = false,
+            AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight,
+        };
+        overlay.Layer.CornerRadius = 8;
+        cell.ContentView.AddSubview(overlay);
+
+        UIView.Animate(0.9, 0.2, UIViewAnimationOptions.CurveEaseOut,
+            () => overlay.Alpha = 0f,
+            () => overlay.RemoveFromSuperview());
     }
 
     private void OnMessagesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

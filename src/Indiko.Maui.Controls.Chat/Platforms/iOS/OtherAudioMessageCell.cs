@@ -238,6 +238,16 @@ internal sealed class OtherAudioMessageCell : UICollectionViewCell
 
         _bubbleView.AddGestureRecognizer(_longPressGesture);
 
+        // Tap the reply preview to jump to the original message.
+        _replyView.UserInteractionEnabled = true;
+        _replyView.AddGestureRecognizer(new UITapGestureRecognizer(() =>
+        {
+            if (_message?.ReplyToMessage == null)
+                return;
+            _replyView.AnimateFade();
+            _chatView?.NotifyRepliedMessageTapped(_message.ReplyToMessage.MessageId);
+        }));
+
         ContentView.Transform = CoreGraphics.CGAffineTransform.MakeScale(1, -1);
     }
 

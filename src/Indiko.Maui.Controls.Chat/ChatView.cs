@@ -444,6 +444,64 @@ public class ChatView : View
         set => SetValue(ReplyMessageFontSizeProperty, value);
     }
 
+    // ---- Tap reply-preview → jump to original -----------------------------------------------
+
+    /// <summary>
+    /// When true (default), tapping a message's reply preview scrolls the list to the original
+    /// message it replies to (and briefly highlights it). Set false to keep the list still.
+    /// </summary>
+    public static readonly BindableProperty EnableJumpToRepliedMessageProperty = BindableProperty.Create(nameof(EnableJumpToRepliedMessage), typeof(bool), typeof(ChatView), true);
+    public bool EnableJumpToRepliedMessage
+    {
+        get => (bool)GetValue(EnableJumpToRepliedMessageProperty);
+        set => SetValue(EnableJumpToRepliedMessageProperty, value);
+    }
+
+    /// <summary>
+    /// Raised when a reply preview is tapped, with the original <see cref="Models.ChatMessage"/> it
+    /// refers to (resolved by <c>ReplyToMessage.MessageId</c>). Fires regardless of
+    /// <see cref="EnableJumpToRepliedMessage"/> so consumers can react even when auto-jump is off.
+    /// </summary>
+    public static readonly BindableProperty RepliedMessageTappedCommandProperty = BindableProperty.Create(nameof(RepliedMessageTappedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand RepliedMessageTappedCommand
+    {
+        get => (ICommand)GetValue(RepliedMessageTappedCommandProperty);
+        set => SetValue(RepliedMessageTappedCommandProperty, value);
+    }
+
+    /// <summary>
+    /// Color flashed over the original message when the user jumps to it via a reply preview.
+    /// Set to <see cref="Colors.Transparent"/> to disable the highlight.
+    /// </summary>
+    public static readonly BindableProperty RepliedMessageHighlightColorProperty = BindableProperty.Create(nameof(RepliedMessageHighlightColor), typeof(Color), typeof(ChatView), Color.FromRgba(255, 224, 130, 140));
+    public Color RepliedMessageHighlightColor
+    {
+        get => (Color)GetValue(RepliedMessageHighlightColorProperty);
+        set => SetValue(RepliedMessageHighlightColorProperty, value);
+    }
+
+    // Raised for the platform handler to perform the scroll + highlight. Internal so it stays an
+    // implementation detail; consumers use RepliedMessageTappedCommand instead.
+    internal event Action<ChatMessage> RepliedMessageJumpRequested;
+
+    // Called by a message cell when its reply preview is tapped. Resolves the original message,
+    // notifies the consumer command, and (when enabled) asks the handler to jump to it.
+    internal void NotifyRepliedMessageTapped(string repliedMessageId)
+    {
+        if (string.IsNullOrEmpty(repliedMessageId) || Messages == null)
+            return;
+
+        var original = Messages.FirstOrDefault(m => m.MessageId == repliedMessageId);
+        if (original == null)
+            return;
+
+        if (RepliedMessageTappedCommand?.CanExecute(original) == true)
+            RepliedMessageTappedCommand.Execute(original);
+
+        if (EnableJumpToRepliedMessage)
+            RepliedMessageJumpRequested?.Invoke(original);
+    }
+
     public static readonly BindableProperty LongPressedCommandProperty =
     BindableProperty.Create(nameof(LongPressedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
 

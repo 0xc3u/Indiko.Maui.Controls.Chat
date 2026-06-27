@@ -201,6 +201,16 @@ internal class OwnImageMessageCell : UICollectionViewCell
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
         _bubbleView.AddGestureRecognizer(_longPressGesture);
 
+        // Tap the reply preview to jump to the original message.
+        _replyView.UserInteractionEnabled = true;
+        _replyView.AddGestureRecognizer(new UITapGestureRecognizer(() =>
+        {
+            if (_message?.ReplyToMessage == null)
+                return;
+            _replyView.AnimateFade();
+            _chatView?.NotifyRepliedMessageTapped(_message.ReplyToMessage.MessageId);
+        }));
+
         // Tap the image to open the full-screen zoomable viewer.
         _imageView.UserInteractionEnabled = true;
         _imageView.AddGestureRecognizer(new UITapGestureRecognizer(OnImageTapped));

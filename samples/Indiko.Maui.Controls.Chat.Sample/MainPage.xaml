@@ -40,6 +40,8 @@
             EmojiReactionTextColor="{StaticResource Primary}"
             ReplyMessageBackgroundColor="{StaticResource Tertiary}"
             ReplyMessageTextColor="{StaticResource White}"
+            EnableJumpToRepliedMessage="True"
+            RepliedMessageHighlightColor="#80FFD54F"
             LoadMoreMessagesCommand="{Binding LoadOlderMessagesCommand}"
             ScrolledCommand="{Binding ScrolledCommand}"
             AvatarTappedCommand="{Binding AvatarTappedCommand}"
