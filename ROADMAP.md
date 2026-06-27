@@ -40,6 +40,9 @@ Media
   works. New properties: `DetectLinks`, `LinkTextColor`.
 
 Interaction & correctness
+- ☑ **Tap reply-preview → jump to original** [Render] — tapping a message's reply preview scrolls
+  to the original message and briefly highlights it (resolved by `ReplyToMessage.MessageId`). New
+  properties: `EnableJumpToRepliedMessage`, `RepliedMessageHighlightColor`, `RepliedMessageTappedCommand`.
 - ☑ **Scroll-to-bottom button + unread badge** [Render] — a floating button appears when the user
   scrolls away from the newest message and jumps back on tap; an optional badge counts messages
   arriving while scrolled up. Fully styleable (background/icon/size/margin + badge colors/font) via
@@ -64,14 +67,14 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 `SwipeReplyActionName`, `ShowScrollToBottomButton`, `ScrollToBottomButtonBackgroundColor`,
 `ScrollToBottomButtonIconColor`, `ScrollToBottomButtonSize`, `ScrollToBottomButtonMargin`,
 `ShowScrollToBottomBadge`, `ScrollToBottomBadgeBackgroundColor`, `ScrollToBottomBadgeTextColor`,
-`ScrollToBottomBadgeFontSize`.
+`ScrollToBottomBadgeFontSize`, `EnableJumpToRepliedMessage`, `RepliedMessageHighlightColor`,
+`RepliedMessageTappedCommand`.
 
 ---
 
 ## P1 — Table stakes for a common chat control
 
 - ☐ **Link previews (URL unfurling)** [Render][Model] — title/description/thumbnail card.
-- ☐ **Tap reply-preview → jump to original** [Render].
 - ☐ **Documents / files** [Render][Model] — filename + size + icon (`FileName`, `MimeType`, `FileSize`).
 - ☐ **Edited / forwarded indicators** [Render][Model] — `IsEdited`, `IsForwarded`.
 - ☐ **Reaction details** [Render] — show who reacted (model already has `ParticipantIds`).
@@ -100,5 +103,5 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 ## Recommended next
 
 1. **Link previews / documents** (P1) — rounds out content-type coverage.
-2. **Tap reply-preview → jump to original** (P1) — pairs naturally with swipe-to-reply.
-3. **Typing indicator bubble** (P1).
+2. **Typing indicator bubble** (P1).
+3. **Edited / forwarded indicators** (P1).

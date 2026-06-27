@@ -46,6 +46,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     private EventHandler _videoBubbleClickHandler;
     private EventHandler _audioBubbleClickHandler;
     private EventHandler _emojiReactionClickHandler;
+    private EventHandler _replyClickHandler;
 
     private EventHandler<aViews.View.LongClickEventArgs> _longPressHandler;
 
@@ -303,6 +304,14 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             }
         };
         ReactionContainer.Click += _emojiReactionClickHandler;
+
+        // Tap the reply preview to jump to the original message.
+        _replyClickHandler = (s, e) =>
+        {
+            if (weakChatView.TryGetTarget(out var target) && message?.ReplyToMessage != null)
+                target.NotifyRepliedMessageTapped(message.ReplyToMessage.MessageId);
+        };
+        ReplySummaryFrame.Click += _replyClickHandler;
     }
 
    
@@ -358,6 +367,12 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
             _videoPlayHandler = null;
         }
         try { VideoView?.StopPlayback(); } catch { /* not playing */ }
+
+        if (_replyClickHandler != null && ReplySummaryFrame != null)
+        {
+            ReplySummaryFrame.Click -= _replyClickHandler;
+            _replyClickHandler = null;
+        }
 
         if (_emojiReactionClickHandler != null && ReactionContainer != null)
         {
