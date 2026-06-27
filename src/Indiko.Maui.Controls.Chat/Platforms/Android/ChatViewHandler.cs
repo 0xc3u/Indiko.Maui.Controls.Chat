@@ -92,6 +92,9 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
             }
             ));
 
+        // Swipe a row to the right to reply.
+        new ItemTouchHelper(new ReplySwipeCallback(VirtualView, recyclerView)).AttachToRecyclerView(recyclerView);
+
         RenderMessages(recyclerView, MauiContext);
         return recyclerView;
     }
