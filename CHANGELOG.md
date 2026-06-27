@@ -1,3 +1,12 @@
+# [1.5.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.4.0...v1.5.0) (2026-06-27)
+
+
+### Features
+
+* clickable links / data detectors in text messages ([d16abc2](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/d16abc2ae33eee87e5175fdd48b52822ef754992))
+* media captions for image and video messages ([5be02be](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/5be02becb70828b6b6829149ae29cf1f8875f4a9))
+* sender name with consecutive-message grouping ([a99cd80](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/a99cd8040a543ac78566f131257d3ec40229e010))
+
 # [1.4.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.3.0...v1.4.0) (2026-06-26)
 
 
