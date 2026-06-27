@@ -1,3 +1,12 @@
+# [1.6.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.5.0...v1.6.0) (2026-06-27)
+
+
+### Features
+
+* add styleable scroll-to-bottom button with unread badge ([82d99ca](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/82d99ca603bbba7defc7ceb22ea4c78e2db77f96))
+* add swipe-to-reply gesture (iOS + Android) ([cf4a112](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/cf4a1125f44599fe69be3fc655d407afdb11f698))
+* tap reply preview to jump to the original message ([a2bb6a9](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/a2bb6a94364aa26e31537bebd57eb6b4c36ec709))
+
 # [1.5.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.4.0...v1.5.0) (2026-06-27)
 
 
