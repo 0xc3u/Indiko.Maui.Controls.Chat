@@ -12,7 +12,7 @@ internal class OwnTextMessageCell : UICollectionViewCell
     private ChatView _chatView;
     private ChatMessage _message;
 
-    private UILabel _messageLabel;
+    private LinkTextView _messageLabel;
     private UIView _bubbleView;
     private UILabel _timeLabel;
     private UIStackView _reactionsStackView;
@@ -73,13 +73,10 @@ internal class OwnTextMessageCell : UICollectionViewCell
         };
 
         // Message text
-        _messageLabel = new UILabel
+        _messageLabel = new LinkTextView
         {
-            Lines = 0, 
-            LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Left,
-            TextColor = UIColor.Black
+            TextAlignment = UITextAlignment.Left
         };
 
         // Message timestamp
@@ -191,9 +188,12 @@ internal class OwnTextMessageCell : UICollectionViewCell
             _reactionsStackView.UserInteractionEnabled = true;
 
 
-            _messageLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageFontSize);
-            _messageLabel.TextColor = chatView.OwnMessageTextColor.ToPlatform();
-            _messageLabel.Text = message.TextContent;
+            _messageLabel.SetMessage(
+                message.TextContent,
+                UIFont.SystemFontOfSize((nfloat)chatView.MessageFontSize),
+                chatView.OwnMessageTextColor.ToPlatform(),
+                chatView.LinkTextColor.ToPlatform(),
+                chatView.DetectLinks);
 
             if (message.IsRepliedMessage && message.ReplyToMessage != null)
             {

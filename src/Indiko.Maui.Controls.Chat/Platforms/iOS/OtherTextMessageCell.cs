@@ -12,7 +12,7 @@ internal class OtherTextMessageCell : UICollectionViewCell
     private ChatView _chatView;
     private ChatMessage _message;
 
-    private UILabel _messageLabel;
+    private LinkTextView _messageLabel;
     private UIImageView _avatarImageView;
     private UIView _bubbleView;
     private UILabel _timeLabel;
@@ -61,13 +61,10 @@ internal class OtherTextMessageCell : UICollectionViewCell
         _bubbleView.Layer.CornerRadius = 16;
 
         // Message text
-        _messageLabel = new UILabel
+        _messageLabel = new LinkTextView
         {
-            Lines = 0, 
-            LineBreakMode = UILineBreakMode.WordWrap,
             TranslatesAutoresizingMaskIntoConstraints = false,
-            TextAlignment = UITextAlignment.Left,
-            TextColor = UIColor.Black
+            TextAlignment = UITextAlignment.Left
         };
 
         // Chat reply view setup
@@ -256,9 +253,12 @@ internal class OtherTextMessageCell : UICollectionViewCell
 
             _bubbleView.BackgroundColor = chatView.OtherMessageBackgroundColor.ToPlatform();
 
-            _messageLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageFontSize);
-            _messageLabel.TextColor = chatView.OtherMessageTextColor.ToPlatform();
-            _messageLabel.Text = message.TextContent;
+            _messageLabel.SetMessage(
+                message.TextContent,
+                UIFont.SystemFontOfSize((nfloat)chatView.MessageFontSize),
+                chatView.OtherMessageTextColor.ToPlatform(),
+                chatView.LinkTextColor.ToPlatform(),
+                chatView.DetectLinks);
 
             // Sender name (group chats): shown for the first message of a sender run.
             var chronoIndex = chatView.Messages.Count - 1 - index;

@@ -215,6 +215,12 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             Visibility = ViewStates.Gone
         };
         textView.SetPadding(32, 16, 32, 16); // Padding inside the bubble
+        if (VirtualView.DetectLinks)
+        {
+            // Make URLs / emails / phone numbers tappable.
+            textView.AutoLinkMask = global::Android.Text.Util.MatchOptions.WebUrls | global::Android.Text.Util.MatchOptions.EmailAddresses | global::Android.Text.Util.MatchOptions.PhoneNumbers;
+            textView.SetLinkTextColor(VirtualView.LinkTextColor.ToPlatform());
+        }
         linearLayout.AddView(textView, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.WrapContent));

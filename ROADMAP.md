@@ -35,6 +35,9 @@ Media
 - ☑ **Sender name + consecutive grouping** [Render][Model] — `ChatMessage.SenderName` shown
   above incoming bubbles (all message types), de-duplicated for consecutive messages from the
   same sender. New properties: `ShowSenderName`, `SenderNameTextColor`, `SenderNameFontSize`.
+- ☑ **Clickable links + data detectors** [Render] — URLs, phone numbers and emails in text
+  messages are detected and tappable (open browser/dialer/mail). Long-press-to-react still
+  works. New properties: `DetectLinks`, `LinkTextColor`.
 
 Interaction & correctness
 - ☑ **Long-press to react on every message type** [Render] — text, image, video, voice note
@@ -53,7 +56,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
 
 ## P1 — Table stakes for a common chat control
 
-- ☐ **Clickable links + data detectors** [Render] — URLs/phones/emails tappable in text.
 - ☐ **Link previews (URL unfurling)** [Render][Model] — title/description/thumbnail card.
 - ☐ **Swipe-to-reply gesture** [Render] — swipe a bubble to trigger reply.
 - ☐ **Tap reply-preview → jump to original** [Render].
@@ -85,6 +87,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
 
 ## Recommended next
 
-1. **Clickable links + data detectors** (P1) — cheap, high daily-use payoff.
-2. **Swipe-to-reply gesture** (P1) — standard reply interaction.
-3. **Link previews / documents** (P1) — rounds out content-type coverage.
+1. **Swipe-to-reply gesture** (P1) — standard reply interaction.
+2. **Link previews / documents** (P1) — rounds out content-type coverage.
+3. **Scroll-to-bottom FAB with unread count** (P1).
