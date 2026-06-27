@@ -53,6 +53,7 @@ builder.UseChatView();
 - **Tap-to-Play Video**: Videos show a blurred first-frame poster with a play button; nothing auto-plays while scrolling. Tapping play opens the video **full screen** with native controls (play/pause + seek bar) by default — set `OpenVideoFullScreen="False"` to play inline in the bubble instead.
 - **Full-Screen Image Viewer**: Tapping an image opens a full-screen viewer with pinch-to-zoom, pan and double-tap zoom. `MessageTapped` still fires; set `OpenImageFullScreen="False"` to handle the tap yourself.
 - **Reply Support**: Reply-to-message functionality with previews of the original message.
+- **Swipe-to-Reply**: Swipe a bubble to the right to start a reply. It raises the **same** event as the context menu's "Reply" item — `LongPressedCommand` fires with a `ContextAction` (`Name == "reply"`, `Message ==` the swiped message) — so you implement reply logic once for both gestures. The row springs back (haptic on iOS, clamped slide on Android). Toggle with `EnableSwipeToReply`; the action name is configurable via `SwipeReplyActionName`.
 - **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
 - **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
 - **Sender Names (group chats)**: Shows `SenderName` above incoming bubbles, de-duplicated for consecutive messages from the same sender. Toggle with `ShowSenderName`; style with `SenderNameTextColor` / `SenderNameFontSize`.
@@ -204,7 +205,7 @@ public class ContextAction
 | `EmojiReactionTappedCommand`     | Triggered when an emoji reaction is tapped.                   |
 | `LoadMoreMessagesCommand`        | Invoked when more messages need to be loaded.                 |
 | `ScrolledToLastMessageCommand`   | Triggered when scrolled to the last message.                  |
-| `LongPressedCommand`             | Triggered when a message is long-pressed to show the context menu. |
+| `LongPressedCommand`             | Triggered by a context-menu action **and** by swipe-to-reply; receives a `ContextAction` (`Name`, `Message`). Swipe sends `Name == "reply"`. |
 
 ---
 

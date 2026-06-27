@@ -113,6 +113,13 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
 
         platformView.Delegate = _delegate;
 
+        // Swipe a bubble sideways to reply.
+        var replySwipe = new UISwipeGestureRecognizer(HandleSwipeToReply)
+        {
+            Direction = UISwipeGestureRecognizerDirection.Right
+        };
+        platformView.AddGestureRecognizer(replySwipe);
+
         // Initial populate without animation, then defer the initial scroll
         // to after the snapshot has been applied and the layout pass has
         // finalized. This ensures ContentSize reflects real cell heights
@@ -201,6 +208,34 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
         if ((VirtualView.Messages?.Count ?? 0) <= 0) return;
         var topInset = -PlatformView.AdjustedContentInset.Top;
         PlatformView.SetContentOffset(new CGPoint(0, topInset), animated);
+    }
+
+    private void HandleSwipeToReply(UISwipeGestureRecognizer recognizer)
+    {
+        if (VirtualView == null || !VirtualView.EnableSwipeToReply) return;
+        var command = VirtualView.LongPressedCommand;
+        if (command == null) return;
+
+        var indexPath = PlatformView.IndexPathForItemAtPoint(recognizer.LocationInView(PlatformView));
+        if (indexPath == null) return;
+
+        // Data source is reversed (index 0 = newest); map back to the chronological message.
+        var chronoIndex = VirtualView.Messages.Count - 1 - (int)indexPath.Item;
+        if (chronoIndex < 0 || chronoIndex >= VirtualView.Messages.Count) return;
+
+        var message = VirtualView.Messages[chronoIndex];
+        if (message.MessageType == Models.MessageType.Date || message.MessageType == Models.MessageType.System)
+            return;
+
+        // Raise the same event as the context menu's "Reply" item so consumers handle reply once.
+        var action = new Models.ContextAction { Name = VirtualView.SwipeReplyActionName, Message = message };
+        if (command.CanExecute(action))
+        {
+            command.Execute(action);
+            using var feedback = new UIImpactFeedbackGenerator(UIImpactFeedbackStyle.Light);
+            feedback.Prepare();
+            feedback.ImpactOccurred();
+        }
     }
 
     private void ScrollToFirstNewMessage(bool animated)

@@ -40,6 +40,10 @@ Media
   works. New properties: `DetectLinks`, `LinkTextColor`.
 
 Interaction & correctness
+- ☑ **Swipe-to-reply gesture** [Render] — swipe a bubble to the right to trigger a reply. Raises
+  the same event as the context menu's "Reply" item (`LongPressedCommand` with a `ContextAction`
+  named "reply") so consumers handle reply once; springs the row back (haptic on iOS, clamped
+  slide on Android). New properties: `EnableSwipeToReply`, `SwipeReplyActionName`.
 - ☑ **Long-press to react on every message type** [Render] — text, image, video, voice note
   (fixed the `_message`-never-assigned bug on the iOS audio/video cells).
 - ☑ **iOS inverted-list scroll fixes** [Render] — correct initial position (newest at bottom,
@@ -50,14 +54,14 @@ Interaction & correctness
 - ☑ **Android RecyclerView crash fix** [Render] — adapter mutations during LoadMore/scroll
   are marshalled off the layout pass.
 
-New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
+New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSwipeToReply`,
+`SwipeReplyActionName`.
 
 ---
 
 ## P1 — Table stakes for a common chat control
 
 - ☐ **Link previews (URL unfurling)** [Render][Model] — title/description/thumbnail card.
-- ☐ **Swipe-to-reply gesture** [Render] — swipe a bubble to trigger reply.
 - ☐ **Tap reply-preview → jump to original** [Render].
 - ☐ **Documents / files** [Render][Model] — filename + size + icon (`FileName`, `MimeType`, `FileSize`).
 - ☐ **Edited / forwarded indicators** [Render][Model] — `IsEdited`, `IsForwarded`.
@@ -87,6 +91,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`.
 
 ## Recommended next
 
-1. **Swipe-to-reply gesture** (P1) — standard reply interaction.
-2. **Link previews / documents** (P1) — rounds out content-type coverage.
-3. **Scroll-to-bottom FAB with unread count** (P1).
+1. **Link previews / documents** (P1) — rounds out content-type coverage.
+2. **Scroll-to-bottom FAB with unread count** (P1).
+3. **Tap reply-preview → jump to original** (P1) — pairs naturally with swipe-to-reply.

@@ -81,6 +81,33 @@ public partial class MainPageViewModel : BaseViewModel
 
     }
 
+    // The message currently being replied to (set by a swipe or the context-menu "Reply"
+    // action). When non-null, the next sent message carries a ReplyToMessage preview.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsReplying))]
+    ChatMessage replyingTo;
+
+    public bool IsReplying => ReplyingTo != null;
+
+    // Display text for the reply banner above the composer.
+    public string ReplyingToPreview => ReplyingTo == null
+        ? string.Empty
+        : (string.IsNullOrEmpty(ReplyingTo.TextContent) ? ReplyingTo.MessageType.ToString() : ReplyingTo.TextContent);
+
+    partial void OnReplyingToChanged(ChatMessage value) => OnPropertyChanged(nameof(ReplyingToPreview));
+
+    // Starts a reply to the given message — both the swipe gesture and the context-menu
+    // "Reply" item route here through LongPressedCommand (Name == "reply").
+    private void BeginReply(ChatMessage message)
+    {
+        if (message == null)
+            return;
+        ReplyingTo = message;
+    }
+
+    [RelayCommand]
+    private void CancelReply() => ReplyingTo = null;
+
     // Appends an incoming "other" message (newest). Use it while scrolled up to verify
     // the handler keeps the viewport stable, and while at the bottom to verify it follows.
     [RelayCommand]
@@ -217,7 +244,8 @@ public partial class MainPageViewModel : BaseViewModel
         switch (contextAction.Name)
         {
             case "reply":
-                Console.WriteLine($"Reply to message: {contextAction.Message.MessageId}");
+                // Same handler for the context-menu "Reply" item and the swipe-to-reply gesture.
+                BeginReply(contextAction.Message);
                 break;
             case "delete":
                 Console.WriteLine($"Delete message: {contextAction.Message.MessageId}");
@@ -254,7 +282,13 @@ public partial class MainPageViewModel : BaseViewModel
             ReadState = MessageReadState.New,
             DeliveryState = MessageDeliveryState.Sent,
             Reactions = [],
-            ReplyToMessage = null
+            ReplyToMessage = ReplyingTo == null ? null : new RepliedMessage
+            {
+                MessageId = ReplyingTo.MessageId,
+                SenderId = ReplyingTo.IsOwnMessage ? "You" : (ReplyingTo.SenderName ?? ReplyingTo.SenderInitials),
+                TextPreview = RepliedMessage.GenerateTextPreview(
+                    string.IsNullOrEmpty(ReplyingTo.TextContent) ? ReplyingTo.MessageType.ToString() : ReplyingTo.TextContent),
+            }
         };
 
         if (SelectedMedia != null)
@@ -273,6 +307,7 @@ public partial class MainPageViewModel : BaseViewModel
         ChatMessages.Add(newChatMessage);
         NewMessage = string.Empty;
         SelectedMedia = null;
+        ReplyingTo = null;
 
         WeakReferenceMessenger.Default.Send<HideKeyboardMessage>(new HideKeyboardMessage());
     }

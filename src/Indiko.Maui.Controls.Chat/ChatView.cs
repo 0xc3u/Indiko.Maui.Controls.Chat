@@ -285,6 +285,33 @@ public class ChatView : View
         set => SetValue(LinkTextColorProperty, value);
     }
 
+    /// <summary>
+    /// When true (default), swiping a message bubble to the right triggers a reply. The swipe
+    /// raises the very same event as the context menu's "Reply" item: it invokes
+    /// <see cref="LongPressedCommand"/> with a <see cref="Models.ContextAction"/> whose
+    /// <c>Name</c> is <see cref="SwipeReplyActionName"/> ("reply" by default) and whose
+    /// <c>Message</c> is the swiped <see cref="Models.ChatMessage"/>. Consumers therefore
+    /// implement their reply logic in one place.
+    /// </summary>
+    public static readonly BindableProperty EnableSwipeToReplyProperty = BindableProperty.Create(nameof(EnableSwipeToReply), typeof(bool), typeof(ChatView), true);
+    public bool EnableSwipeToReply
+    {
+        get => (bool)GetValue(EnableSwipeToReplyProperty);
+        set => SetValue(EnableSwipeToReplyProperty, value);
+    }
+
+    /// <summary>
+    /// The <see cref="Models.ContextAction.Name"/> raised through <see cref="LongPressedCommand"/>
+    /// when a bubble is swiped to reply. Defaults to "reply" to match the default "Reply" context
+    /// menu item's <c>Tag</c>; override it if you renamed that tag.
+    /// </summary>
+    public static readonly BindableProperty SwipeReplyActionNameProperty = BindableProperty.Create(nameof(SwipeReplyActionName), typeof(string), typeof(ChatView), "reply");
+    public string SwipeReplyActionName
+    {
+        get => (string)GetValue(SwipeReplyActionNameProperty);
+        set => SetValue(SwipeReplyActionNameProperty, value);
+    }
+
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {
