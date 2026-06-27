@@ -91,7 +91,7 @@ public partial class MainPageViewModel : BaseViewModel
 
         ChatMessages.Add(new ChatMessage
         {
-            TextContent = $"Incoming message at {DateTime.Now:HH:mm:ss}",
+            TextContent = "See https://dotnet.microsoft.com or email test@example.com or call +1 202 555 0100",
             IsOwnMessage = false,
             Timestamp = DateTime.Now,
             SenderId = "alex",

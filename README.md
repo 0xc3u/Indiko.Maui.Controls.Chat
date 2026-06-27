@@ -56,6 +56,7 @@ builder.UseChatView();
 - **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
 - **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
 - **Sender Names (group chats)**: Shows `SenderName` above incoming bubbles, de-duplicated for consecutive messages from the same sender. Toggle with `ShowSenderName`; style with `SenderNameTextColor` / `SenderNameFontSize`.
+- **Clickable Links**: URLs, phone numbers and email addresses in text messages are detected and tappable (browser / dialer / mail). Toggle with `DetectLinks`; style with `LinkTextColor`. Long-press-to-react still works.
 - **Date Separators & "New Messages" Separator**: Group messages by day and highlight where unread messages begin.
 - **Customizable Styling**: Flexible styling for message backgrounds, text colors, fonts, and more.
 - **Commands and Events**: Handles user interactions like taps, emoji reactions, and scrolls.

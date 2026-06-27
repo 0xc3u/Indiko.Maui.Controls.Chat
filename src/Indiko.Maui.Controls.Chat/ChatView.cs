@@ -267,6 +267,24 @@ public class ChatView : View
         set => SetValue(SenderNameFontSizeProperty, value);
     }
 
+    /// <summary>
+    /// When true (default), URLs, phone numbers and email addresses inside text messages are
+    /// detected and rendered as tappable links (opening the browser, dialer or mail app).
+    /// </summary>
+    public static readonly BindableProperty DetectLinksProperty = BindableProperty.Create(nameof(DetectLinks), typeof(bool), typeof(ChatView), true);
+    public bool DetectLinks
+    {
+        get => (bool)GetValue(DetectLinksProperty);
+        set => SetValue(DetectLinksProperty, value);
+    }
+
+    public static readonly BindableProperty LinkTextColorProperty = BindableProperty.Create(nameof(LinkTextColor), typeof(Color), typeof(ChatView), Colors.RoyalBlue);
+    public Color LinkTextColor
+    {
+        get => (Color)GetValue(LinkTextColorProperty);
+        set => SetValue(LinkTextColorProperty, value);
+    }
+
     public static readonly BindableProperty MessageSpacingProperty = BindableProperty.Create(nameof(MessageSpacing), typeof(int), typeof(ChatView), 32);
     public int MessageSpacing
     {
