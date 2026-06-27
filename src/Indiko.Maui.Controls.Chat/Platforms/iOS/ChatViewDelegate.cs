@@ -10,6 +10,9 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
     private readonly IMauiContext _mauiContext;
     private readonly ChatViewFlowLayout _flowLayout;
 
+    // Invoked on every scroll so the handler can update the scroll-to-bottom button.
+    public Action<UIScrollView> ScrollChanged;
+
     public ChatViewDelegate(ChatView virtualView, IMauiContext mauiContext, ChatViewFlowLayout chatViewFlowLayout)
     {
         _virtualView = virtualView;
@@ -36,6 +39,8 @@ public class ChatViewDelegate : UICollectionViewDelegateFlowLayout
             {
                 _virtualView.ScrolledCommand.Execute(args);
             }
+
+            ScrollChanged?.Invoke(scrollView);
 
             // With the inverted UICollectionView, contentOffset.Y = 0 is the visual bottom
             // (newest messages) and contentOffset.Y = max is the visual top (oldest messages).

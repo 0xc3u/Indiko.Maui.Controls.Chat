@@ -11,10 +11,14 @@ using Microsoft.Maui.Platform;
 
 namespace Indiko.Maui.Controls.Chat.Platforms.Android;
 
-public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
+public class ChatViewHandler : ViewHandler<ChatView, FrameLayout>
 {
     private ChatMessageAdapter _adapter;
     private WeakReference<ChatView> _weakChatView;
+
+    private RecyclerView _recyclerView;
+    private ScrollToBottomButton _fab;
+    private int _unreadCount;
 
     private BlurOverlayView _blurOverlay;
     private FrameLayout _messagePopupContainer;
@@ -25,6 +29,15 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
     public static IPropertyMapper<ChatView, ChatViewHandler> PropertyMapper = new PropertyMapper<ChatView, ChatViewHandler>(ViewHandler.ViewMapper)
     {
         [nameof(ChatView.Messages)] = MapProperties,
+        [nameof(ChatView.ShowScrollToBottomButton)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonBackgroundColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonIconColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonSize)] = MapFab,
+        [nameof(ChatView.ScrollToBottomButtonMargin)] = MapFab,
+        [nameof(ChatView.ShowScrollToBottomBadge)] = MapFab,
+        [nameof(ChatView.ScrollToBottomBadgeBackgroundColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomBadgeTextColor)] = MapFab,
+        [nameof(ChatView.ScrollToBottomBadgeFontSize)] = MapFab,
         [nameof(ChatView.OwnMessageBackgroundColor)] = MapProperties,
         [nameof(ChatView.OtherMessageBackgroundColor)] = MapProperties,
         [nameof(ChatView.DateTextColor)] = MapProperties,
@@ -62,11 +75,11 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
     {
     }
 
-    protected override RecyclerView CreatePlatformView()
+    protected override FrameLayout CreatePlatformView()
     {
         var recyclerView = new RecyclerView(Context)
         {
-            LayoutParameters = new RecyclerView.LayoutParams(
+            LayoutParameters = new FrameLayout.LayoutParams(
                 AViews.ViewGroup.LayoutParams.MatchParent,
                 AViews.ViewGroup.LayoutParams.MatchParent)
         };
@@ -80,11 +93,12 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         recyclerView.AddOnScrollListener(new OnScrollListener(
            onScrolled: (args) =>
              {
-                VirtualView?.ScrolledCommand?.Execute(args); 
+                VirtualView?.ScrolledCommand?.Execute(args);
+                UpdateFab();
              },
             onScrolledToTop: () =>
             {
-                VirtualView?.LoadMoreMessagesCommand?.Execute(null); 
+                VirtualView?.LoadMoreMessagesCommand?.Execute(null);
             },
             onScrolledToBottom: () =>
             {
@@ -95,8 +109,27 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         // Swipe a row to the right to reply.
         new ItemTouchHelper(new ReplySwipeCallback(VirtualView, recyclerView)).AttachToRecyclerView(recyclerView);
 
+        _recyclerView = recyclerView;
         RenderMessages(recyclerView, MauiContext);
-        return recyclerView;
+
+        // Host the list and the floating scroll-to-bottom button in a fill-width container so the
+        // button stays pinned to the bottom-trailing corner while the list scrolls underneath it.
+        var container = new ChatOverlayContainer(Context)
+        {
+            LayoutParameters = new AViews.ViewGroup.LayoutParams(
+                AViews.ViewGroup.LayoutParams.MatchParent,
+                AViews.ViewGroup.LayoutParams.MatchParent)
+        };
+        container.SetClipChildren(false);
+        container.SetClipToPadding(false);
+        container.AddView(recyclerView);
+
+        _fab = new ScrollToBottomButton(Context) { Visibility = AViews.ViewStates.Gone };
+        _fab.Click += (s, e) => OnFabTapped();
+        container.AddView(_fab);
+        ApplyFabStyle();
+
+        return container;
     }
 
     private static void MapCommands(ChatViewHandler handler, ChatView view, object? args)
@@ -106,7 +139,13 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
 
     private static void MapProperties(ChatViewHandler handler, ChatView chatView)
     {
-        handler.RenderMessages(handler.PlatformView, handler.MauiContext);
+        handler.RenderMessages(handler._recyclerView, handler.MauiContext);
+    }
+
+    private static void MapFab(ChatViewHandler handler, ChatView chatView)
+    {
+        handler.ApplyFabStyle();
+        handler.UpdateFab();
     }
 
     private void RenderMessages(RecyclerView recyclerView, IMauiContext mauiContext)
@@ -135,7 +174,10 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         // Create a weak reference to the ChatView
         _weakChatView = new WeakReference<ChatView>(VirtualView);
 
-        // Listen for changes in the Messages collection using a weak event reference
+        // RenderMessages runs once per mapped property at init, so unsubscribe first to keep a
+        // single subscription — otherwise each collection change is handled N times (which would,
+        // for example, multiply the unread-count badge).
+        VirtualView.Messages.CollectionChanged -= OnMessagesCollectionChanged;
         VirtualView.Messages.CollectionChanged += OnMessagesCollectionChanged;
     }
 
@@ -159,11 +201,22 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         // reconciles the count with the views and is robust against that.
         _adapter.NotifyDataSetChanged();
 
-        // Scroll to the newest message when one is appended at the end.
+        // A message was appended at the end (newest).
         if (args.Action == NotifyCollectionChangedAction.Add &&
             args.NewStartingIndex >= chatView.Messages.Count - (args.NewItems?.Count ?? 1))
         {
-            PlatformView.Post(() => PlatformView.SmoothScrollToPosition(chatView.Messages.Count - 1));
+            if (IsNearBottom())
+            {
+                // Follow the conversation when the user is already at the bottom.
+                _recyclerView.Post(() => _recyclerView.SmoothScrollToPosition(chatView.Messages.Count - 1));
+            }
+            else
+            {
+                // Otherwise keep their position and surface the new message on the FAB badge.
+                _unreadCount += args.NewItems?.Count ?? 1;
+                if (_fab != null) _fab.UnreadCount = _unreadCount;
+                UpdateFab();
+            }
         }
     }
 
@@ -204,13 +257,85 @@ public class ChatViewHandler : ViewHandler<ChatView, RecyclerView>
         DismissContextMenu();
     }
 
-    protected override void DisconnectHandler(RecyclerView platformView)
+    protected override void DisconnectHandler(FrameLayout platformView)
     {
         base.DisconnectHandler(platformView);
         if (_weakChatView.TryGetTarget(out var chatView))
         {
             chatView.Messages.CollectionChanged -= OnMessagesCollectionChanged;
         }
+    }
+
+    // ---- Scroll-to-bottom button ----------------------------------------------------------------
+
+    private void ApplyFabStyle()
+    {
+        if (_fab == null || VirtualView == null) return;
+
+        var density = Context.Resources.DisplayMetrics.Density;
+        var sizePx = (int)(VirtualView.ScrollToBottomButtonSize * density);
+        var marginPx = (int)(VirtualView.ScrollToBottomButtonMargin * density);
+
+        var lp = new FrameLayout.LayoutParams(sizePx, sizePx)
+        {
+            Gravity = GravityFlags.Bottom | GravityFlags.End,
+        };
+        lp.SetMargins(marginPx, marginPx, marginPx, marginPx);
+        _fab.LayoutParameters = lp;
+
+        _fab.ApplyStyle(
+            VirtualView.ScrollToBottomButtonBackgroundColor.ToPlatform().ToArgb(),
+            VirtualView.ScrollToBottomButtonIconColor.ToPlatform().ToArgb(),
+            VirtualView.ScrollToBottomBadgeBackgroundColor.ToPlatform().ToArgb(),
+            VirtualView.ScrollToBottomBadgeTextColor.ToPlatform().ToArgb(),
+            (float)VirtualView.ScrollToBottomBadgeFontSize,
+            VirtualView.ShowScrollToBottomBadge);
+    }
+
+    // Toggle FAB visibility based on scroll position; reset the unread badge once back at the bottom.
+    private void UpdateFab()
+    {
+        if (_fab == null || VirtualView == null) return;
+
+        var nearBottom = IsNearBottom();
+        if (nearBottom && _unreadCount != 0)
+        {
+            _unreadCount = 0;
+            _fab.UnreadCount = 0;
+        }
+
+        var shouldShow = VirtualView.ShowScrollToBottomButton
+            && (VirtualView.Messages?.Count ?? 0) > 0
+            && !nearBottom;
+
+        _fab.Visibility = shouldShow ? AViews.ViewStates.Visible : AViews.ViewStates.Gone;
+    }
+
+    private void OnFabTapped()
+    {
+        _unreadCount = 0;
+        if (_fab != null)
+        {
+            _fab.UnreadCount = 0;
+            _fab.Visibility = AViews.ViewStates.Gone;
+        }
+
+        var count = VirtualView?.Messages?.Count ?? 0;
+        if (count > 0)
+            _recyclerView?.SmoothScrollToPosition(count - 1);
+    }
+
+    // True when the last message is (almost) fully visible — i.e. the user is at the bottom.
+    private bool IsNearBottom()
+    {
+        if (_recyclerView?.GetLayoutManager() is not LinearLayoutManager lm)
+            return true;
+
+        var itemCount = lm.ItemCount;
+        if (itemCount == 0) return true;
+
+        return lm.FindLastCompletelyVisibleItemPosition() >= itemCount - 1
+            || lm.FindLastVisibleItemPosition() >= itemCount - 1;
     }
 
     public void ShowContextMenu(ChatMessage message, AViews.View anchorView)
