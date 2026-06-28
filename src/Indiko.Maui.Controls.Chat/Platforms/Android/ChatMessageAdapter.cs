@@ -225,6 +225,18 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             ViewGroup.LayoutParams.MatchParent,
             ViewGroup.LayoutParams.WrapContent));
 
+        // Link-preview card shown under the text when the message carries a LinkPreview.
+        var linkPreviewCard = new LinkPreviewCardView(_context)
+        {
+            Id = AViews.View.GenerateViewId(),
+            Visibility = ViewStates.Gone
+        };
+        var linkCardParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MatchParent,
+            ViewGroup.LayoutParams.WrapContent);
+        linkCardParams.SetMargins(24, 8, 24, 16);
+        linearLayout.AddView(linkPreviewCard, linkCardParams);
+
         // Message ImageView (for image messages)
         var imageView = new ImageView(_context)
         {
@@ -430,7 +442,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
 
         return new ChatMessageViewHolder(constraintLayout, dateTextView, textView, imageView, videoContainer, videoView, timestampTextView, frameLayout,
             newMessagesSeparatorTextView, avatarView, reactionContainer, deliveryStatusIcon, replySummaryFrame, replyPreviewTextView, replySenderTextView, systemTextView,
-            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView, videoPoster, videoPlayButton, captionTextView, senderNameTextView);
+            audioContainer, audioPlayButton, audioWaveform, audioDurationTextView, videoPoster, videoPlayButton, captionTextView, senderNameTextView, linkPreviewCard);
     }
 
 
@@ -503,6 +515,7 @@ public class ChatMessageAdapter : RecyclerView.Adapter
             chatHolder.AudioContainer.Visibility = ViewStates.Gone; // hidden unless this is an audio message
             chatHolder.CaptionTextView.Visibility = ViewStates.Gone; // shown only for captioned image/video
             chatHolder.SenderNameTextView.Visibility = ViewStates.Gone; // shown only for first-of-run incoming
+            chatHolder.LinkPreviewCard.Visibility = ViewStates.Gone; // shown only for text messages with a LinkPreview
 
             // Set message type handling
             if (message.MessageType == MessageType.Text)
@@ -514,6 +527,12 @@ public class ChatMessageAdapter : RecyclerView.Adapter
                 chatHolder.TextView.Visibility = ViewStates.Visible;
                 chatHolder.TextView.Text = message.TextContent;
                 chatHolder.TextView.SetTextColor(message.IsOwnMessage ? OwnMessageTextColor.ToPlatform() : OtherMessageTextColor.ToPlatform());
+
+                if (VirtualView.EnableLinkPreview && message.HasLinkPreview)
+                {
+                    chatHolder.LinkPreviewCard.Configure(message.LinkPreview, VirtualView);
+                    chatHolder.LinkPreviewCard.Visibility = ViewStates.Visible;
+                }
             }
             else if (message.MessageType == MessageType.Image)
             {

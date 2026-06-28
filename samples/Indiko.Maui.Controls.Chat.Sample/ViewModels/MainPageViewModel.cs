@@ -206,6 +206,38 @@ public partial class MainPageViewModel : BaseViewModel
         });
     }
 
+    // Posts an incoming text message carrying a link preview (the app supplies the unfurled data;
+    // the control only renders the card).
+    [RelayCommand]
+    private void SendLinkPreview()
+    {
+        if (ChatMessages == null)
+            return;
+
+        ChatMessages.Add(new ChatMessage
+        {
+            TextContent = "Check out the .NET MAUI docs: https://learn.microsoft.com/dotnet/maui/",
+            IsOwnMessage = false,
+            Timestamp = DateTime.Now,
+            SenderId = "alex",
+            SenderInitials = "AB",
+            SenderName = "Alex Berg",
+            MessageId = Guid.NewGuid().ToString(),
+            MessageType = MessageType.Text,
+            ReadState = MessageReadState.New,
+            DeliveryState = MessageDeliveryState.Delivered,
+            Reactions = [],
+            LinkPreview = new LinkPreview
+            {
+                Url = "https://learn.microsoft.com/dotnet/maui/",
+                SiteName = "learn.microsoft.com",
+                Title = ".NET MAUI documentation",
+                Description = "Build cross-platform native apps for Android, iOS, macOS and Windows from a single C# codebase.",
+                ImageBytes = Utils.SampleImageGenerator.GenerateBmp(width: 320, height: 180, r: 0x51, g: 0x2B, b: 0xD4),
+            },
+        });
+    }
+
     [RelayCommand]
     private void ScrolledToLastMessage()
     {

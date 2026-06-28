@@ -17,6 +17,8 @@
         <ToolbarItem Text="Voice" Command="{Binding SendVoiceNoteCommand}" />
         <!-- Posts captioned images to exercise media captions. -->
         <ToolbarItem Text="ImgCap" Command="{Binding SendCaptionedImageCommand}" />
+        <!-- Posts a text message with a link-preview card. -->
+        <ToolbarItem Text="Link" Command="{Binding SendLinkPreviewCommand}" />
     </ContentPage.ToolbarItems>
 
     <Grid RowDefinitions="*, 2, Auto">

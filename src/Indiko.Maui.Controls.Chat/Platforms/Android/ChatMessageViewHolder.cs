@@ -35,6 +35,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     public ImageButton VideoPlayButton { get; }
     public TextView CaptionTextView { get; }
     public TextView SenderNameTextView { get; }
+    public LinkPreviewCardView LinkPreviewCard { get; }
     private EventHandler _videoPlayHandler;
 
     private global::Android.Graphics.Bitmap _imageBitmap;
@@ -47,6 +48,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
     private EventHandler _audioBubbleClickHandler;
     private EventHandler _emojiReactionClickHandler;
     private EventHandler _replyClickHandler;
+    private EventHandler _linkPreviewClickHandler;
 
     private EventHandler<aViews.View.LongClickEventArgs> _longPressHandler;
 
@@ -75,7 +77,8 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         ImageView videoPosterView,
         ImageButton videoPlayButton,
         TextView captionTextView,
-        TextView senderNameTextView)
+        TextView senderNameTextView,
+        LinkPreviewCardView linkPreviewCard)
         : base(itemView)
     {
         DateTextView = dateTextView;
@@ -105,6 +108,7 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         VideoPlayButton = videoPlayButton;
         CaptionTextView = captionTextView;
         SenderNameTextView = senderNameTextView;
+        LinkPreviewCard = linkPreviewCard;
     }
 
     /// <summary>
@@ -305,6 +309,14 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         };
         ReactionContainer.Click += _emojiReactionClickHandler;
 
+        // Tap the link-preview card to open the URL (or run the consumer's command).
+        _linkPreviewClickHandler = (s, e) =>
+        {
+            if (weakChatView.TryGetTarget(out var target) && message?.LinkPreview != null)
+                target.NotifyLinkPreviewTapped(message.LinkPreview);
+        };
+        LinkPreviewCard.Click += _linkPreviewClickHandler;
+
         // Tap the reply preview to jump to the original message.
         _replyClickHandler = (s, e) =>
         {
@@ -372,6 +384,12 @@ public class ChatMessageViewHolder : RecyclerView.ViewHolder, IDisposable
         {
             ReplySummaryFrame.Click -= _replyClickHandler;
             _replyClickHandler = null;
+        }
+
+        if (_linkPreviewClickHandler != null && LinkPreviewCard != null)
+        {
+            LinkPreviewCard.Click -= _linkPreviewClickHandler;
+            _linkPreviewClickHandler = null;
         }
 
         if (_emojiReactionClickHandler != null && ReactionContainer != null)

@@ -502,6 +502,107 @@ public class ChatView : View
             RepliedMessageJumpRequested?.Invoke(original);
     }
 
+    // ---- Link previews (URL unfurl cards) ---------------------------------------------------
+
+    /// <summary>
+    /// When true (default), a text message that carries a <see cref="Models.LinkPreview"/> renders
+    /// an unfurl card (thumbnail + title + description + site) under its text. Set false to hide
+    /// the card. The control never fetches anything — populate <c>ChatMessage.LinkPreview</c> in
+    /// your app.
+    /// </summary>
+    public static readonly BindableProperty EnableLinkPreviewProperty = BindableProperty.Create(nameof(EnableLinkPreview), typeof(bool), typeof(ChatView), true);
+    public bool EnableLinkPreview
+    {
+        get => (bool)GetValue(EnableLinkPreviewProperty);
+        set => SetValue(EnableLinkPreviewProperty, value);
+    }
+
+    /// <summary>Background (fill) color of the link-preview card.</summary>
+    public static readonly BindableProperty LinkPreviewBackgroundColorProperty = BindableProperty.Create(nameof(LinkPreviewBackgroundColor), typeof(Color), typeof(ChatView), Color.FromRgb(0xF2, 0xF2, 0xF2));
+    public Color LinkPreviewBackgroundColor
+    {
+        get => (Color)GetValue(LinkPreviewBackgroundColorProperty);
+        set => SetValue(LinkPreviewBackgroundColorProperty, value);
+    }
+
+    /// <summary>Color of the link-preview title text.</summary>
+    public static readonly BindableProperty LinkPreviewTitleColorProperty = BindableProperty.Create(nameof(LinkPreviewTitleColor), typeof(Color), typeof(ChatView), Colors.Black);
+    public Color LinkPreviewTitleColor
+    {
+        get => (Color)GetValue(LinkPreviewTitleColorProperty);
+        set => SetValue(LinkPreviewTitleColorProperty, value);
+    }
+
+    /// <summary>Font size of the link-preview title text.</summary>
+    public static readonly BindableProperty LinkPreviewTitleFontSizeProperty = BindableProperty.Create(nameof(LinkPreviewTitleFontSize), typeof(double), typeof(ChatView), 14d);
+    public double LinkPreviewTitleFontSize
+    {
+        get => (double)GetValue(LinkPreviewTitleFontSizeProperty);
+        set => SetValue(LinkPreviewTitleFontSizeProperty, value);
+    }
+
+    /// <summary>Color of the link-preview description text.</summary>
+    public static readonly BindableProperty LinkPreviewDescriptionColorProperty = BindableProperty.Create(nameof(LinkPreviewDescriptionColor), typeof(Color), typeof(ChatView), Colors.Gray);
+    public Color LinkPreviewDescriptionColor
+    {
+        get => (Color)GetValue(LinkPreviewDescriptionColorProperty);
+        set => SetValue(LinkPreviewDescriptionColorProperty, value);
+    }
+
+    /// <summary>Font size of the link-preview description text.</summary>
+    public static readonly BindableProperty LinkPreviewDescriptionFontSizeProperty = BindableProperty.Create(nameof(LinkPreviewDescriptionFontSize), typeof(double), typeof(ChatView), 12d);
+    public double LinkPreviewDescriptionFontSize
+    {
+        get => (double)GetValue(LinkPreviewDescriptionFontSizeProperty);
+        set => SetValue(LinkPreviewDescriptionFontSizeProperty, value);
+    }
+
+    /// <summary>Color of the link-preview site/domain label (shown above the title).</summary>
+    public static readonly BindableProperty LinkPreviewSiteNameColorProperty = BindableProperty.Create(nameof(LinkPreviewSiteNameColor), typeof(Color), typeof(ChatView), Colors.RoyalBlue);
+    public Color LinkPreviewSiteNameColor
+    {
+        get => (Color)GetValue(LinkPreviewSiteNameColorProperty);
+        set => SetValue(LinkPreviewSiteNameColorProperty, value);
+    }
+
+    /// <summary>Font size of the link-preview site/domain label.</summary>
+    public static readonly BindableProperty LinkPreviewSiteNameFontSizeProperty = BindableProperty.Create(nameof(LinkPreviewSiteNameFontSize), typeof(double), typeof(ChatView), 11d);
+    public double LinkPreviewSiteNameFontSize
+    {
+        get => (double)GetValue(LinkPreviewSiteNameFontSizeProperty);
+        set => SetValue(LinkPreviewSiteNameFontSizeProperty, value);
+    }
+
+    /// <summary>
+    /// Optional command invoked when a link-preview card is tapped, with the tapped
+    /// <see cref="Models.LinkPreview"/>. When not set, the card opens its <c>Url</c> in the default
+    /// browser; set it to handle the tap yourself.
+    /// </summary>
+    public static readonly BindableProperty LinkPreviewTappedCommandProperty = BindableProperty.Create(nameof(LinkPreviewTappedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
+    public ICommand LinkPreviewTappedCommand
+    {
+        get => (ICommand)GetValue(LinkPreviewTappedCommandProperty);
+        set => SetValue(LinkPreviewTappedCommandProperty, value);
+    }
+
+    // Called by a text cell when its link-preview card is tapped. Runs the consumer command if set,
+    // otherwise opens the URL in the default browser.
+    internal void NotifyLinkPreviewTapped(LinkPreview preview)
+    {
+        if (preview == null)
+            return;
+
+        if (LinkPreviewTappedCommand != null)
+        {
+            if (LinkPreviewTappedCommand.CanExecute(preview))
+                LinkPreviewTappedCommand.Execute(preview);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(preview.Url) && Uri.TryCreate(preview.Url, UriKind.Absolute, out var uri))
+            _ = Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(uri);
+    }
+
     public static readonly BindableProperty LongPressedCommandProperty =
     BindableProperty.Create(nameof(LongPressedCommand), typeof(ICommand), typeof(ChatView), default(ICommand));
 

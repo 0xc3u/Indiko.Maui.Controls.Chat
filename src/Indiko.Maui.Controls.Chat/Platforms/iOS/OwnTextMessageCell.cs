@@ -23,6 +23,11 @@ internal class OwnTextMessageCell : UICollectionViewCell
     private UILabel _replySenderTextLabel;
     private NSLayoutConstraint _messageLabelTopConstraint;
 
+    private LinkPreviewCardView _linkCard;
+    private NSLayoutConstraint _messageBottomToBubble;
+    private NSLayoutConstraint _messageBottomToCard;
+    private NSLayoutConstraint _cardBottomToBubble;
+
     private UILongPressGestureRecognizer _longPressGesture;
 
     public OwnTextMessageCell(ObjCRuntime.NativeHandle handle) : base(handle)
@@ -106,7 +111,9 @@ internal class OwnTextMessageCell : UICollectionViewCell
             ClipsToBounds = true
         };
 
-        ContentView.AddSubviews(_bubbleView, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _timeLabel, _deliveryStateImageView, _reactionsStackView);
+        _linkCard = new LinkPreviewCardView { Hidden = true };
+
+        ContentView.AddSubviews(_bubbleView, _messageLabel, _replyView, _replySenderTextLabel, _replyPreviewTextLabel, _linkCard, _timeLabel, _deliveryStateImageView, _reactionsStackView);
 
         NSLayoutConstraint.ActivateConstraints(new[]
         {
@@ -135,9 +142,13 @@ internal class OwnTextMessageCell : UICollectionViewCell
             // Message text inside chat bubble
             _messageLabelTopConstraint = _messageLabel.TopAnchor.ConstraintEqualTo(_replyView.BottomAnchor, 10),
 
-            _messageLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10),
+            (_messageBottomToBubble = _messageLabel.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10)),
             _messageLabel.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
             _messageLabel.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
+
+            // Link-preview card (leading/trailing fixed; bottom wiring toggled in Update)
+            _linkCard.LeadingAnchor.ConstraintEqualTo(_bubbleView.LeadingAnchor, 10),
+            _linkCard.TrailingAnchor.ConstraintEqualTo(_bubbleView.TrailingAnchor, -10),
 
             // Emoji-Reaktionen
             _reactionsStackView.TopAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, 4),
@@ -156,6 +167,15 @@ internal class OwnTextMessageCell : UICollectionViewCell
             _deliveryStateImageView.WidthAnchor.ConstraintEqualTo(16),
             _deliveryStateImageView.HeightAnchor.ConstraintEqualTo(16)
         });
+
+        // Link-preview card bottom wiring — inactive until a preview is shown (see Update).
+        _messageBottomToCard = _linkCard.TopAnchor.ConstraintEqualTo(_messageLabel.BottomAnchor, 8);
+        _cardBottomToBubble = _linkCard.BottomAnchor.ConstraintEqualTo(_bubbleView.BottomAnchor, -10);
+        _linkCard.Tapped = () =>
+        {
+            if (_message?.LinkPreview != null)
+                _chatView?.NotifyLinkPreviewTapped(_message.LinkPreview);
+        };
 
         // Initialize long press gesture
         _longPressGesture = new UILongPressGestureRecognizer(LongPressHandler);
@@ -236,6 +256,23 @@ internal class OwnTextMessageCell : UICollectionViewCell
                 _messageLabelTopConstraint.Active = false;
                 _messageLabelTopConstraint = _messageLabel.TopAnchor.ConstraintEqualTo(_bubbleView.TopAnchor, 10);
                 _messageLabelTopConstraint.Active = true;
+            }
+
+            // Link-preview card sits between the message text and the bubble bottom when present.
+            if (chatView.EnableLinkPreview && message.LinkPreview != null)
+            {
+                _linkCard.Configure(message.LinkPreview, chatView);
+                _linkCard.Hidden = false;
+                _messageBottomToBubble.Active = false;
+                _messageBottomToCard.Active = true;
+                _cardBottomToBubble.Active = true;
+            }
+            else
+            {
+                _linkCard.Hidden = true;
+                _messageBottomToCard.Active = false;
+                _cardBottomToBubble.Active = false;
+                _messageBottomToBubble.Active = true;
             }
 
             _timeLabel.Font = UIFont.SystemFontOfSize((nfloat)chatView.MessageTimeFontSize);
