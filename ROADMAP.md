@@ -38,6 +38,11 @@ Media
 - ☑ **Clickable links + data detectors** [Render] — URLs, phone numbers and emails in text
   messages are detected and tappable (open browser/dialer/mail). Long-press-to-react still
   works. New properties: `DetectLinks`, `LinkTextColor`.
+- ☑ **Link previews (URL unfurling)** [Render][Model] — text messages render a `LinkPreview`
+  (thumbnail + title + description + site) as an unfurl card; tap opens the URL. Render-only — the
+  app supplies the unfurled data (no networking in the control). New model `LinkPreview`; new
+  properties: `EnableLinkPreview`, `LinkPreview*` (background/title/description/site colors+sizes),
+  `LinkPreviewTappedCommand`.
 
 Interaction & correctness
 - ☑ **Tap reply-preview → jump to original** [Render] — tapping a message's reply preview scrolls
@@ -68,13 +73,15 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 `ScrollToBottomButtonIconColor`, `ScrollToBottomButtonSize`, `ScrollToBottomButtonMargin`,
 `ShowScrollToBottomBadge`, `ScrollToBottomBadgeBackgroundColor`, `ScrollToBottomBadgeTextColor`,
 `ScrollToBottomBadgeFontSize`, `EnableJumpToRepliedMessage`, `RepliedMessageHighlightColor`,
-`RepliedMessageTappedCommand`.
+`RepliedMessageTappedCommand`, `EnableLinkPreview`, `LinkPreviewBackgroundColor`,
+`LinkPreviewTitleColor`, `LinkPreviewTitleFontSize`, `LinkPreviewDescriptionColor`,
+`LinkPreviewDescriptionFontSize`, `LinkPreviewSiteNameColor`, `LinkPreviewSiteNameFontSize`,
+`LinkPreviewTappedCommand`.
 
 ---
 
 ## P1 — Table stakes for a common chat control
 
-- ☐ **Link previews (URL unfurling)** [Render][Model] — title/description/thumbnail card.
 - ☐ **Documents / files** [Render][Model] — filename + size + icon (`FileName`, `MimeType`, `FileSize`).
 - ☐ **Edited / forwarded indicators** [Render][Model] — `IsEdited`, `IsForwarded`.
 - ☐ **Reaction details** [Render] — show who reacted (model already has `ParticipantIds`).
@@ -102,6 +109,6 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 
 ## Recommended next
 
-1. **Link previews / documents** (P1) — rounds out content-type coverage.
+1. **Documents / files** (P1) — rounds out content-type coverage.
 2. **Typing indicator bubble** (P1).
 3. **Edited / forwarded indicators** (P1).

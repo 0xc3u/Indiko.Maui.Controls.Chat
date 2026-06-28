@@ -59,6 +59,7 @@ builder.UseChatView();
 - **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
 - **Sender Names (group chats)**: Shows `SenderName` above incoming bubbles, de-duplicated for consecutive messages from the same sender. Toggle with `ShowSenderName`; style with `SenderNameTextColor` / `SenderNameFontSize`.
 - **Clickable Links**: URLs, phone numbers and email addresses in text messages are detected and tappable (browser / dialer / mail). Toggle with `DetectLinks`; style with `LinkTextColor`. Long-press-to-react still works.
+- **Link Previews**: A text message can carry a `LinkPreview` (thumbnail + title + description + site) that renders as an unfurl card under the text; tapping it opens the URL. The control renders only — your app fetches the metadata (keeping the no-networking design) and supplies the thumbnail as bytes. Toggle with `EnableLinkPreview`; style the card via the `LinkPreview*` properties; `LinkPreviewTappedCommand` lets you handle the tap yourself.
 - **Date Separators & "New Messages" Separator**: Group messages by day and highlight where unread messages begin.
 - **Customizable Styling**: Flexible styling for message backgrounds, text colors, fonts, and more.
 - **Commands and Events**: Handles user interactions like taps, emoji reactions, and scrolls.
@@ -151,6 +152,20 @@ public class RepliedMessage
 }
 ```
 
+### `LinkPreview`
+Data for a link-preview ("unfurl") card under a text message. Your app fetches the URL's metadata and supplies it; the control only renders it.
+
+```csharp
+public class LinkPreview
+{
+    public string Url { get; set; }          // opened when the card is tapped
+    public string Title { get; set; }        // e.g. og:title
+    public string Description { get; set; }  // e.g. og:description
+    public string SiteName { get; set; }     // e.g. "github.com"
+    public byte[] ImageBytes { get; set; }   // optional thumbnail bytes
+}
+```
+
 ### `ContextMenuItem`
 Represents an item in the context menu.
 
@@ -209,6 +224,7 @@ public class ContextAction
 | `ScrolledToLastMessageCommand`   | Triggered when scrolled to the last message.                  |
 | `LongPressedCommand`             | Triggered by a context-menu action **and** by swipe-to-reply; receives a `ContextAction` (`Name`, `Message`). Swipe sends `Name == "reply"`. |
 | `RepliedMessageTappedCommand`    | Triggered when a reply preview is tapped; passes the original `ChatMessage` it refers to. |
+| `LinkPreviewTappedCommand`       | Triggered when a link-preview card is tapped; passes the `LinkPreview`. When unset, the card opens its `Url`. |
 
 ---
 
@@ -256,6 +272,14 @@ public class ContextAction
 | `ScrollToBottomBadgeFontSize`    | 12                 | Font size of the unread-count badge.             |
 | `EnableJumpToRepliedMessage`     | true               | Tapping a reply preview scrolls to the original message. |
 | `RepliedMessageHighlightColor`   | translucent amber  | Color flashed over the original message on jump (Transparent disables it). |
+| `EnableLinkPreview`              | true               | Render the link-preview card for text messages that carry a `LinkPreview`. |
+| `LinkPreviewBackgroundColor`     | #F2F2F2            | Fill color of the link-preview card.             |
+| `LinkPreviewTitleColor`          | Black              | Color of the card title.                         |
+| `LinkPreviewTitleFontSize`       | 14                 | Font size of the card title.                     |
+| `LinkPreviewDescriptionColor`    | Gray               | Color of the card description.                    |
+| `LinkPreviewDescriptionFontSize` | 12                 | Font size of the card description.               |
+| `LinkPreviewSiteNameColor`       | RoyalBlue          | Color of the card site/domain label.             |
+| `LinkPreviewSiteNameFontSize`    | 11                 | Font size of the card site/domain label.         |
 
 ---
 

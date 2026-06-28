@@ -22,6 +22,14 @@ public class ChatMessage
     public MessageDeliveryState DeliveryState { get; set; }
     public bool IsRepliedMessage => ReplyToMessage != null;
     public RepliedMessage ReplyToMessage { get; set; }
+
+    /// <summary>
+    /// Optional link-preview ("unfurl") card rendered under a text message. Populate it in your app
+    /// after fetching the URL's metadata; the control only renders it. See <see cref="LinkPreview"/>.
+    /// </summary>
+    public LinkPreview LinkPreview { get; set; }
+    public bool HasLinkPreview => LinkPreview != null;
+
     public List<ChatMessageReaction> Reactions { get; set; } = [];
 
     /// <summary>
