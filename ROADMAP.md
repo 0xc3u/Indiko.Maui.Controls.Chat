@@ -103,8 +103,9 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 ## Strategic
 
 - ☑ **Optional `ChatInputView` composer** [Render] — separate, fully styleable input control:
-  auto-growing entry, attachments (built-in `MediaPicker`), emoji picker, press-and-hold to record voice
-  notes (native `AVAudioRecorder`/`MediaRecorder`), reply banner and media preview. Input-only —
+  auto-growing entry, attachments (built-in `MediaPicker`), emoji picker, WhatsApp-style voice notes
+  (press-and-hold to record with live waveform; slide to cancel; slide up to lock for hands-free; via
+  native `AVAudioRecorder`/`MediaRecorder`), reply banner and media preview. Input-only —
   raises `SendCommand` with a `ChatComposeResult`; the app persists/sends. New model
   `ChatComposeResult`; colors, font sizes, feature toggles and icons are all bindable.
 

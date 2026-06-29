@@ -328,8 +328,10 @@ Like everything else it is **input-only**: it never persists or sends. On send i
 `SendCommand` with a `ChatComposeResult`; your app builds the `ChatMessage` (persisting / sending as
 it sees fit) and adds it to the bound collection.
 
-> **Recording a voice note:** the mic shows when the entry is empty. **Press and hold** it to record,
-> **release** to send, or **slide off** the mic to cancel.
+> **Recording a voice note (WhatsApp-style):** the mic shows when the entry is empty.
+> **Press and hold** to record (live waveform + timer), **release** to send, **slide left** to cancel,
+> or **slide up to lock** for hands-free recording — then use the trash / send buttons in the bar.
+> Recordings shorter than ~0.8 s are discarded (so an accidental tap sends nothing).
 
 ```xml
 <Grid RowDefinitions="*, Auto">
