@@ -108,6 +108,42 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private void CancelReply() => ReplyingTo = null;
 
+    // Receives the composed message from ChatInputView and turns it into a ChatMessage. This is
+    // where your app would persist / send. The composer is input-only; it never does this itself.
+    [RelayCommand]
+    private void SendComposed(ChatComposeResult result)
+    {
+        if (ChatMessages == null || result == null || result.IsEmpty)
+            return;
+
+        // Mark existing unread as read (we're sending, so we're at the bottom).
+        for (int n = 0; n < ChatMessages.Count; n++)
+            if (ChatMessages[n].ReadState == MessageReadState.New)
+                ChatMessages[n].ReadState = MessageReadState.Read;
+
+        ChatMessages.Add(new ChatMessage
+        {
+            TextContent = result.Text,
+            BinaryContent = result.MediaBytes,
+            MessageType = result.MediaType ?? MessageType.Text,
+            AudioDuration = result.AudioDuration,
+            IsOwnMessage = true,
+            Timestamp = DateTime.Now,
+            SenderInitials = "JD",
+            MessageId = Guid.NewGuid().ToString(),
+            ReadState = MessageReadState.Read,
+            DeliveryState = MessageDeliveryState.Sent,
+            Reactions = [],
+            ReplyToMessage = result.ReplyingTo == null ? null : new RepliedMessage
+            {
+                MessageId = result.ReplyingTo.MessageId,
+                SenderId = result.ReplyingTo.IsOwnMessage ? "You" : (result.ReplyingTo.SenderName ?? result.ReplyingTo.SenderInitials),
+                TextPreview = RepliedMessage.GenerateTextPreview(
+                    string.IsNullOrEmpty(result.ReplyingTo.TextContent) ? result.ReplyingTo.MessageType.ToString() : result.ReplyingTo.TextContent),
+            },
+        });
+    }
+
     // Appends an incoming "other" message (newest). Use it while scrolled up to verify
     // the handler keeps the viewport stable, and while at the bottom to verify it follows.
     [RelayCommand]

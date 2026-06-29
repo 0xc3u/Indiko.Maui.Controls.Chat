@@ -68,6 +68,7 @@ builder.UseChatView();
 - **Load More Messages**: Supports dynamic loading of older messages via a bound command; prepended messages keep the viewport stable.
 - **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
 - **Long Press Gesture**: Displays a configured context menu (emoji reactions + actions) on any message — text, image, video and voice note.
+- **Optional Composer (`ChatInputView`)**: A separate, fully styleable input control — auto-growing entry, attachments, emoji picker, press-and-hold to record voice notes, reply banner and media preview. Input-only: it raises `SendCommand` with a `ChatComposeResult` so your app stays in charge of persistence/sending. See [Optional message composer](#optional-message-composer-chatinputview).
 
 ---
 
@@ -316,6 +317,102 @@ void LongPressed(ContextAction action)
 
 ---
 
+## Optional message composer (`ChatInputView`)
+
+`ChatView` is render-only and ships no input box, so you can build your own. For convenience the
+library also includes an **optional**, fully styleable composer — `ChatInputView` — that you place
+below the `ChatView`. It provides an auto-growing text entry, attachments (built-in `MediaPicker`),
+an emoji picker, **press-and-hold to record voice notes** (built-in), a reply banner and a selected-media preview.
+
+Like everything else it is **input-only**: it never persists or sends. On send it raises
+`SendCommand` with a `ChatComposeResult`; your app builds the `ChatMessage` (persisting / sending as
+it sees fit) and adds it to the bound collection.
+
+> **Recording a voice note:** the mic shows when the entry is empty. **Press and hold** it to record,
+> **release** to send, or **slide off** the mic to cancel.
+
+```xml
+<Grid RowDefinitions="*, Auto">
+    <idk:ChatView Grid.Row="0" Messages="{Binding ChatMessages}" />
+
+    <idk:ChatInputView Grid.Row="1"
+        Placeholder="Type a message..."
+        AccentColor="{StaticResource Primary}"
+        EntryBackgroundColor="#F0F0F0"
+        EnableAttachments="True"
+        EnableVoiceRecording="True"
+        EnableEmojiPicker="True"
+        ReplyingTo="{Binding ReplyingTo, Mode=TwoWay}"
+        SendCommand="{Binding SendComposedCommand}" />
+</Grid>
+```
+
+```csharp
+[RelayCommand]
+void SendComposed(ChatComposeResult result)
+{
+    if (result is null || result.IsEmpty) return;
+
+    ChatMessages.Add(new ChatMessage
+    {
+        TextContent    = result.Text,
+        BinaryContent  = result.MediaBytes,
+        MessageType    = result.MediaType ?? MessageType.Text, // Image / Video / Audio / Text
+        AudioDuration  = result.AudioDuration,
+        IsOwnMessage   = true,
+        Timestamp      = DateTime.Now,
+        MessageId      = Guid.NewGuid().ToString(),
+        ReplyToMessage = result.ReplyingTo is null ? null : new RepliedMessage
+        {
+            MessageId   = result.ReplyingTo.MessageId,
+            SenderId    = result.ReplyingTo.SenderName,
+            TextPreview = RepliedMessage.GenerateTextPreview(result.ReplyingTo.TextContent)
+        }
+    });
+}
+```
+
+Binding `ReplyingTo` two-way connects the composer to the swipe / context-menu **reply** flow: when
+the user starts a reply, set `ReplyingTo` on your VM and the composer shows a reply banner; it clears
+it on send (or when the user taps ✕).
+
+**Customization** — colors, font sizes, feature toggles and **icons** are all bindable. Icons accept
+any `ImageSource` (PNG/SVG/`FontImageSource`) and fall back to built-in glyphs when unset:
+
+```xml
+<idk:ChatInputView AccentColor="Indigo" TextColor="Black" PlaceholderColor="Gray"
+                   EntryBackgroundColor="#EFEFEF" InputFontSize="16" IconFontSize="18"
+                   ReplyBarBackgroundColor="#ECECEC" ReplyBarTextColor="Black">
+    <idk:ChatInputView.SendIcon>
+        <FontImageSource Glyph="{x:Static utils:FontAwesome.Paperplane}"
+                         FontFamily="{x:Static utils:FontAwesome.FONTNAME}" Color="Indigo" Size="20" />
+    </idk:ChatInputView.SendIcon>
+</idk:ChatInputView>
+```
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `Text` | "" | Two-way composer text. |
+| `Placeholder` | "Type a message…" | Entry placeholder. |
+| `SendCommand` | – | Raised with a `ChatComposeResult` on send. |
+| `ClearOnSend` | true | Clear text/media/reply after `SendCommand`. |
+| `ReplyingTo` | null | Two-way; shows the reply banner when set. |
+| `SelectedMedia` | null | Two-way attached media bytes (preview shown). |
+| `EnableAttachments` / `EnableVoiceRecording` / `EnableEmojiPicker` | true | Toggle each feature. |
+| `EmojiList` | built-in set | Emojis shown in the picker. |
+| `AccentColor` | RoyalBlue | Tint for icons + reply accent. |
+| `TextColor` / `PlaceholderColor` / `EntryBackgroundColor` | Black / Gray / #F0F0F0 | Entry styling. |
+| `ReplyBarBackgroundColor` / `ReplyBarTextColor` | #ECECEC / Black | Reply banner styling. |
+| `InputFontSize` / `IconFontSize` | 16 / 18 | Text and glyph-icon sizes. |
+| `SendIcon` / `AttachIcon` / `MicIcon` / `EmojiIcon` | built-in glyphs | Custom `ImageSource` icons. |
+
+> **Permissions (built-in attachments & recording):** add `RECORD_AUDIO` to the Android manifest, and
+> `NSMicrophoneUsageDescription` + `NSPhotoLibraryUsageDescription` to the iOS `Info.plist`. Prefer to
+> handle media/recording yourself? Set `EnableAttachments`/`EnableVoiceRecording` to `False` and add
+> your own buttons that set `SelectedMedia` / call your `SendCommand`.
+
+---
+
 ## Models
 
 ### `ChatMessage`
@@ -388,6 +485,21 @@ public class LinkPreview
     public string Description { get; set; }  // e.g. og:description
     public string SiteName { get; set; }     // e.g. "github.com"
     public byte[] ImageBytes { get; set; }   // optional thumbnail bytes
+}
+```
+
+### `ChatComposeResult`
+The payload raised by `ChatInputView.SendCommand`. Your app turns it into a `ChatMessage`.
+
+```csharp
+public class ChatComposeResult
+{
+    public string Text { get; set; }
+    public byte[] MediaBytes { get; set; }       // attached media or recorded audio
+    public MessageType? MediaType { get; set; }  // Image / Video / Audio, or null for text
+    public TimeSpan? AudioDuration { get; set; } // set for recorded voice notes
+    public ChatMessage ReplyingTo { get; set; }  // reply target, if any
+    public bool IsEmpty { get; }                 // true when there's nothing to send
 }
 ```
 
