@@ -43,6 +43,7 @@ internal sealed class AudioRecorderService
             if (_recorder == null || error != null)
                 return false;
 
+            _recorder.MeteringEnabled = true; // enables live amplitude metering for the waveform
             _recorder.PrepareToRecord();
             if (!_recorder.Record())
                 return false;
@@ -81,6 +82,20 @@ internal sealed class AudioRecorderService
         var bytes = await File.ReadAllBytesAsync(path);
         try { File.Delete(path); } catch { /* ignore */ }
         return (bytes, duration);
+    }
+
+    /// <summary>Current normalized (0..1) input level for the live waveform.</summary>
+    public float GetLevel()
+    {
+        if (!IsRecording || _recorder == null)
+            return 0f;
+        try
+        {
+            _recorder.UpdateMeters();
+            var db = _recorder.AveragePower(0); // -160..0 dBFS
+            return (float)Math.Clamp(Math.Pow(10, db / 20.0), 0.0, 1.0);
+        }
+        catch { return 0f; }
     }
 
     public void Cancel()

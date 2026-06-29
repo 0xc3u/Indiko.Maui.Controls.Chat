@@ -72,6 +72,19 @@ internal sealed class AudioRecorderService
         return Task.FromResult<(byte[] Bytes, TimeSpan Duration)?>((bytes, duration));
     }
 
+    /// <summary>Current normalized (0..1) input level for the live waveform.</summary>
+    public float GetLevel()
+    {
+        if (!IsRecording || _recorder == null)
+            return 0f;
+        try
+        {
+            // MaxAmplitude is 0..32767 (max since the previous call); scale for visual sensitivity.
+            return Math.Min(1f, _recorder.MaxAmplitude / 16000f);
+        }
+        catch { return 0f; }
+    }
+
     public void Cancel()
     {
         if (_recorder != null)

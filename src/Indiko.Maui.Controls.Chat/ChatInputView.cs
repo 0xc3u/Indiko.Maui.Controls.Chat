@@ -12,8 +12,9 @@ namespace Indiko.Maui.Controls.Chat;
 /// the reply target); your app builds and persists the <see cref="ChatMessage"/> and adds it to the
 /// bound <c>Messages</c> collection.
 ///
-/// Features: auto-growing text entry, attachments (built-in <c>MediaPicker</c>), an emoji picker,
-/// tap-to-record voice notes (built-in), a reply banner and a selected-media preview.
+/// Features: auto-growing text entry; attachments via a built-in action sheet (photo / video /
+/// camera); an emoji picker; WhatsApp-style press-and-hold voice notes (slide to cancel, slide up to
+/// lock, live waveform); a reply banner and a selected-media preview.
 /// </summary>
 public class ChatInputView : ContentView
 {
@@ -26,6 +27,10 @@ public class ChatInputView : ContentView
     private readonly ScrollView _emojiPanel;
     private readonly Grid _recordingBar;
     private readonly Label _recordingTimer;
+    private readonly Label _cancelHint;
+    private readonly Button _trashButton;       // delete (locked mode)
+    private readonly Button _lockSendButton;    // send (locked mode)
+    private readonly RecordingWaveformView _waveform;
     private readonly Button _emojiButton;
     private readonly Button _attachButton;
     private readonly Button _sendButton;
@@ -34,8 +39,15 @@ public class ChatInputView : ContentView
     private readonly Image _micImage;
 
     private bool _isRecording;
+    private bool _isLocked;             // hands-free: keeps recording after the finger is lifted
+    private bool _willCancel;           // dragged left past the cancel threshold
+    private bool _pointerDown;          // finger currently on the mic
     private bool _syncingText;
     private DateTime _recordStart;
+
+    private const double CancelDragThreshold = 90;  // drag left to cancel
+    private const double LockDragThreshold = 80;     // drag up to lock
+    private const double MinRecordSeconds = 0.8;     // shorter recordings are discarded (accidental taps)
 
     public ChatInputView()
     {
@@ -82,18 +94,32 @@ public class ChatInputView : ContentView
         _emojiPanel = new ScrollView { Orientation = ScrollOrientation.Vertical, HeightRequest = 132, IsVisible = false };
 
         // Recording bar ------------------------------------------------------------------------
+        // Recording bar — adapts between "holding" (slide to cancel / up to lock) and "locked"
+        // (hands-free: trash + send buttons). Columns: trash | dot | timer | waveform | cancelHint | send.
         _recordingTimer = new Label { VerticalOptions = LayoutOptions.Center, FontSize = 14, Text = "0:00" };
         var recDot = new BoxView { WidthRequest = 10, HeightRequest = 10, CornerRadius = 5, Color = Colors.Red, VerticalOptions = LayoutOptions.Center };
-        var recCancel = new Button { Text = "Cancel", BackgroundColor = Colors.Transparent, HorizontalOptions = LayoutOptions.End };
-        recCancel.SetBinding(Button.TextColorProperty, new Binding(nameof(AccentColor), source: this));
-        recCancel.Clicked += (s, e) => CancelRecording();
+        _cancelHint = new Label { Text = "‹ slide to cancel", VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.End, FontSize = 13 };
+        _trashButton = MakeGlyphButton("\U0001F5D1"); // 🗑
+        _trashButton.IsVisible = false;
+        _trashButton.Clicked += (s, e) => CancelRecording();
+        _lockSendButton = MakeGlyphButton("➤");
+        _lockSendButton.IsVisible = false;
+        _lockSendButton.Clicked += async (s, e) => await StopRecordingAndSendAsync();
+        _waveform = new RecordingWaveformView { VerticalOptions = LayoutOptions.Center, HorizontalOptions = LayoutOptions.Fill };
+
         _recordingBar = new Grid { IsVisible = false, Margin = new Thickness(4, 0, 0, 6), ColumnSpacing = 8 };
-        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
-        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
-        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-        Add(_recordingBar, recDot, 0);
-        Add(_recordingBar, _recordingTimer, 1);
-        Add(_recordingBar, recCancel, 2);
+        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // 0 trash
+        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // 1 dot
+        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // 2 timer
+        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star)); // 3 waveform
+        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // 4 cancel hint
+        _recordingBar.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // 5 lock send
+        Add(_recordingBar, _trashButton, 0);
+        Add(_recordingBar, recDot, 1);
+        Add(_recordingBar, _recordingTimer, 2);
+        Add(_recordingBar, _waveform, 3);
+        Add(_recordingBar, _cancelHint, 4);
+        Add(_recordingBar, _lockSendButton, 5);
 
         // Input row ----------------------------------------------------------------------------
         _editor = new Editor { AutoSize = EditorAutoSizeOption.TextChanges, VerticalOptions = LayoutOptions.Center };
@@ -102,7 +128,7 @@ public class ChatInputView : ContentView
         _emojiButton = MakeGlyphButton("\U0001F642");
         _emojiButton.Clicked += (s, e) => ToggleEmojiPanel();
         _attachButton = MakeGlyphButton("\U0001F4CE");
-        _attachButton.Clicked += async (s, e) => await PickMediaAsync();
+        _attachButton.Clicked += async (s, e) => await ShowAttachmentSheetAsync();
         _sendButton = MakeGlyphButton("➤");
         _sendButton.Clicked += (s, e) => Send(null, null);
 
@@ -110,11 +136,16 @@ public class ChatInputView : ContentView
         _micGlyph = new Label { Text = "\U0001F3A4", FontSize = 18, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
         _micImage = new Image { Aspect = Aspect.AspectFit, IsVisible = false, Margin = new Thickness(8) };
         _micView = new Grid { WidthRequest = 40, HeightRequest = 40, VerticalOptions = LayoutOptions.End, Children = { _micGlyph, _micImage } };
+        // Pointer for press/release (start/stop — fires immediately on touch-down, no movement needed);
+        // Pan for the drag (lock/cancel — reliable for touch on Android, unlike PointerMoved).
         var micPress = new PointerGestureRecognizer();
-        micPress.PointerPressed += async (s, e) => await StartRecordingAsync();
-        micPress.PointerReleased += async (s, e) => { if (_isRecording) await StopRecordingAndSendAsync(); };
-        micPress.PointerExited += (s, e) => { if (_isRecording) CancelRecording(); };
+        micPress.PointerPressed += async (s, e) => { _pointerDown = true; await StartRecordingAsync(); };
+        micPress.PointerReleased += async (s, e) => { _pointerDown = false; await OnMicReleasedAsync(); };
         _micView.GestureRecognizers.Add(micPress);
+
+        var micPan = new PanGestureRecognizer();
+        micPan.PanUpdated += (s, e) => OnMicPan(e);
+        _micView.GestureRecognizers.Add(micPan);
 
         var inputRow = new Grid { ColumnSpacing = 2 };
         inputRow.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
@@ -226,6 +257,14 @@ public class ChatInputView : ContentView
     public static readonly BindableProperty EnableEmojiPickerProperty = BindableProperty.Create(nameof(EnableEmojiPicker), typeof(bool), typeof(ChatInputView), true, propertyChanged: (b, o, n) => ((ChatInputView)b).UpdateButtons());
     public bool EnableEmojiPicker { get => (bool)GetValue(EnableEmojiPickerProperty); set => SetValue(EnableEmojiPickerProperty, value); }
 
+    /// <summary>When true (default), the attachment sheet offers "Take Photo" (camera capture).</summary>
+    public static readonly BindableProperty EnableCameraProperty = BindableProperty.Create(nameof(EnableCamera), typeof(bool), typeof(ChatInputView), true);
+    public bool EnableCamera { get => (bool)GetValue(EnableCameraProperty); set => SetValue(EnableCameraProperty, value); }
+
+    /// <summary>Labels for the attachment action sheet: [0]=title, [1]=cancel, [2]=photo, [3]=video, [4]=camera.</summary>
+    public static readonly BindableProperty AttachmentSheetLabelsProperty = BindableProperty.Create(nameof(AttachmentSheetLabels), typeof(IList<string>), typeof(ChatInputView), null);
+    public IList<string> AttachmentSheetLabels { get => (IList<string>)GetValue(AttachmentSheetLabelsProperty); set => SetValue(AttachmentSheetLabelsProperty, value); }
+
     public static readonly BindableProperty EmojiListProperty = BindableProperty.Create(nameof(EmojiList), typeof(IList<string>), typeof(ChatInputView), null, propertyChanged: (b, o, n) => ((ChatInputView)b).BuildEmojiPanel());
     public IList<string> EmojiList { get => (IList<string>)GetValue(EmojiListProperty); set => SetValue(EmojiListProperty, value); }
 
@@ -329,8 +368,9 @@ public class ChatInputView : ContentView
         _editor.Placeholder = Placeholder;
         _editor.FontSize = InputFontSize;
 
-        foreach (var btn in new[] { _emojiButton, _attachButton, _sendButton })
+        foreach (var btn in new[] { _emojiButton, _attachButton, _sendButton, _lockSendButton })
             btn.TextColor = AccentColor;
+        _trashButton.TextColor = Colors.Red;
         _micGlyph.TextColor = AccentColor;
         _micGlyph.FontSize = IconFontSize;
 
@@ -338,6 +378,8 @@ public class ChatInputView : ContentView
         _replyTitle.TextColor = AccentColor;
         _replyPreview.TextColor = ReplyBarTextColor;
         _recordingTimer.TextColor = TextColor;
+        _cancelHint.TextColor = PlaceholderColor;
+        _waveform.BarColor = AccentColor;
     }
 
     private void UpdateButtons()
@@ -348,10 +390,21 @@ public class ChatInputView : ContentView
 
         var hasContent = !string.IsNullOrWhiteSpace(Text) || SelectedMedia is { Length: > 0 };
         var micCapable = EnableVoiceRecording && !hasContent;
-        // Keep the mic visible while recording so the press-and-hold release lands on it.
-        _micView.IsVisible = _isRecording || micCapable;
-        // Send shows only when there's content and we're not recording (release sends the voice note).
+        // While holding (recording, not locked) keep the mic so the release lands on it; once locked
+        // the finger is lifted and the locked bar's send/trash take over, so hide the mic.
+        var recordingHold = _isRecording && !_isLocked;
+        _micView.IsVisible = recordingHold || (micCapable && !_isRecording);
         _sendButton.IsVisible = !micCapable && !_isRecording;
+    }
+
+    // Shows/hides the recording-bar pieces for the current state.
+    private void UpdateRecordingUi()
+    {
+        _recordingBar.IsVisible = _isRecording;
+        _trashButton.IsVisible = _isRecording && _isLocked;
+        _lockSendButton.IsVisible = _isRecording && _isLocked;
+        _cancelHint.IsVisible = _isRecording && !_isLocked;
+        UpdateButtons();
     }
 
     // ---- Send -----------------------------------------------------------------------------------
@@ -386,22 +439,66 @@ public class ChatInputView : ContentView
 
     // ---- Attachments (built-in MediaPicker) -----------------------------------------------------
 
-    private async Task PickMediaAsync()
+    private async Task ShowAttachmentSheetAsync()
+    {
+        var labels = AttachmentSheetLabels;
+        string Label(int i, string fallback) => labels != null && labels.Count > i && !string.IsNullOrEmpty(labels[i]) ? labels[i] : fallback;
+        var title = Label(0, "Attach");
+        var cancel = Label(1, "Cancel");
+        var photo = Label(2, "Photo");
+        var video = Label(3, "Video");
+        var camera = Label(4, "Take Photo");
+
+        var page = GetHostPage();
+        if (page == null) { await PickPhotoAsync(); return; } // no page to host the sheet — fall back
+
+        var options = EnableCamera ? new[] { photo, video, camera } : new[] { photo, video };
+        var choice = await page.DisplayActionSheet(title, cancel, null, options);
+
+        if (choice == photo) await PickPhotoAsync();
+        else if (choice == video) await PickVideoAsync();
+        else if (choice == camera) await CapturePhotoAsync();
+    }
+
+    private async Task PickPhotoAsync() => await PickAsync(() => Microsoft.Maui.Media.MediaPicker.Default.PickPhotoAsync(), MessageType.Image);
+
+    private async Task PickVideoAsync() => await PickAsync(() => Microsoft.Maui.Media.MediaPicker.Default.PickVideoAsync(), MessageType.Video);
+
+    private async Task CapturePhotoAsync()
+    {
+        if (!Microsoft.Maui.Media.MediaPicker.Default.IsCaptureSupported)
+        {
+            await PickPhotoAsync();
+            return;
+        }
+        await PickAsync(() => Microsoft.Maui.Media.MediaPicker.Default.CapturePhotoAsync(), MessageType.Image);
+    }
+
+    private async Task PickAsync(Func<Task<Microsoft.Maui.Storage.FileResult>> pick, MessageType type)
     {
         try
         {
-            var photo = await Microsoft.Maui.Media.MediaPicker.Default.PickPhotoAsync();
-            if (photo == null) return;
-            using var stream = await photo.OpenReadAsync();
+            var file = await pick();
+            if (file == null) return;
+            using var stream = await file.OpenReadAsync();
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
-            SelectedMediaType = MessageType.Image;
+            SelectedMediaType = type;
             SelectedMedia = ms.ToArray();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"ChatInputView.PickMediaAsync: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"ChatInputView attachment failed: {ex.Message}");
         }
+    }
+
+    // Walks up the visual tree to the hosting Page (needed to present the action sheet).
+    private Page GetHostPage()
+    {
+        Element element = this;
+        while (element != null && element is not Page)
+            element = element.Parent;
+        return element as Page;
     }
 
     // ---- Voice recording (built-in) -------------------------------------------------------------
@@ -410,41 +507,85 @@ public class ChatInputView : ContentView
 
     private async Task StartRecordingAsync()
     {
+        if (_isRecording) return;
         _recorder ??= new AudioRecorderService();
         if (!await _recorder.StartAsync()) return; // permission denied / unavailable
 
         _isRecording = true;
+        _isLocked = false;
+        _willCancel = false;
         _recordStart = DateTime.Now;
-        _recordingBar.IsVisible = true;
         _recordingTimer.Text = "0:00";
-        UpdateButtons();
+        _cancelHint.Text = "‹ slide to cancel";
+        _cancelHint.TextColor = PlaceholderColor;
+        _waveform.Reset();
+        UpdateRecordingUi();
 
-        Dispatcher.StartTimer(TimeSpan.FromSeconds(1), () =>
+        // Drive the timer text and the live waveform.
+        Dispatcher.StartTimer(TimeSpan.FromMilliseconds(100), () =>
         {
             if (!_isRecording) return false;
             var elapsed = DateTime.Now - _recordStart;
             _recordingTimer.Text = $"{(int)elapsed.TotalMinutes}:{elapsed.Seconds:D2}";
+            _waveform.Push(_recorder?.GetLevel() ?? 0f);
             return true;
         });
+
+        // The gesture may have ended before this async start finished (e.g. a quick tap). Finalize
+        // it now; the min-duration guard discards anything too short.
+        if (!_pointerDown && !_isLocked)
+            await StopRecordingAndSendAsync();
+    }
+
+    // Drag tracking while holding the mic: up → lock (hands-free), left → cancel.
+    private void OnMicPan(PanUpdatedEventArgs e)
+    {
+        if (!_isRecording || _isLocked || e.StatusType != GestureStatus.Running) return;
+
+        if (e.TotalY <= -LockDragThreshold)
+        {
+            _isLocked = true;
+            UpdateRecordingUi();
+            return;
+        }
+
+        _willCancel = e.TotalX <= -CancelDragThreshold;
+        _cancelHint.Text = _willCancel ? "release to cancel" : "‹ slide to cancel";
+        _cancelHint.TextColor = _willCancel ? Colors.Red : PlaceholderColor;
+    }
+
+    private async Task OnMicReleasedAsync()
+    {
+        if (!_isRecording || _isLocked) return; // locked: stays recording; use trash/send in the bar
+        if (_willCancel)
+            CancelRecording();
+        else
+            await StopRecordingAndSendAsync();
     }
 
     private async Task StopRecordingAndSendAsync()
     {
+        if (!_isRecording) return;
+        var elapsed = DateTime.Now - _recordStart;
         _isRecording = false;
-        _recordingBar.IsVisible = false;
-        UpdateButtons();
+        _isLocked = false;
+        _waveform.Reset();
+        UpdateRecordingUi();
 
         var recording = _recorder == null ? null : await _recorder.StopAsync();
-        if (recording is { Bytes.Length: > 0 })
+        // Discard accidental/too-short recordings (and always release via StopAsync above).
+        if (elapsed.TotalSeconds >= MinRecordSeconds && recording is { Bytes.Length: > 0 })
             Send(recording.Value.Bytes, recording.Value.Duration);
     }
 
     private void CancelRecording()
     {
         _isRecording = false;
-        _recordingBar.IsVisible = false;
+        _isLocked = false;
+        _willCancel = false;
+        _waveform.Reset();
         _recorder?.Cancel();
-        UpdateButtons();
+        UpdateRecordingUi();
     }
 
     // ---- Emoji picker ---------------------------------------------------------------------------

@@ -103,10 +103,34 @@ New bindable properties: `OpenVideoFullScreen`, `OpenImageFullScreen`, `EnableSw
 ## Strategic
 
 - ☑ **Optional `ChatInputView` composer** [Render] — separate, fully styleable input control:
-  auto-growing entry, attachments (built-in `MediaPicker`), emoji picker, press-and-hold to record voice
-  notes (native `AVAudioRecorder`/`MediaRecorder`), reply banner and media preview. Input-only —
+  auto-growing entry, attachments (built-in `MediaPicker`), emoji picker, WhatsApp-style voice notes
+  (press-and-hold to record with live waveform; slide to cancel; slide up to lock for hands-free; via
+  native `AVAudioRecorder`/`MediaRecorder`), reply banner and media preview. Input-only —
   raises `SendCommand` with a `ChatComposeResult`; the app persists/sends. New model
   `ChatComposeResult`; colors, font sizes, feature toggles and icons are all bindable.
+
+### Composer — WhatsApp-parity backlog
+
+Gaps from a review of `ChatInputView` vs WhatsApp's composer, in adoption order. All stay within
+the input-only design (the app persists/sends); networking/backend items are exposed as app hooks.
+
+- ☑ **Attachment sheet** [Render] — action sheet for Photo / Video / Camera (built-in MediaPicker /
+  FilePicker). New properties: `EnableCamera`, `AttachmentSheetLabels`. Documents deferred to the
+  Documents/files model item; location/contact/poll left as optional app-supplied actions.
+- ☐ **Voice-note preview + pause/resume** [Render] — in locked mode, play the clip and pause/resume
+  before sending (native recorder pause + a preview player).
+- ☐ **Edit-message mode** [Render] — an `EditingMessage` banner mirroring the reply banner;
+  `ChatComposeResult` flags edit vs new; the app applies the edit.
+- ☐ **Multiple attachments + pre-send caption** [Render][Model] — list of attachments, per-item
+  caption preview (`ChatComposeResult` carries multiple).
+- ☐ **Emoji picker polish** [Render] — categories, recents, search, insert-at-cursor (today: flat grid,
+  appends at end).
+- ☐ **Mentions (@)** [Render] — detect `@`, raise a query command; app returns candidates; composer inserts.
+- ☐ **Composer link preview** [Render] — on URL typed, raise a detect command; app unfurls; show a
+  dismissable pending `LinkPreview` card (reuses the existing model).
+- ☐ **Accessibility + RTL/Dynamic Type** [Render] — tap-to-record fallback for screen readers; audit RTL.
+- ☐ Skip (architecture): GIF/sticker libraries, typing indicator, disappearing-messages timer, draft
+  persistence, native keyboard docking — networking/backend or app responsibilities (some exposable as hooks).
 
 ---
 
