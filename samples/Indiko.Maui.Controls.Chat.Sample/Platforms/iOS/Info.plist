@@ -42,5 +42,9 @@
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access is needed to record voice notes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo library access is needed to attach images to messages.</string>
 </dict>
 </plist>

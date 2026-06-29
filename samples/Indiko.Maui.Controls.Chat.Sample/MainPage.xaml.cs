@@ -14,15 +14,6 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
 		this.mainPageViewModel = mainPageViewModel;
 		BindingContext = mainPageViewModel;
-
-        WeakReferenceMessenger.Default.Register<HideKeyboardMessage>(this, async (r, m) =>
-        {
-            await App.Current.Dispatcher.DispatchAsync(async () =>
-            {
-				await messageEntry.HideKeyboardAsync();
-            });
-        });
-
     }
 
 	protected override async void OnAppearing()
