@@ -91,6 +91,231 @@ builder.UseChatView();
 
 ---
 
+## Feature Guide
+
+Every feature with a short example. All snippets assume `ChatMessages` is an
+`ObservableRangeCollection<ChatMessage>` bound to `ChatView.Messages`. The
+[sample app](samples/) exercises all of these.
+
+> **Tip:** the control is render-only — it has no composer, networking or persistence.
+> You build messages in your app and add them to the bound collection.
+
+### Setup
+
+```csharp
+// MauiProgram.cs
+builder.UseChatView();
+```
+
+```xml
+xmlns:idk="clr-namespace:Indiko.Maui.Controls.Chat;assembly=Indiko.Maui.Controls.Chat"
+
+<idk:ChatView Messages="{Binding ChatMessages}" />
+```
+
+### Binding & updating messages
+
+```csharp
+public ObservableRangeCollection<ChatMessage> ChatMessages { get; } = new();
+
+ChatMessages.Add(message);              // single (newest)
+ChatMessages.AddRange(initialHistory);  // bulk, one notification
+ChatMessages.InsertRange(0, olderPage); // prepend older messages (load-more)
+```
+
+### Text, image, video & voice-note messages
+
+```csharp
+// Text
+new ChatMessage { MessageType = MessageType.Text, TextContent = "Hi!", IsOwnMessage = true, Timestamp = DateTime.Now };
+
+// Image (optional caption via TextContent)
+new ChatMessage { MessageType = MessageType.Image, BinaryContent = jpegBytes, TextContent = "from the trail" };
+
+// Video (blurred poster + tap-to-play; full screen by default)
+new ChatMessage { MessageType = MessageType.Video, BinaryContent = mp4Bytes };
+
+// Voice note (play/pause + waveform + duration)
+new ChatMessage { MessageType = MessageType.Audio, BinaryContent = wavBytes, AudioDuration = TimeSpan.FromSeconds(4) };
+```
+
+### System & date-separator messages
+
+```csharp
+new ChatMessage { MessageType = MessageType.System, TextContent = "Messages are end-to-end encrypted" };
+new ChatMessage { MessageType = MessageType.Date, Timestamp = day, TextContent = day.ToString("dddd, MMMM d, yyyy") };
+```
+
+### Avatars & sender names (group chats)
+
+```csharp
+msg.SenderAvatar = avatarPngBytes;   // image avatar, or…
+msg.SenderInitials = "AB";           // …initials fallback
+msg.SenderName = "Alex Berg";        // shown above incoming bubbles, de-duplicated per run
+```
+
+```xml
+<idk:ChatView ShowSenderName="True" SenderNameTextColor="MediumPurple" SenderNameFontSize="12"
+              AvatarSize="36" AvatarBackgroundColor="Indigo" AvatarTextColor="White" />
+```
+
+### Emoji reactions
+
+```csharp
+msg.Reactions.Add(new ChatMessageReaction { Emoji = "👍", Count = 3, ParticipantIds = ["u1", "u2", "u3"] });
+```
+
+```xml
+<idk:ChatView EmojiReactionFontSize="14" EmojiReactionTextColor="Indigo"
+              EmojiReactionTappedCommand="{Binding ReactionTappedCommand}" />
+```
+
+### Replies, swipe-to-reply & tap-to-jump
+
+```csharp
+// Render a reply preview inside a bubble
+msg.ReplyToMessage = new RepliedMessage
+{
+    MessageId   = original.MessageId,
+    SenderId    = "Alex Berg",
+    TextPreview = RepliedMessage.GenerateTextPreview(original.TextContent)
+};
+```
+
+```xml
+<idk:ChatView EnableSwipeToReply="True"
+              EnableJumpToRepliedMessage="True"
+              RepliedMessageHighlightColor="#80FFD54F"
+              LongPressedCommand="{Binding LongPressedCommand}" />
+```
+
+Swiping a bubble **and** the context menu's "Reply" item raise the same event, so you handle reply once:
+
+```csharp
+[RelayCommand]
+void LongPressed(ContextAction action)
+{
+    if (action.Name == "reply")
+        StartReplyTo(action.Message); // your composer sets the next message's ReplyToMessage
+}
+```
+
+Tapping a reply preview scrolls to (and flashes) the original; `RepliedMessageTappedCommand` also fires with that message.
+
+### Link previews (URL unfurl cards)
+
+```csharp
+// Your app fetches the metadata + thumbnail bytes; the control only renders the card.
+msg.LinkPreview = new LinkPreview
+{
+    Url = "https://learn.microsoft.com/dotnet/maui/",
+    SiteName = "learn.microsoft.com",
+    Title = ".NET MAUI documentation",
+    Description = "Build cross-platform native apps from one C# codebase.",
+    ImageBytes = thumbnailBytes
+};
+```
+
+```xml
+<idk:ChatView EnableLinkPreview="True"
+              LinkPreviewBackgroundColor="#F2F2F2"
+              LinkPreviewTitleColor="Black"
+              LinkPreviewSiteNameColor="RoyalBlue"
+              LinkPreviewTappedCommand="{Binding LinkPreviewTappedCommand}" />
+```
+
+### Clickable links (URLs / phone / email)
+
+```xml
+<idk:ChatView DetectLinks="True" LinkTextColor="RoyalBlue" />
+```
+
+### Delivery & read state (with custom icons)
+
+```csharp
+msg.DeliveryState = MessageDeliveryState.Read; // Sent | Delivered | Read
+msg.ReadState     = MessageReadState.New;       // New | Unread | Read
+```
+
+```xml
+<idk:ChatView SendIcon="send.png" DeliveredIcon="check.png" ReadIcon="read.png" />
+```
+
+### "New messages" separator
+
+```xml
+<idk:ChatView ShowNewMessagesSeperator="True"
+              NewMessagesSeperatorText="New Messages"
+              NewMessagesSeperatorTextColor="Indigo"
+              ScrollToFirstNewMessage="True" />
+```
+
+### Load more (infinite scroll up)
+
+```xml
+<idk:ChatView LoadMoreMessagesCommand="{Binding LoadOlderCommand}" />
+```
+
+```csharp
+[RelayCommand]
+void LoadOlder() => ChatMessages.InsertRange(0, await GetOlderPageAsync()); // viewport stays stable
+```
+
+### Scroll-to-bottom button + unread badge
+
+```xml
+<idk:ChatView ShowScrollToBottomButton="True"
+              ScrollToBottomButtonBackgroundColor="{StaticResource Primary}"
+              ScrollToBottomButtonIconColor="White"
+              ScrollToBottomButtonSize="46"
+              ShowScrollToBottomBadge="True"
+              ScrollToBottomBadgeBackgroundColor="Red"
+              ScrollToBottomBadgeTextColor="White" />
+```
+
+The button appears while scrolled up; the badge counts messages that arrive meanwhile. Tapping it returns to the newest message and clears the badge.
+
+### Full-screen media
+
+```xml
+<!-- defaults: both true. Set false to keep media inline / handle the tap yourself. -->
+<idk:ChatView OpenImageFullScreen="True" OpenVideoFullScreen="True" />
+```
+
+### Context menu (long press) — actions + reactions
+
+```csharp
+chatView.ContextMenuItems =
+[
+    new() { Name = "Copy",  Tag = "copy" },
+    new() { Name = "Reply", Tag = "reply" },
+    new() { Name = "Delete", Tag = "delete", IsDestructive = true },
+];
+chatView.EmojiReactions = ["👍", "❤️", "😂", "🔥"];
+```
+
+```csharp
+[RelayCommand]
+void LongPressed(ContextAction action)
+{
+    switch (action.Name)
+    {
+        case "react":  var reaction = (ChatMessageReaction)action.AdditionalData; /* add to message */ break;
+        case "copy":   Clipboard.SetTextAsync(action.Message.TextContent); break;
+        case "reply":  StartReplyTo(action.Message); break;
+        case "delete": ChatMessages.Remove(action.Message); break;
+    }
+}
+```
+
+```xml
+<idk:ChatView EnableContextMenu="True"
+              ContextMenuBackgroundColor="White" ContextMenuTextColor="Gray"
+              ContextMenuDestructiveTextColor="Red" ContextMenuReactionFontSize="18" />
+```
+
+---
+
 ## Models
 
 ### `ChatMessage`

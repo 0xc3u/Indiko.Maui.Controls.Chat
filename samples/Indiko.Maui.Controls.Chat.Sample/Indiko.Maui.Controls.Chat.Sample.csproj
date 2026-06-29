@@ -43,6 +43,7 @@
 	  <None Remove="Assets\Images\hiker3.png" />
 	  <None Remove="Assets\Images\hiker4.png" />
 	  <None Remove="Assets\Images\mountain1.png" />
+	  <None Remove="Assets\Images\sample_video.mp4" />
 	  <None Remove="Resources\Images\check.png" />
 	  <None Remove="Resources\Images\dev.png" />
 	  <None Remove="Resources\Images\dotnet_bot.svg" />
@@ -56,6 +57,7 @@
 	  <EmbeddedResource Include="Assets\Images\hiker3.png" />
 	  <EmbeddedResource Include="Assets\Images\hiker4.png" />
 	  <EmbeddedResource Include="Assets\Images\mountain1.png" />
+	  <EmbeddedResource Include="Assets\Images\sample_video.mp4" />
 	</ItemGroup>
 
 	<ItemGroup>
