@@ -379,6 +379,24 @@ Binding `ReplyingTo` two-way connects the composer to the swipe / context-menu *
 the user starts a reply, set `ReplyingTo` on your VM and the composer shows a reply banner; it clears
 it on send (or when the user taps ✕).
 
+**Editing a message:** set `EditingMessage` (two-way) to put the composer into edit mode — it prefills
+the text and shows an "Editing message" banner. On send, `ChatComposeResult.IsEdit` is `true` and
+`EditingMessage` carries the message; update that message's text instead of adding a new one:
+
+```csharp
+[RelayCommand]
+void SendComposed(ChatComposeResult r)
+{
+    if (r.IsEdit)
+    {
+        var i = ChatMessages.IndexOf(r.EditingMessage);
+        if (i >= 0) { r.EditingMessage.TextContent = r.Text; ChatMessages[i] = r.EditingMessage; } // raises Replace → cell re-renders
+        return;
+    }
+    // …otherwise build + add a new ChatMessage…
+}
+```
+
 **Customization** — colors, font sizes, feature toggles and **icons** are all bindable. Icons accept
 any `ImageSource` (PNG/SVG/`FontImageSource`) and fall back to built-in glyphs when unset:
 
@@ -400,6 +418,7 @@ any `ImageSource` (PNG/SVG/`FontImageSource`) and fall back to built-in glyphs w
 | `SendCommand` | – | Raised with a `ChatComposeResult` on send. |
 | `ClearOnSend` | true | Clear text/media/reply after `SendCommand`. |
 | `ReplyingTo` | null | Two-way; shows the reply banner when set. |
+| `EditingMessage` | null | Two-way; edit mode — prefills text + shows the editing banner. |
 | `SelectedMedia` | null | Two-way attached media bytes (preview shown). |
 | `EnableAttachments` / `EnableVoiceRecording` / `EnableEmojiPicker` | true | Toggle each feature. |
 | `EnableCamera` | true | Show "Take Photo" (camera capture) in the attachment sheet. |
@@ -504,6 +523,8 @@ public class ChatComposeResult
     public MessageType? MediaType { get; set; }  // Image / Video / Audio, or null for text
     public TimeSpan? AudioDuration { get; set; } // set for recorded voice notes
     public ChatMessage ReplyingTo { get; set; }  // reply target, if any
+    public ChatMessage EditingMessage { get; set; } // set in edit mode — update this message
+    public bool IsEdit { get; }                  // true when EditingMessage is set
     public bool IsEmpty { get; }                 // true when there's nothing to send
 }
 ```

@@ -279,6 +279,15 @@ public class ChatViewHandler : ViewHandler<ChatView, UICollectionView>
             return;
         }
 
+        // REPLACE of a single item (e.g. an in-place edit): the diffable keys cells by MessageId,
+        // so reload that specific cell to reflect the changed content.
+        if (e.Action == NotifyCollectionChangedAction.Replace && e.NewItems?.Count == 1
+            && e.NewItems[0] is ChatMessage changed)
+        {
+            UIView.PerformWithoutAnimation(() => _dataSource.ReloadMessage(chatView.Messages, changed));
+            return;
+        }
+
         // Reset / Replace / Remove: re-apply the snapshot without forcing a scroll so the
         // user's current position is preserved (the diffable diff keeps cells in place).
         UIView.PerformWithoutAnimation(() =>

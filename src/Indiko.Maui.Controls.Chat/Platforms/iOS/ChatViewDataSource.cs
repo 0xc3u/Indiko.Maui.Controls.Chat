@@ -93,6 +93,19 @@ public class ChatViewDataSource : UICollectionViewDiffableDataSource<ChatSection
         ApplySnapshot(snapshot, animate, completion);
     }
 
+    // Re-renders a single message's cell after its content changed in place (e.g. an edit). The
+    // diffable keys items by MessageId, so a content-only change won't reload the cell on its own;
+    // ReloadItems forces it without disturbing order or scroll position.
+    public void ReloadMessage(ObservableCollection<ChatMessage> messages, ChatMessage changed)
+    {
+        if (changed == null || string.IsNullOrEmpty(changed.MessageId)) return;
+        var snapshot = new NSDiffableDataSourceSnapshot<ChatSection, ChatMessageItem>();
+        snapshot.AppendSections(new[] { new ChatSection("Messages") });
+        snapshot.AppendItems(messages.Reverse().Select(m => new ChatMessageItem(m)).ToArray());
+        snapshot.ReloadItems(new[] { new ChatMessageItem(changed) });
+        ApplySnapshot(snapshot, false);
+    }
+
 
     private static string GetCellIdentifier(ChatMessage message)
     {

@@ -22,6 +22,8 @@ public class ChatInputView : ContentView
     private readonly Border _replyBanner;
     private readonly Label _replyTitle;
     private readonly Label _replyPreview;
+    private readonly Border _editBanner;
+    private readonly Label _editPreview;
     private readonly Grid _mediaPreview;
     private readonly Image _mediaThumb;
     private readonly ScrollView _emojiPanel;
@@ -76,6 +78,32 @@ public class ChatInputView : ContentView
             Margin = new Thickness(0, 0, 0, 6),
             IsVisible = false,
             Content = replyGrid,
+            StrokeShape = new RoundRectangle { CornerRadius = 8 },
+        };
+
+        // Edit banner --------------------------------------------------------------------------
+        var editTitle = new Label { Text = "Editing message", FontSize = 12, FontAttributes = FontAttributes.Bold };
+        editTitle.SetBinding(Label.TextColorProperty, new Binding(nameof(AccentColor), source: this));
+        _editPreview = new Label { FontSize = 13, LineBreakMode = LineBreakMode.TailTruncation, MaxLines = 1 };
+        var editAccent = new BoxView { WidthRequest = 3, CornerRadius = 2 };
+        editAccent.SetBinding(BoxView.ColorProperty, new Binding(nameof(AccentColor), source: this));
+        var editClose = MakeGlyphButton("✕");
+        editClose.Clicked += (s, e) => CancelEdit();
+        var editTexts = new VerticalStackLayout { VerticalOptions = LayoutOptions.Center, Children = { editTitle, _editPreview } };
+        var editGrid = new Grid { ColumnSpacing = 8 };
+        editGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+        editGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        editGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+        Add(editGrid, editAccent, 0);
+        Add(editGrid, editTexts, 1);
+        Add(editGrid, editClose, 2);
+        _editBanner = new Border
+        {
+            StrokeThickness = 0,
+            Padding = new Thickness(10, 6),
+            Margin = new Thickness(0, 0, 0, 6),
+            IsVisible = false,
+            Content = editGrid,
             StrokeShape = new RoundRectangle { CornerRadius = 8 },
         };
 
@@ -158,7 +186,7 @@ public class ChatInputView : ContentView
         Add(inputRow, _micView, 3);
         Add(inputRow, _sendButton, 3); // mic/send share the trailing slot (only one visible)
 
-        Content = new VerticalStackLayout { Children = { _replyBanner, _mediaPreview, _emojiPanel, _recordingBar, inputRow } };
+        Content = new VerticalStackLayout { Children = { _editBanner, _replyBanner, _mediaPreview, _emojiPanel, _recordingBar, inputRow } };
 
         BuildEmojiPanel();
         ApplyStyle();
@@ -239,6 +267,14 @@ public class ChatInputView : ContentView
     /// <summary>When set, a reply banner is shown; the value flows into the next <see cref="ChatComposeResult.ReplyingTo"/>.</summary>
     public static readonly BindableProperty ReplyingToProperty = BindableProperty.Create(nameof(ReplyingTo), typeof(ChatMessage), typeof(ChatInputView), null, BindingMode.TwoWay, propertyChanged: (b, o, n) => ((ChatInputView)b).OnReplyingToChanged());
     public ChatMessage ReplyingTo { get => (ChatMessage)GetValue(ReplyingToProperty); set => SetValue(ReplyingToProperty, value); }
+
+    /// <summary>
+    /// When set, the composer enters edit mode: it prefills the text with the message's content and
+    /// shows an "Editing message" banner. The next <see cref="SendCommand"/> carries it as
+    /// <see cref="ChatComposeResult.EditingMessage"/> so your app updates that message's text.
+    /// </summary>
+    public static readonly BindableProperty EditingMessageProperty = BindableProperty.Create(nameof(EditingMessage), typeof(ChatMessage), typeof(ChatInputView), null, BindingMode.TwoWay, propertyChanged: (b, o, n) => ((ChatInputView)b).OnEditingMessageChanged((ChatMessage)n));
+    public ChatMessage EditingMessage { get => (ChatMessage)GetValue(EditingMessageProperty); set => SetValue(EditingMessageProperty, value); }
 
     /// <summary>Invoked when the user sends, with a <see cref="ChatComposeResult"/>. Your app persists/sends and appends the message.</summary>
     public static readonly BindableProperty SendCommandProperty = BindableProperty.Create(nameof(SendCommand), typeof(ICommand), typeof(ChatInputView), null);
@@ -360,6 +396,26 @@ public class ChatInputView : ContentView
         _replyPreview.Text = string.IsNullOrEmpty(m.TextContent) ? m.MessageType.ToString() : m.TextContent;
     }
 
+    private void OnEditingMessageChanged(ChatMessage m)
+    {
+        _editBanner.IsVisible = m != null;
+        if (m == null) return;
+
+        // Editing supersedes replying; prefill the editor with the existing text.
+        ReplyingTo = null;
+        _editPreview.Text = m.TextContent;
+        Text = m.TextContent ?? string.Empty;
+        _editor.Text = Text;
+        _editor.Focus();
+    }
+
+    private void CancelEdit()
+    {
+        EditingMessage = null;
+        Text = string.Empty;
+        _editor.Text = string.Empty;
+    }
+
     private void ApplyStyle()
     {
         _editor.BackgroundColor = EntryBackgroundColor;
@@ -377,6 +433,8 @@ public class ChatInputView : ContentView
         _replyBanner.BackgroundColor = ReplyBarBackgroundColor;
         _replyTitle.TextColor = AccentColor;
         _replyPreview.TextColor = ReplyBarTextColor;
+        _editBanner.BackgroundColor = ReplyBarBackgroundColor;
+        _editPreview.TextColor = ReplyBarTextColor;
         _recordingTimer.TextColor = TextColor;
         _cancelHint.TextColor = PlaceholderColor;
         _waveform.BarColor = AccentColor;
@@ -411,6 +469,27 @@ public class ChatInputView : ContentView
 
     private void Send(byte[] audioBytes, TimeSpan? audioDuration)
     {
+        var editing = EditingMessage;
+
+        // Edit mode: text-only update of an existing message (empty text is a no-op, not a delete).
+        if (editing != null)
+        {
+            if (string.IsNullOrWhiteSpace(Text)) return;
+
+            var editResult = new ChatComposeResult { Text = Text, EditingMessage = editing };
+            if (SendCommand?.CanExecute(editResult) == true)
+                SendCommand.Execute(editResult);
+
+            if (ClearOnSend)
+            {
+                EditingMessage = null;
+                Text = string.Empty;
+                _editor.Text = string.Empty;
+                CloseEmojiPanel();
+            }
+            return;
+        }
+
         var hasAudio = audioBytes is { Length: > 0 };
         var result = new ChatComposeResult
         {

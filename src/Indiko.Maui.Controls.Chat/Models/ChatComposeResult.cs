@@ -26,6 +26,15 @@ public class ChatComposeResult
     /// <summary>The message being replied to, if the composer was in reply mode; otherwise null.</summary>
     public ChatMessage ReplyingTo { get; set; }
 
+    /// <summary>
+    /// The message being edited, if the composer was in edit mode; otherwise null. When set, your app
+    /// should update that message's text (to <see cref="Text"/>) rather than add a new message.
+    /// </summary>
+    public ChatMessage EditingMessage { get; set; }
+
+    /// <summary>True when this result is an edit of an existing message.</summary>
+    public bool IsEdit => EditingMessage != null;
+
     /// <summary>True when there is nothing to send (no text, media or audio).</summary>
     public bool IsEmpty => string.IsNullOrWhiteSpace(Text) && (MediaBytes == null || MediaBytes.Length == 0);
 }
