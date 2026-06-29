@@ -46,5 +46,7 @@
 	<string>Microphone access is needed to record voice notes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photo library access is needed to attach images to messages.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is needed to take photos for messages.</string>
 </dict>
 </plist>

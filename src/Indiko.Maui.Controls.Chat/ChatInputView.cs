@@ -12,8 +12,9 @@ namespace Indiko.Maui.Controls.Chat;
 /// the reply target); your app builds and persists the <see cref="ChatMessage"/> and adds it to the
 /// bound <c>Messages</c> collection.
 ///
-/// Features: auto-growing text entry, attachments (built-in <c>MediaPicker</c>), an emoji picker,
-/// tap-to-record voice notes (built-in), a reply banner and a selected-media preview.
+/// Features: auto-growing text entry; attachments via a built-in action sheet (photo / video /
+/// camera); an emoji picker; WhatsApp-style press-and-hold voice notes (slide to cancel, slide up to
+/// lock, live waveform); a reply banner and a selected-media preview.
 /// </summary>
 public class ChatInputView : ContentView
 {
@@ -127,7 +128,7 @@ public class ChatInputView : ContentView
         _emojiButton = MakeGlyphButton("\U0001F642");
         _emojiButton.Clicked += (s, e) => ToggleEmojiPanel();
         _attachButton = MakeGlyphButton("\U0001F4CE");
-        _attachButton.Clicked += async (s, e) => await PickMediaAsync();
+        _attachButton.Clicked += async (s, e) => await ShowAttachmentSheetAsync();
         _sendButton = MakeGlyphButton("➤");
         _sendButton.Clicked += (s, e) => Send(null, null);
 
@@ -255,6 +256,14 @@ public class ChatInputView : ContentView
 
     public static readonly BindableProperty EnableEmojiPickerProperty = BindableProperty.Create(nameof(EnableEmojiPicker), typeof(bool), typeof(ChatInputView), true, propertyChanged: (b, o, n) => ((ChatInputView)b).UpdateButtons());
     public bool EnableEmojiPicker { get => (bool)GetValue(EnableEmojiPickerProperty); set => SetValue(EnableEmojiPickerProperty, value); }
+
+    /// <summary>When true (default), the attachment sheet offers "Take Photo" (camera capture).</summary>
+    public static readonly BindableProperty EnableCameraProperty = BindableProperty.Create(nameof(EnableCamera), typeof(bool), typeof(ChatInputView), true);
+    public bool EnableCamera { get => (bool)GetValue(EnableCameraProperty); set => SetValue(EnableCameraProperty, value); }
+
+    /// <summary>Labels for the attachment action sheet: [0]=title, [1]=cancel, [2]=photo, [3]=video, [4]=camera.</summary>
+    public static readonly BindableProperty AttachmentSheetLabelsProperty = BindableProperty.Create(nameof(AttachmentSheetLabels), typeof(IList<string>), typeof(ChatInputView), null);
+    public IList<string> AttachmentSheetLabels { get => (IList<string>)GetValue(AttachmentSheetLabelsProperty); set => SetValue(AttachmentSheetLabelsProperty, value); }
 
     public static readonly BindableProperty EmojiListProperty = BindableProperty.Create(nameof(EmojiList), typeof(IList<string>), typeof(ChatInputView), null, propertyChanged: (b, o, n) => ((ChatInputView)b).BuildEmojiPanel());
     public IList<string> EmojiList { get => (IList<string>)GetValue(EmojiListProperty); set => SetValue(EmojiListProperty, value); }
@@ -430,22 +439,66 @@ public class ChatInputView : ContentView
 
     // ---- Attachments (built-in MediaPicker) -----------------------------------------------------
 
-    private async Task PickMediaAsync()
+    private async Task ShowAttachmentSheetAsync()
+    {
+        var labels = AttachmentSheetLabels;
+        string Label(int i, string fallback) => labels != null && labels.Count > i && !string.IsNullOrEmpty(labels[i]) ? labels[i] : fallback;
+        var title = Label(0, "Attach");
+        var cancel = Label(1, "Cancel");
+        var photo = Label(2, "Photo");
+        var video = Label(3, "Video");
+        var camera = Label(4, "Take Photo");
+
+        var page = GetHostPage();
+        if (page == null) { await PickPhotoAsync(); return; } // no page to host the sheet — fall back
+
+        var options = EnableCamera ? new[] { photo, video, camera } : new[] { photo, video };
+        var choice = await page.DisplayActionSheet(title, cancel, null, options);
+
+        if (choice == photo) await PickPhotoAsync();
+        else if (choice == video) await PickVideoAsync();
+        else if (choice == camera) await CapturePhotoAsync();
+    }
+
+    private async Task PickPhotoAsync() => await PickAsync(() => Microsoft.Maui.Media.MediaPicker.Default.PickPhotoAsync(), MessageType.Image);
+
+    private async Task PickVideoAsync() => await PickAsync(() => Microsoft.Maui.Media.MediaPicker.Default.PickVideoAsync(), MessageType.Video);
+
+    private async Task CapturePhotoAsync()
+    {
+        if (!Microsoft.Maui.Media.MediaPicker.Default.IsCaptureSupported)
+        {
+            await PickPhotoAsync();
+            return;
+        }
+        await PickAsync(() => Microsoft.Maui.Media.MediaPicker.Default.CapturePhotoAsync(), MessageType.Image);
+    }
+
+    private async Task PickAsync(Func<Task<Microsoft.Maui.Storage.FileResult>> pick, MessageType type)
     {
         try
         {
-            var photo = await Microsoft.Maui.Media.MediaPicker.Default.PickPhotoAsync();
-            if (photo == null) return;
-            using var stream = await photo.OpenReadAsync();
+            var file = await pick();
+            if (file == null) return;
+            using var stream = await file.OpenReadAsync();
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
-            SelectedMediaType = MessageType.Image;
+            SelectedMediaType = type;
             SelectedMedia = ms.ToArray();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"ChatInputView.PickMediaAsync: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"ChatInputView attachment failed: {ex.Message}");
         }
+    }
+
+    // Walks up the visual tree to the hosting Page (needed to present the action sheet).
+    private Page GetHostPage()
+    {
+        Element element = this;
+        while (element != null && element is not Page)
+            element = element.Parent;
+        return element as Page;
     }
 
     // ---- Voice recording (built-in) -------------------------------------------------------------

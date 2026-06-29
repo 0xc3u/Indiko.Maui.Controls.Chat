@@ -321,8 +321,9 @@ void LongPressed(ContextAction action)
 
 `ChatView` is render-only and ships no input box, so you can build your own. For convenience the
 library also includes an **optional**, fully styleable composer — `ChatInputView` — that you place
-below the `ChatView`. It provides an auto-growing text entry, attachments (built-in `MediaPicker`),
-an emoji picker, **press-and-hold to record voice notes** (built-in), a reply banner and a selected-media preview.
+below the `ChatView`. It provides an auto-growing text entry, attachments via a built-in action sheet
+(**photo / video / camera**), an emoji picker, **press-and-hold to record voice notes** (built-in),
+a reply banner and a selected-media preview.
 
 Like everything else it is **input-only**: it never persists or sends. On send it raises
 `SendCommand` with a `ChatComposeResult`; your app builds the `ChatMessage` (persisting / sending as
@@ -401,6 +402,8 @@ any `ImageSource` (PNG/SVG/`FontImageSource`) and fall back to built-in glyphs w
 | `ReplyingTo` | null | Two-way; shows the reply banner when set. |
 | `SelectedMedia` | null | Two-way attached media bytes (preview shown). |
 | `EnableAttachments` / `EnableVoiceRecording` / `EnableEmojiPicker` | true | Toggle each feature. |
+| `EnableCamera` | true | Show "Take Photo" (camera capture) in the attachment sheet. |
+| `AttachmentSheetLabels` | built-in | Localize the sheet: [title, cancel, photo, video, camera]. |
 | `EmojiList` | built-in set | Emojis shown in the picker. |
 | `AccentColor` | RoyalBlue | Tint for icons + reply accent. |
 | `TextColor` / `PlaceholderColor` / `EntryBackgroundColor` | Black / Gray / #F0F0F0 | Entry styling. |
