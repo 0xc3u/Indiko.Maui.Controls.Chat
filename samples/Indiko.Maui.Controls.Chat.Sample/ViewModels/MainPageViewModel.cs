@@ -108,12 +108,31 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private void CancelReply() => ReplyingTo = null;
 
+    // The message being edited (set from the "Edit" context-menu action); bound to ChatInputView.EditingMessage.
+    [ObservableProperty]
+    ChatMessage editingMessage;
+
     // Receives the composed message from ChatInputView and turns it into a ChatMessage. This is
     // where your app would persist / send. The composer is input-only; it never does this itself.
     [RelayCommand]
     private void SendComposed(ChatComposeResult result)
     {
-        if (ChatMessages == null || result == null || result.IsEmpty)
+        if (ChatMessages == null || result == null)
+            return;
+
+        // Edit mode: update the existing message's text in place.
+        if (result.IsEdit)
+        {
+            var idx = ChatMessages.IndexOf(result.EditingMessage);
+            if (idx >= 0)
+            {
+                result.EditingMessage.TextContent = result.Text;
+                ChatMessages[idx] = result.EditingMessage; // raises Replace so the cell re-renders
+            }
+            return;
+        }
+
+        if (result.IsEmpty)
             return;
 
         // Mark existing unread as read (we're sending, so we're at the bottom).
@@ -314,6 +333,10 @@ public partial class MainPageViewModel : BaseViewModel
             case "reply":
                 // Same handler for the context-menu "Reply" item and the swipe-to-reply gesture.
                 BeginReply(contextAction.Message);
+                break;
+            case "edit":
+                // Puts the composer into edit mode (prefills text, shows the editing banner).
+                EditingMessage = contextAction.Message;
                 break;
             case "delete":
                 Console.WriteLine($"Delete message: {contextAction.Message.MessageId}");

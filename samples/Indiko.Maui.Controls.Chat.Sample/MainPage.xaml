@@ -93,6 +93,7 @@
             InputFontSize="16"
             IconFontSize="18"
             ReplyingTo="{Binding ReplyingTo, Mode=TwoWay}"
+            EditingMessage="{Binding EditingMessage, Mode=TwoWay}"
             SendCommand="{Binding SendComposedCommand}">
             <!-- Custom icons (optional) — falls back to built-in glyphs when not set. -->
             <idk:ChatInputView.SendIcon>

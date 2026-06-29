@@ -119,8 +119,9 @@ the input-only design (the app persists/sends); networking/backend items are exp
   Documents/files model item; location/contact/poll left as optional app-supplied actions.
 - ☐ **Voice-note preview + pause/resume** [Render] — in locked mode, play the clip and pause/resume
   before sending (native recorder pause + a preview player).
-- ☐ **Edit-message mode** [Render] — an `EditingMessage` banner mirroring the reply banner;
-  `ChatComposeResult` flags edit vs new; the app applies the edit.
+- ☑ **Edit-message mode** [Render] — `EditingMessage` (two-way) puts the composer in edit mode
+  (prefills text + "Editing message" banner); `ChatComposeResult.IsEdit`/`EditingMessage` flag it so
+  the app updates instead of adds. iOS reloads the edited cell via the diffable (`ReloadMessage`).
 - ☐ **Multiple attachments + pre-send caption** [Render][Model] — list of attachments, per-item
   caption preview (`ChatComposeResult` carries multiple).
 - ☐ **Emoji picker polish** [Render] — categories, recents, search, insert-at-cursor (today: flat grid,

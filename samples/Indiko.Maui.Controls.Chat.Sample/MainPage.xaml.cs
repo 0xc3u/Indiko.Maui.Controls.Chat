@@ -14,6 +14,15 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
 		this.mainPageViewModel = mainPageViewModel;
 		BindingContext = mainPageViewModel;
+
+        // Add an "Edit" item to the long-press context menu (demonstrates ChatInputView edit mode).
+        chatView.ContextMenuItems =
+        [
+            new() { Name = "Copy", Tag = "copy" },
+            new() { Name = "Reply", Tag = "reply" },
+            new() { Name = "Edit", Tag = "edit" },
+            new() { Name = "Delete", Tag = "delete", IsDestructive = true },
+        ];
     }
 
 	protected override async void OnAppearing()
