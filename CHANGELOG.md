@@ -1,3 +1,14 @@
+# [1.7.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.6.0...v1.7.0) (2026-06-30)
+
+
+### Features
+
+* add link-preview (URL unfurl) cards for text messages ([2cdc0ca](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/2cdc0ca04a70934c42cd3b2326ef4400947da491))
+* add optional ChatInputView composer ([f2d308d](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/f2d308d223cf4851b79fa3dd3607d777be849fa4))
+* attachment sheet (photo/video/camera) in ChatInputView + composer backlog ([449d463](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/449d4634a3af02f8ce94206ac35ae098f8cd64b6))
+* edit-message mode in ChatInputView ([82e9bfa](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/82e9bfa5791b65f1932d16981442e38282c7b629))
+* WhatsApp-style voice recording in ChatInputView ([6251efc](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/6251efc3928a0c42add13781c020a5b9c6913a8e))
+
 # [1.6.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.5.0...v1.6.0) (2026-06-27)
 
 
