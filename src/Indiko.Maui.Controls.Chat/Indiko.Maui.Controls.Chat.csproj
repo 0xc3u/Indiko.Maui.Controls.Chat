@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
+		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-windows10.0.19041.0</TargetFrameworks>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.2</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">30.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.19041.0</SupportedOSPlatformVersion>
 
 		<!-- NuGet -->
 		<Authors>INDIKO</Authors>
@@ -40,6 +41,22 @@
   <ItemGroup>
 	  <PackageReference Include="Microsoft.Maui.Controls" />
   </ItemGroup>
+
+  <!--
+      On the Windows target the MAUI implicit global usings (Microsoft.Maui.Controls etc.) collide
+      with WinUI type names (Grid, Button, Border, ...). Drop them there and use explicit usings
+      in the shared cross-platform files instead.
+  -->
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+	  <Using Remove="Microsoft.Maui" />
+	  <Using Remove="Microsoft.Maui.Controls" />
+	  <Using Remove="Microsoft.Maui.Graphics" />
+  </ItemGroup>
+
+  <!-- Level metering in the Windows voice recorder reads the captured PCM buffer directly. -->
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
 
   <ItemGroup>
 	  <None Include="..\Indiko.Maui.Controls.Chat\icon.png" Pack="true" PackagePath="" />

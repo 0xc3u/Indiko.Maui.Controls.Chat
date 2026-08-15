@@ -1,5 +1,7 @@
 ﻿using System.Windows.Input;
 using Indiko.Maui.Controls.Chat.Models;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Graphics;
 
 namespace Indiko.Maui.Controls.Chat;
 public class ChatView : View

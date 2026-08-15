@@ -1,0 +1,39 @@
+<Grid
+    x:Class="Indiko.Maui.Controls.Chat.Platforms.Windows.ChatViewContainer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Indiko.Maui.Controls.Chat.Platforms.Windows"
+    Background="Transparent">
+
+    <Grid.Resources>
+        <local:ChatMessageTemplateSelector x:Key="MessageTemplateSelector"/>
+        <ItemsPanelTemplate x:Key="ChatItemsPanel">
+            <ItemsStackPanel ItemsUpdatingScrollMode="KeepItemsInView"/>
+        </ItemsPanelTemplate>
+    </Grid.Resources>
+
+    <Grid Background="Transparent">
+        <ListView
+            x:Name="ChatList"
+            SelectionMode="None"
+            IsItemClickEnabled="False"
+            Background="Transparent"
+            HorizontalContentAlignment="Stretch"
+            ItemTemplateSelector="{StaticResource MessageTemplateSelector}"
+            ItemsPanel="{StaticResource ChatItemsPanel}"
+            ContainerContentChanging="OnContainerContentChanging"
+            ScrollViewer.VerticalScrollBarVisibility="Hidden"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="MinHeight" Value="0"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="UseSystemFocusVisuals" Value="False"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+        <local:ScrollToBottomButton x:Name="ChatFab" Visibility="Collapsed"/>
+    </Grid>
+</Grid>

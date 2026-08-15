@@ -1,6 +1,9 @@
 using System.Windows.Input;
 using Indiko.Maui.Controls.Chat.Models;
+using Microsoft.Maui;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
+using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 
 namespace Indiko.Maui.Controls.Chat;

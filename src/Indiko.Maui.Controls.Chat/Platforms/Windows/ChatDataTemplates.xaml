@@ -1,0 +1,502 @@
+<ResourceDictionary
+    x:Class="Indiko.Maui.Controls.Chat.Platforms.Windows.ChatDataTemplates"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Indiko.Maui.Controls.Chat.Platforms.Windows">
+
+    <local:TimeFormatConverter x:Key="TimeFormatConverter"/>
+
+    <!-- Single reaction chip (emoji + count) rendered by the row's ReactionsList. -->
+    <DataTemplate x:Key="ReactionItemTemplate">
+        <Border Background="#33000000" CornerRadius="10" Padding="6,2" Margin="0,0,4,0">
+            <TextBlock FontSize="12">
+                <Run Text="{Binding Emoji}"/><Run Text=" "/><Run Text="{Binding Count}"/>
+            </TextBlock>
+        </Border>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Date group separator
+         ========================================================================================== -->
+    <DataTemplate x:Key="DateTemplate">
+        <Grid Margin="12,10" Background="Transparent">
+            <Border x:Name="DatePill" Visibility="Collapsed" HorizontalAlignment="Center" Padding="12,4" CornerRadius="12" Background="#33000000">
+                <TextBlock x:Name="DateText" FontSize="13"/>
+            </Border>
+        </Grid>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         System message (centered pill)
+         ========================================================================================== -->
+    <DataTemplate x:Key="SystemTemplate">
+        <Grid Margin="12,8" Background="Transparent">
+            <Border x:Name="SystemPill" HorizontalAlignment="Center" Padding="16,6" CornerRadius="14" Background="#FFFFFACD">
+                <TextBlock x:Name="SystemText" TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center"/>
+            </Border>
+        </Grid>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Own text message
+         ========================================================================================== -->
+    <DataTemplate x:Key="OwnTextTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <StackPanel HorizontalAlignment="Right" MaxWidth="560">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="12,8" HorizontalAlignment="Right" Background="#FFADD8E6">
+                        <StackPanel>
+                            <Border x:Name="ReplyBox" Visibility="Collapsed" CornerRadius="8" Padding="10,6" Margin="0,0,0,6"
+                                    Background="#22000000" Tapped="OnReplyPreviewTapped">
+                                <StackPanel>
+                                    <TextBlock x:Name="ReplySender" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="ReplyText" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Border>
+                            <RichTextBlock x:Name="MessageText" TextWrapping="Wrap" IsTextSelectionEnabled="False"/>
+                            <Border x:Name="LinkCard" Visibility="Collapsed" CornerRadius="8" Margin="0,8,0,0"
+                                    Background="#F2F2F2" Tapped="OnLinkCardTapped">
+                                <StackPanel>
+                                    <Image x:Name="LinkImage" Height="120" Stretch="UniformToFill" Visibility="Collapsed"/>
+                                    <StackPanel Padding="10,8">
+                                        <TextBlock x:Name="LinkSite" FontSize="11"/>
+                                        <TextBlock x:Name="LinkTitle" FontSize="14" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" MaxLines="2"/>
+                                        <TextBlock x:Name="LinkDescription" FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Right" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="0,0,6,0" Visibility="Collapsed"/>
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Other text message (avatar + sender name on the left)
+         ========================================================================================== -->
+    <DataTemplate x:Key="OtherTextTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="AvatarHost" Grid.Column="0" Width="36" Height="36" VerticalAlignment="Top"
+                      Margin="0,0,10,0" Background="Transparent" Tapped="OnAvatarTapped">
+                    <Ellipse x:Name="AvatarCircle" Fill="#FFADD8E6"/>
+                    <TextBlock x:Name="AvatarInitials" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontWeight="SemiBold"/>
+                </Grid>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Left" MaxWidth="520">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="12,8" HorizontalAlignment="Left" Background="#FFD3D3D3">
+                        <StackPanel>
+                            <TextBlock x:Name="SenderName" FontWeight="SemiBold" FontSize="12" Visibility="Collapsed" Margin="0,0,0,4"/>
+                            <Border x:Name="ReplyBox" Visibility="Collapsed" CornerRadius="8" Padding="10,6" Margin="0,0,0,6"
+                                    Background="#22000000" Tapped="OnReplyPreviewTapped">
+                                <StackPanel>
+                                    <TextBlock x:Name="ReplySender" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="ReplyText" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </Border>
+                            <RichTextBlock x:Name="MessageText" TextWrapping="Wrap" IsTextSelectionEnabled="False"/>
+                            <Border x:Name="LinkCard" Visibility="Collapsed" CornerRadius="8" Margin="0,8,0,0"
+                                    Background="#F2F2F2" Tapped="OnLinkCardTapped">
+                                <StackPanel>
+                                    <Image x:Name="LinkImage" Height="120" Stretch="UniformToFill" Visibility="Collapsed"/>
+                                    <StackPanel Padding="10,8">
+                                        <TextBlock x:Name="LinkSite" FontSize="11"/>
+                                        <TextBlock x:Name="LinkTitle" FontSize="14" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" MaxLines="2"/>
+                                        <TextBlock x:Name="LinkDescription" FontSize="12"
+                                                   TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Left" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,0">
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="6,0,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Grid.ColumnSpan="2" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Own image message
+         ========================================================================================== -->
+    <DataTemplate x:Key="OwnImageTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <StackPanel HorizontalAlignment="Right" MaxWidth="560">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="4" HorizontalAlignment="Right" Background="#FFADD8E6">
+                        <StackPanel>
+                            <Image x:Name="MessageImage" Stretch="Uniform" MaxHeight="300" Margin="4,0" Tapped="OnImageTapped"/>
+                            <TextBlock x:Name="Caption" FontSize="14" Visibility="Collapsed" Margin="8,6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Right" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="0,0,6,0" Visibility="Collapsed"/>
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Other image message
+         ========================================================================================== -->
+    <DataTemplate x:Key="OtherImageTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="AvatarHost" Grid.Column="0" Width="36" Height="36" VerticalAlignment="Top"
+                      Margin="0,0,10,0" Background="Transparent" Tapped="OnAvatarTapped">
+                    <Ellipse x:Name="AvatarCircle" Fill="#FFADD8E6"/>
+                    <TextBlock x:Name="AvatarInitials" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontWeight="SemiBold"/>
+                </Grid>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Left" MaxWidth="520">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="4" HorizontalAlignment="Left" Background="#FFD3D3D3">
+                        <StackPanel>
+                            <Image x:Name="MessageImage" Stretch="Uniform" MaxHeight="300" Margin="4,0" Tapped="OnImageTapped"/>
+                            <TextBlock x:Name="Caption" FontSize="14" Visibility="Collapsed" Margin="8,6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Left" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,0">
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="6,0,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Grid.ColumnSpan="2" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Own video message
+         ========================================================================================== -->
+    <DataTemplate x:Key="OwnVideoTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <StackPanel HorizontalAlignment="Right" MaxWidth="560">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="4" HorizontalAlignment="Right" Background="#FFADD8E6">
+                        <StackPanel>
+                            <Grid x:Name="VideoHost" Width="300" Height="168" Background="#FF202020">
+                                <MediaPlayerElement x:Name="VideoPlayer" Visibility="Collapsed" AreTransportControlsEnabled="False"/>
+                                <Button x:Name="VideoPlayButton" Width="56" Height="56" Padding="0"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Background="#5A000000" CornerRadius="28" Tapped="OnVideoPlayTapped">
+                                    <FontIcon Glyph="&#xE768;" FontSize="22" Foreground="White"/>
+                                </Button>
+                            </Grid>
+                            <TextBlock x:Name="Caption" FontSize="14" Visibility="Collapsed" Margin="8,6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Right" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="0,0,6,0" Visibility="Collapsed"/>
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Other video message
+         ========================================================================================== -->
+    <DataTemplate x:Key="OtherVideoTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="AvatarHost" Grid.Column="0" Width="36" Height="36" VerticalAlignment="Top"
+                      Margin="0,0,10,0" Background="Transparent" Tapped="OnAvatarTapped">
+                    <Ellipse x:Name="AvatarCircle" Fill="#FFADD8E6"/>
+                    <TextBlock x:Name="AvatarInitials" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontWeight="SemiBold"/>
+                </Grid>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Left" MaxWidth="520">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="4" HorizontalAlignment="Left" Background="#FFD3D3D3">
+                        <StackPanel>
+                            <Grid x:Name="VideoHost" Width="300" Height="168" Background="#FF202020">
+                                <MediaPlayerElement x:Name="VideoPlayer" Visibility="Collapsed" AreTransportControlsEnabled="False"/>
+                                <Button x:Name="VideoPlayButton" Width="56" Height="56" Padding="0"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Background="#5A000000" CornerRadius="28" Tapped="OnVideoPlayTapped">
+                                    <FontIcon Glyph="&#xE768;" FontSize="22" Foreground="White"/>
+                                </Button>
+                            </Grid>
+                            <TextBlock x:Name="Caption" FontSize="14" Visibility="Collapsed" Margin="8,6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Left" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,0">
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="6,0,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Grid.ColumnSpan="2" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Own audio (voice note) message
+         ========================================================================================== -->
+    <DataTemplate x:Key="OwnAudioTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <StackPanel HorizontalAlignment="Right" MaxWidth="560">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="12,8" HorizontalAlignment="Right" Background="#FFADD8E6">
+                        <Grid MinWidth="220">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="AudioPlayButton" Grid.Column="0" Width="36" Height="36" Padding="0"
+                                    Background="Transparent" CornerRadius="18" Tapped="OnAudioPlayTapped"/>
+                            <local:WaveformView x:Name="AudioWaveform" Grid.Column="1" Height="32" Margin="8,0"/>
+                            <TextBlock x:Name="AudioDuration" Grid.Column="2" FontSize="11" Margin="8,0,0,0"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Right" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,2,0,0">
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="0,0,6,0" Visibility="Collapsed"/>
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+    <!-- ==========================================================================================
+         Other audio (voice note) message
+         ========================================================================================== -->
+    <DataTemplate x:Key="OtherAudioTemplate">
+        <SwipeControl>
+            <SwipeControl.RightItems>
+                <SwipeItems>
+                    <SwipeItem Text="Reply" Background="#FF4A90D9" Invoked="OnReplySwipeInvoked"/>
+                </SwipeItems>
+            </SwipeControl.RightItems>
+            <Grid x:Name="RowRoot" Margin="12,6" Background="Transparent"
+                  Tapped="OnRowTapped" RightTapped="OnRowRightTapped" Holding="OnRowHolding">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid x:Name="AvatarHost" Grid.Column="0" Width="36" Height="36" VerticalAlignment="Top"
+                      Margin="0,0,10,0" Background="Transparent" Tapped="OnAvatarTapped">
+                    <Ellipse x:Name="AvatarCircle" Fill="#FFADD8E6"/>
+                    <TextBlock x:Name="AvatarInitials" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontWeight="SemiBold"/>
+                </Grid>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Left" MaxWidth="520">
+                    <Border x:Name="NewMessagesSeparator" Visibility="Collapsed" HorizontalAlignment="Center"
+                            Padding="10,3" CornerRadius="10" Margin="0,0,0,6" Background="#33000000">
+                        <TextBlock x:Name="NewMessagesSeparatorText" FontSize="13"/>
+                    </Border>
+                    <Border x:Name="Bubble" CornerRadius="12" Padding="12,8" HorizontalAlignment="Left" Background="#FFD3D3D3">
+                        <Grid MinWidth="220">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="AudioPlayButton" Grid.Column="0" Width="36" Height="36" Padding="0"
+                                    Background="Transparent" CornerRadius="18" Tapped="OnAudioPlayTapped"/>
+                            <local:WaveformView x:Name="AudioWaveform" Grid.Column="1" Height="32" Margin="8,0"/>
+                            <TextBlock x:Name="AudioDuration" Grid.Column="2" FontSize="11" Margin="8,0,0,0"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <ItemsControl x:Name="ReactionsList" Visibility="Collapsed" Margin="0,4,0,0"
+                                  HorizontalAlignment="Left" Tapped="OnReactionsTapped"
+                                  ItemTemplate="{StaticResource ReactionItemTemplate}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,0">
+                        <TextBlock x:Name="Timestamp" FontSize="11" Opacity="0.6"
+                                   Text="{Binding Timestamp, Converter={StaticResource TimeFormatConverter}}"/>
+                        <Image x:Name="DeliveryIcon" Width="14" Height="14" Margin="6,0,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border x:Name="HighlightBorder" Grid.ColumnSpan="2" Background="Transparent" CornerRadius="12"
+                        IsHitTestVisible="False" Visibility="Collapsed"/>
+            </Grid>
+        </SwipeControl>
+    </DataTemplate>
+
+</ResourceDictionary>
+

@@ -7,6 +7,10 @@ using Indiko.Maui.Controls.Chat.Platforms.Android;
 using Indiko.Maui.Controls.Chat.Platforms.iOS;
 #endif
 
+#if WINDOWS
+using Indiko.Maui.Controls.Chat.Platforms.Windows;
+#endif
+
 namespace Indiko.Maui.Controls.Chat;
 
 public static class BuilderExtension

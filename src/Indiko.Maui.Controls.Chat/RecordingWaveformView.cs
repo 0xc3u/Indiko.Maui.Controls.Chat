@@ -1,3 +1,4 @@
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 
 namespace Indiko.Maui.Controls.Chat;

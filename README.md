@@ -1,14 +1,14 @@
 # ChatView Control for MAUI.NET
 
-The `ChatView` control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, managing replies, emoji reactions, avatars, and system messages. The control is optimized for native performance using platform-specific components like `RecyclerView` on Android and `UICollectionView` on iOS.
+The `ChatView` control is a highly customizable chat interface for MAUI.NET applications. It supports various features such as displaying messages, handling user interactions, managing replies, emoji reactions, avatars, and system messages. The control is optimized for native performance using platform-specific components like `RecyclerView` on Android, `UICollectionView` on iOS and a virtualized `ListView` on Windows (WinUI 3).
 
 ![Indiko.Maui.Controls.Chat](nuget.png)
 
 ## Screenshots
 
-| Android | iOS                |
-|--------------|----------------------------|
-| ![chatview_android](https://github.com/user-attachments/assets/5a45c70a-49fa-451a-b044-0c4c9fa8b49b) | ![chatview_ios](https://github.com/user-attachments/assets/e62c0f75-7dfd-41d2-9ffb-4141556187fa) |
+| Android | iOS | Windows |
+|--------------|----------------------------|----------------|
+| ![chatview_android](https://github.com/user-attachments/assets/5a45c70a-49fa-451a-b044-0c4c9fa8b49b) | ![chatview_ios](https://github.com/user-attachments/assets/e62c0f75-7dfd-41d2-9ffb-4141556187fa) | supported — full feature parity (WinUI 3 `ListView`) |
 
 ## Build Status
 ![ci](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/actions/workflows/symanticrelease.yml/badge.svg)
@@ -47,14 +47,14 @@ builder.UseChatView();
 ## Features
 
 - **Message Display**: Renders text, image, video, audio (voice note), system, and date-separator messages.
-- **Voice Notes**: Audio messages render as a play/pause button, a tap-to-seek waveform, and an elapsed/total duration label, with native playback on both platforms.
+- **Voice Notes**: Audio messages render as a play/pause button, a tap-to-seek waveform, and an elapsed/total duration label, with native playback on all platforms.
 - **Media Bubbles**: Images and videos are sized to the content's aspect ratio (capped) so a photo never blows up the bubble.
 - **Media Captions**: Image and video messages can carry a text caption (the message's `TextContent`), shown under the media in the same bubble.
 - **Tap-to-Play Video**: Videos show a blurred first-frame poster with a play button; nothing auto-plays while scrolling. Tapping play opens the video **full screen** with native controls (play/pause + seek bar) by default — set `OpenVideoFullScreen="False"` to play inline in the bubble instead.
 - **Full-Screen Image Viewer**: Tapping an image opens a full-screen viewer with pinch-to-zoom, pan and double-tap zoom. `MessageTapped` still fires; set `OpenImageFullScreen="False"` to handle the tap yourself.
 - **Reply Support**: Reply-to-message functionality with previews of the original message.
 - **Tap-to-Jump Reply**: Tapping a message's reply preview scrolls to the original message it replies to and briefly highlights it. Toggle with `EnableJumpToRepliedMessage`; set the flash color with `RepliedMessageHighlightColor` (or `Transparent` to disable it); `RepliedMessageTappedCommand` notifies your view model with the original message.
-- **Swipe-to-Reply**: Swipe a bubble to the right to start a reply. It raises the **same** event as the context menu's "Reply" item — `LongPressedCommand` fires with a `ContextAction` (`Name == "reply"`, `Message ==` the swiped message) — so you implement reply logic once for both gestures. The row springs back (haptic on iOS, clamped slide on Android). Toggle with `EnableSwipeToReply`; the action name is configurable via `SwipeReplyActionName`.
+- **Swipe-to-Reply**: Swipe a bubble to the right to start a reply. It raises the **same** event as the context menu's "Reply" item — `LongPressedCommand` fires with a `ContextAction` (`Name == "reply"`, `Message ==` the swiped message) — so you implement reply logic once for both gestures. The row springs back (haptic on iOS, clamped slide on Android); on Windows the swipe reveals a Reply button (native `SwipeControl`) which you tap. Toggle with `EnableSwipeToReply`; the action name is configurable via `SwipeReplyActionName`.
 - **Emoji Reactions**: Allows emoji reactions with reaction counts and participant details.
 - **Avatars**: Displays sender avatars (image or initials) with customizable appearance.
 - **Sender Names (group chats)**: Shows `SenderName` above incoming bubbles, de-duplicated for consecutive messages from the same sender. Toggle with `ShowSenderName`; style with `SenderNameTextColor` / `SenderNameFontSize`.
@@ -63,19 +63,19 @@ builder.UseChatView();
 - **Date Separators & "New Messages" Separator**: Group messages by day and highlight where unread messages begin.
 - **Customizable Styling**: Flexible styling for message backgrounds, text colors, fonts, and more.
 - **Commands and Events**: Handles user interactions like taps, emoji reactions, and scrolls.
-- **Smart Scrolling**: On iOS the list is rendered with an inverted `UICollectionView`, so the newest message rests at the bottom with no animated jump on open; supports scroll-to-last-message and scroll-to-first-new-message.
+- **Smart Scrolling**: On iOS the list is rendered with an inverted `UICollectionView`, so the newest message rests at the bottom with no animated jump on open; on Windows the virtualized `ListView` pins the viewport to the newest message (`ItemsUpdatingScrollMode`) and follows it when a message arrives while you're near the bottom; supports scroll-to-last-message and scroll-to-first-new-message.
 - **Scroll-to-Bottom Button**: A floating button appears when the user scrolls away from the newest message; tapping it jumps back to the bottom. An optional badge counts messages that arrive while scrolled up. Fully styleable — toggle with `ShowScrollToBottomButton`; style with `ScrollToBottomButtonBackgroundColor`, `ScrollToBottomButtonIconColor`, `ScrollToBottomButtonSize`, `ScrollToBottomButtonMargin`; the badge with `ShowScrollToBottomBadge`, `ScrollToBottomBadgeBackgroundColor`, `ScrollToBottomBadgeTextColor`, `ScrollToBottomBadgeFontSize`.
 - **Load More Messages**: Supports dynamic loading of older messages via a bound command; prepended messages keep the viewport stable.
-- **Native Performance**: Uses `RecyclerView` on Android and `UICollectionView` on iOS for smooth performance.
-- **Long Press Gesture**: Displays a configured context menu (emoji reactions + actions) on any message — text, image, video and voice note.
+- **Native Performance**: Uses `RecyclerView` on Android, `UICollectionView` on iOS and a virtualized `ListView` on Windows for smooth performance.
+- **Long Press Gesture**: Displays a configured context menu (emoji reactions + actions) on any message — text, image, video and voice note. On Windows, long-press with touch (`Holding`) **or** right-click both open the menu.
 - **Optional Composer (`ChatInputView`)**: A separate, fully styleable input control — auto-growing entry, attachments, emoji picker, press-and-hold to record voice notes, reply banner and media preview. Input-only: it raises `SendCommand` with a `ChatComposeResult` so your app stays in charge of persistence/sending. See [Optional message composer](#optional-message-composer-chatinputview).
 
 ---
 
 ## Requirements
 
-- .NET 10 (`net10.0-android`, `net10.0-ios`)
-- Minimum OS: Android 12 (API 31)+ / iOS 14.2+
+- .NET 10 (`net10.0-android`, `net10.0-ios`, `net10.0-windows10.0.19041.0`)
+- Minimum OS: Android 12 (API 31)+ / iOS 14.2+ / Windows 10 (2004)+ or Windows 11
 
 ---
 
@@ -430,8 +430,9 @@ any `ImageSource` (PNG/SVG/`FontImageSource`) and fall back to built-in glyphs w
 | `InputFontSize` / `IconFontSize` | 16 / 18 | Text and glyph-icon sizes. |
 | `SendIcon` / `AttachIcon` / `MicIcon` / `EmojiIcon` | built-in glyphs | Custom `ImageSource` icons. |
 
-> **Permissions (built-in attachments & recording):** add `RECORD_AUDIO` to the Android manifest, and
-> `NSMicrophoneUsageDescription` + `NSPhotoLibraryUsageDescription` to the iOS `Info.plist`. Prefer to
+> **Permissions (built-in attachments & recording):** add `RECORD_AUDIO` to the Android manifest,
+> `NSMicrophoneUsageDescription` + `NSPhotoLibraryUsageDescription` to the iOS `Info.plist`, and the
+> `microphone` device capability to the Windows `Package.appxmanifest`. Prefer to
 > handle media/recording yourself? Set `EnableAttachments`/`EnableVoiceRecording` to `False` and add
 > your own buttons that set `SelectedMedia` / call your `SendCommand`.
 
@@ -648,7 +649,7 @@ public class ContextAction
 
 ## Usage
 
-> **Platform-Specific Note:** The platform-specific code for iOS and Android uses a caching mechanism for images and video-based messages. The binary content of such messages is stored in the device's cache folder for optimized performance and memory management.
+> **Platform-Specific Note:** The platform-specific code for iOS and Android uses a caching mechanism for images and video-based messages. The binary content of such messages is stored in the device's cache folder for optimized performance and memory management. On Windows, media bytes are written to the temp folder keyed by the message id.
 
 > **Note:** The `ChatView` control is solely responsible for rendering different message types. It does not include features like a text input box or a send button. These components need to be implemented by the user in the MAUI.NET app, as demonstrated in the `Indiko.Maui.Controls.Chat.Sample` project.
 
