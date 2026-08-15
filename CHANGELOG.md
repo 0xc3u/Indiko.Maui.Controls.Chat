@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.7.0...v1.8.0) (2026-08-15)
+
+
+### Features
+
+* add Windows (WinUI 3) platform support for ChatView ([4bfb173](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/commit/4bfb17308c9da83438da7fac71446227dad486cf))
+
 # [1.7.0](https://github.com/0xc3u/Indiko.Maui.Controls.Chat/compare/v1.6.0...v1.7.0) (2026-06-30)
 
 
